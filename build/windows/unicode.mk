@@ -9,6 +9,7 @@ bin/unicode.dll: \
 obj/byteencoding.o \
 obj/byteordermark.o \
 obj/codepoint.o \
+obj/endianencoding.o \
 obj/encoding.o \
 obj/encodingerror.o \
 obj/error.o \
