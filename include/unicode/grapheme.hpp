@@ -32,6 +32,7 @@ namespace Unicode {
 		
 		
 			union {
+				const CodePoint * c_ptr;
 				CodePoint * ptr;
 				CodePoint cp;
 			};
@@ -60,9 +61,7 @@ namespace Unicode {
 			Grapheme (char c) noexcept;
 			
 			
-			CodePoint * begin () noexcept;
 			const CodePoint * begin () const noexcept;
-			CodePoint * end () noexcept;
 			const CodePoint * end () const noexcept;
 	
 	

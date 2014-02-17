@@ -56,21 +56,26 @@ namespace Unicode {
 		mode=other.mode;
 		count=other.count;
 		
-		if (mode==Mode::Single) {
+		switch (mode) {
 		
-			cp=other.cp;
-			
-			return;
+			case Mode::Single:
+				cp=other.cp;
+				break;
+				
+			case Mode::NonOwning:
+				c_ptr=other.c_ptr;
+				break;
+				
+			default:
+				allocate();
+				std::memcpy(
+					ptr,
+					other.ptr,
+					count
+				);
+				break;
 		
 		}
-		
-		allocate();
-		
-		std::memcpy(
-			ptr,
-			other.ptr,
-			count
-		);
 	
 	}
 	
@@ -80,17 +85,22 @@ namespace Unicode {
 		mode=other.mode;
 		count=other.count;
 		
-		if (mode==Mode::Single) {
+		switch (mode) {
 		
-			cp=other.cp;
-			
-			return;
+			case Mode::Single:
+				cp=other.cp;
+				break;
+				
+			case Mode::NonOwning:
+				c_ptr=other.c_ptr;
+				break;
+				
+			default:
+				ptr=other.ptr;
+				other.ptr=nullptr;
+				break;
 		
 		}
-		
-		ptr=other.ptr;
-		
-		if (mode==Mode::Owning) other.ptr=nullptr;
 	
 	}
 
@@ -152,30 +162,16 @@ namespace Unicode {
 	Grapheme::Grapheme (char c) noexcept : mode(Mode::Single), cp(static_cast<CodePoint::Type>(c)), count(1) {	}
 	
 	
-	CodePoint * Grapheme::begin () noexcept {
+	const CodePoint * Grapheme::begin () const noexcept {
 	
 		return (mode==Mode::Single) ? &cp : ptr;
 	
 	}
 	
 	
-	const CodePoint * Grapheme::begin () const noexcept {
-	
-		return const_cast<Grapheme *>(this)->begin();
-	
-	}
-	
-	
-	CodePoint * Grapheme::end () noexcept {
-	
-		return (mode==Mode::Single) ? (&cp+1) : (ptr+count);
-	
-	}
-	
-	
 	const CodePoint * Grapheme::end () const noexcept {
 	
-		return const_cast<Grapheme *>(this)->end();
+		return (mode==Mode::Single) ? (&cp+1) : (ptr+count);
 	
 	}
 
