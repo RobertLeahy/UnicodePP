@@ -184,19 +184,32 @@ namespace Unicode {
 	}
 	
 	
-	bool Encoding::CanRepresent (const Grapheme & g) const noexcept {
+	bool Encoding::CanRepresent (const CodePoint * begin, const CodePoint * end) const noexcept {
 	
-		for (auto cp : g) if (!CanRepresent(cp)) return false;
+		while (begin!=end) if (!CanRepresent(*(begin++))) return false;
 		
 		return true;
 	
 	}
 	
 	
-	std::size_t Encoding::Count (const Grapheme & g) const noexcept {
+	bool Encoding::CanRepresent (const Grapheme & g) const noexcept {
 	
-		//	Unimplemented
-		return 0;
+		return CanRepresent(g.begin(),g.end());
+	
+	}
+	
+	
+	bool Encoding::CanRepresent (const std::vector<CodePoint> & cps) const noexcept {
+	
+		return CanRepresent(&cps[0],&cps[0]+cps.size());
+	
+	}
+	
+	
+	bool Encoding::CanRepresent (const String & str) const noexcept {
+	
+		return CanRepresent(str.CodePoints());
 	
 	}
 

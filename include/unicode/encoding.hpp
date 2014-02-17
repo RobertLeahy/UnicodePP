@@ -460,6 +460,22 @@ namespace Unicode {
 			virtual bool CanRepresent (CodePoint cp) const noexcept = 0;
 			/**
 			 *	Determines whether the encoder can losslessly
+			 *	represent a certain range of code points.
+			 *
+			 *	\param [in] begin
+			 *		An iterator to the beginning of a contiguous
+			 *		range of code points.
+			 *	\param [in] end
+			 *		An iterator to the end of a contiguous range
+			 *		of code points.
+			 *
+			 *	\return
+			 *		\em true if the encoder can losslessly represent
+			 *		the range-in-question, \em false otherwise.
+			 */
+			bool CanRepresent (const CodePoint * begin, const CodePoint * end) const noexcept;
+			/**
+			 *	Determines whether the encoder can losslessly
 			 *	represent a certain grapheme.
 			 *
 			 *	\param [in] g
@@ -470,6 +486,30 @@ namespace Unicode {
 			 *		represent \em g, \em false otherwise.
 			 */
 			bool CanRepresent (const Grapheme & g) const noexcept;
+			/**
+			 *	Determines whether the encoder can losslessly
+			 *	represent a certain vector of code points.
+			 *
+			 *	\param [in] cps
+			 *		The vector.
+			 *
+			 *	\return
+			 *		\em true if the encoder can losslessly represent
+			 *		\em cps, \em false otherwise.
+			 */
+			bool CanRepresent (const std::vector<CodePoint> & cps) const noexcept;
+			/**
+			 *	Determines whether the encoder can losslessly
+			 *	represent a certain string.
+			 *
+			 *	\param [in] str
+			 *		The string.
+			 *
+			 *	\return
+			 *		\em true if the encoder can losslessly represent
+			 *		\em str, \em false otherwise.
+			 */
+			bool CanRepresent (const String & str) const noexcept;
 			/**
 			 *	Determines the number of bytes the encoder
 			 *	will require to represent a certain code point.
@@ -483,18 +523,6 @@ namespace Unicode {
 			 *		cannot represent \em cp.
 			 */
 			virtual std::size_t Count (CodePoint cp) const noexcept = 0;
-			/**
-			 *	Determines the number of bytes the encoder will
-			 *	require to represent a certain grapheme.
-			 *
-			 *	\param [in] g
-			 *		The grapheme.
-			 *
-			 *	\return
-			 *		The number of bytes this encoder will require
-			 *		to represent \em g.
-			 */
-			std::size_t Count (const Grapheme & g) const noexcept;
 	
 	
 	};
