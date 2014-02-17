@@ -171,7 +171,7 @@ namespace Unicode {
 			}
 			
 			
-			std::size_t Count () const noexcept {
+			std::size_t Size () const noexcept {
 			
 				return static_cast<std::size_t>(e-b);
 			

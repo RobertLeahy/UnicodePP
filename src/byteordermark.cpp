@@ -18,7 +18,7 @@ namespace Unicode {
 		
 		auto b=to_byte(begin);
 		auto e=to_byte(end);
-		auto c=Count();
+		auto c=Size();
 		if (static_cast<std::size_t>(e-b)<c) return retr;
 		e=b+c;
 		
