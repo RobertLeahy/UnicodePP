@@ -344,6 +344,24 @@ namespace Unicode {
 
 
 	};
+	
+	
+	/**
+	 *	Contains information about a Unicode
+	 *	composition.
+	 */
+	class Composition {
+	
+	
+		public:
+		
+		
+			CodePoint Starter;
+			CodePoint Combiner;
+			CodePoint Result;
+	
+	
+	};
 
 
 }

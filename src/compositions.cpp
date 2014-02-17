@@ -1,6 +1,9 @@
-static const UInt32 num_compositions=933U;
+namespace Unicode {
 
-static const Tuple<CodePoint,CodePoint,CodePoint> compositions []={
+
+static const std::size_t num_compositions=933U;
+
+static const Composition compositions []={
 	{	60U, 824U, 8814U	},
 	{	61U, 824U, 8800U	},
 	{	62U, 824U, 8815U	},
@@ -935,3 +938,6 @@ static const Tuple<CodePoint,CodePoint,CodePoint> compositions []={
 	{	69937U, 69927U, 69934U	},
 	{	69938U, 69927U, 69935U	}
 };
+
+
+}
