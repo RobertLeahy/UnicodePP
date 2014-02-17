@@ -12,7 +12,7 @@ namespace Unicode {
 		auto iter=std::find_if(
 			cps.begin(),
 			cps.end(),
-			[] (CodePoint cp) noexcept {	return !cp.IsWhitespace();	}
+			[&] (CodePoint cp) noexcept {	return !cp.IsWhitespace(GetLocale());	}
 		);
 		
 		auto s=cps.size()-static_cast<std::size_t>(iter-cps.begin());
@@ -33,8 +33,8 @@ namespace Unicode {
 		auto end=cps.rend();
 		auto iter=std::find_if(
 			cps.rbegin(),
-			cps.rend(),
-			[] (CodePoint cp) noexcept {	return !cp.IsWhitespace();	}
+			end,
+			[&] (CodePoint cp) noexcept {	return !cp.IsWhitespace(GetLocale());	}
 		);
 		
 		cps.resize(static_cast<std::size_t>(end-iter));
@@ -52,12 +52,13 @@ namespace Unicode {
 	}
 	
 	
-	String::String (const char * str) : cps(from_c_string(str)) {	}
+	String::String (const char * str) : cps(from_c_string(str)), locale(nullptr) {	}
 	
 	
 	String & String::operator = (const char * str) {
 	
 		cps=from_c_string(str);
+		locale=nullptr;
 		
 		return *this;
 	

@@ -7,7 +7,9 @@
 
 
 #include <unicode/codepoint.hpp>
+#include <unicode/locale.hpp>
 #include <cstddef>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -22,6 +24,7 @@ namespace Unicode {
 		
 		
 			std::vector<CodePoint> cps;
+			const Locale * locale;
 			
 			
 			void trim_front () noexcept;
@@ -34,7 +37,7 @@ namespace Unicode {
 			/**
 			 *	Creates an empty string.
 			 */
-			String () = default;
+			String () noexcept(std::is_nothrow_constructible<std::vector<CodePoint>>::value) : locale(nullptr) {	}
 			String (const String &) = default;
 			String (String &&) = default;
 			String & operator = (const String &) = default;
@@ -48,7 +51,7 @@ namespace Unicode {
 			 *	\param [in] cps
 			 *		A vector of Unicode code points.
 			 */
-			String (std::vector<CodePoint> cps) noexcept : cps(std::move(cps)) {	}
+			String (std::vector<CodePoint> cps) noexcept : cps(std::move(cps)), locale(nullptr) {	}
 			/**
 			 *	Assigns a vector of code points to this
 			 *	string.
@@ -62,6 +65,7 @@ namespace Unicode {
 			String & operator = (std::vector<CodePoint> cps) noexcept {
 			
 				this->cps=std::move(cps);
+				locale=nullptr;
 				
 				return *this;
 			
@@ -128,6 +132,43 @@ namespace Unicode {
 			std::vector<CodePoint> CodePoints () && noexcept {
 			
 				return std::move(cps);
+			
+			}
+			
+			
+			/**
+			 *	Retrieves this string's locale.
+			 *
+			 *	\return
+			 *		A reference to this string's locale.
+			 */
+			const Locale & GetLocale () const noexcept {
+			
+				return (locale==nullptr) ? Locale::Get() : *locale;
+			
+			}
+			
+			
+			/**
+			 *	Sets this string's locale.
+			 *
+			 *	\param [in] locale
+			 *		This string's new locale.
+			 */
+			void SetLocale (const Locale & locale) noexcept {
+			
+				this->locale=&locale;
+			
+			}
+			
+			
+			/**
+			 *	Clears this string's locale, causing it
+			 *	to use the current locale.
+			 */
+			void ClearLocale () noexcept {
+			
+				locale=nullptr;
 			
 			}
 			
