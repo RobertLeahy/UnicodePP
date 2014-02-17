@@ -151,6 +151,26 @@ namespace Unicode {
 			
 			
 			bool IsBreak (CodePoint next, const Locale & locale=get_locale()) const noexcept;
+			
+			
+			bool operator == (char c) const noexcept {
+			
+				union {
+					char in;
+					unsigned char out;
+				};
+				in=c;
+				
+				return cp==static_cast<Type>(out);
+			
+			}
+			
+			
+			bool operator == (Type t) const noexcept {
+			
+				return cp==t;
+			
+			}
 	
 	
 	};
