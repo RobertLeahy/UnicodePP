@@ -7,6 +7,7 @@
 
 
 #include <cstdint>
+#include <optional>
 
 
 namespace Unicode {
@@ -151,6 +152,9 @@ namespace Unicode {
 			
 			
 			bool IsBreak (CodePoint next, const Locale & locale=get_locale()) const noexcept;
+			
+			
+			std::optional<CodePoint> DoesCompose (CodePoint cp, const Locale & locale=get_locale()) const noexcept;
 			
 			
 			bool operator == (char c) const noexcept {
@@ -394,7 +398,7 @@ namespace Unicode {
 		
 		
 			CodePoint Starter;
-			CodePoint Combiner;
+			CodePoint Joiner;
 			CodePoint Result;
 	
 	

@@ -8,6 +8,7 @@
 
 #include <unicode/codepoint.hpp>
 #include <cstddef>
+#include <optional>
 #include <type_traits>
 #include <utility>
 
@@ -128,6 +129,7 @@ namespace Unicode {
 		
 		
 			const CodePointInfo * GetInfo (CodePoint cp) const noexcept;
+			std::optional<CodePoint> GetComposition (CodePoint starter, CodePoint joiner) const noexcept;
 	
 	
 	};

@@ -166,6 +166,13 @@ namespace Unicode {
 		return true;
 	
 	}
+	
+	
+	std::optional<CodePoint> CodePoint::DoesCompose (CodePoint cp, const Locale & locale) const noexcept {
+	
+		return locale.GetComposition(*this,cp);
+	
+	}
 
 
 }
