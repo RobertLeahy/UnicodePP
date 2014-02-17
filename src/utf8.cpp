@@ -1,8 +1,16 @@
 #include <unicode/utf8.hpp>
+#include <iterator>
 #include <limits>
 
 
 namespace Unicode {
+
+
+	static const unsigned char bom_bytes []={0xEFU,0xBBU,0xBFU};
+	static const ByteOrderMark bom(
+		std::begin(bom_bytes),
+		std::end(bom_bytes)
+	);
 
 
 	static char to_char (UTF8::CodeUnit c) noexcept {
@@ -230,6 +238,12 @@ namespace Unicode {
 	
 	void UTF8::Encoder (std::vector<char> & buffer, const CodePoint * begin, const CodePoint * end) const {
 	
+		//	Output BOM if necessary
+		if (
+			(buffer.size()==0) &&
+			OutputBOM
+		) bom.Get(buffer);
+	
 		for (;begin!=end;++begin) {
 		
 			//	Unicode strictness -- report an error
@@ -284,6 +298,8 @@ namespace Unicode {
 	
 	
 	void UTF8::Decoder (std::vector<CodePoint> & cps, const void * begin, const void * end) const {
+	
+		if (cps.size()==0) SkipBOM(begin,end,bom);
 	
 		auto b=reinterpret_cast<const CodeUnit *>(begin);
 		auto e=reinterpret_cast<const CodeUnit *>(end);
