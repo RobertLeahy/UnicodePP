@@ -210,13 +210,13 @@ namespace Unicode {
 	/**
 	 *	Determines grapheme cluster boundaries.
 	 */
-	enum class GraphemeClusterBreak {
+	enum class GraphemeBreak {
 	
 		CR,
 		LF,
 		Control,
 		Extend,
-		Regional_Indicator,
+		RegionalIndicator,
 		Prepend,
 		SpacingMark,
 		L,
@@ -340,7 +340,7 @@ namespace Unicode {
 			 *	The value of the code point's Grapheme_Cluster_Break
 			 *	property.
 			 */
-			GraphemeClusterBreak GraphemeBreakProperty;
+			GraphemeBreak Break;
 
 
 	};
