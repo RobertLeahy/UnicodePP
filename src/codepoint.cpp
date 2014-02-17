@@ -1,10 +1,15 @@
 #include <unicode/codepoint.hpp>
-#include <algorithm>
-#include <iterator>
-#include "data.cpp"
+#include <unicode/locale.hpp>
 
 
 namespace Unicode {
+
+
+	const Locale & CodePoint::get_locale () noexcept {
+	
+		return Locale::Get();
+	
+	}
 
 	
 	bool CodePoint::IsValid () const noexcept {
@@ -23,24 +28,16 @@ namespace Unicode {
 	}
 	
 	
-	const CodePointInfo * CodePoint::GetInfo () const noexcept {
+	const CodePointInfo * CodePoint::GetInfo (const Locale & locale) const noexcept {
 	
-		auto last=std::end(map);
-		auto iter=std::lower_bound(
-			std::begin(map),
-			last,
-			cp,
-			[] (const CodePointInfo & a, Type b) noexcept {	return a.CP<b;	}
-		);
-		
-		return (iter==last) ? nullptr : iter;
+		return locale.GetInfo(*this);
 	
 	}
 	
 	
-	bool CodePoint::IsWhitespace () const noexcept {
+	bool CodePoint::IsWhitespace (const Locale & locale) const noexcept {
 	
-		auto info=GetInfo();
+		auto info=GetInfo(locale);
 		if (info==nullptr) return false;
 		
 		switch (info->Category) {

@@ -9,11 +9,13 @@ bin/unicode.dll: \
 obj/byteencoding.o \
 obj/byteordermark.o \
 obj/codepoint.o \
+obj/defaultlocale.o \
 obj/endianencoding.o \
 obj/encoding.o \
 obj/encodingerror.o \
 obj/error.o \
 obj/grapheme.o \
+obj/locale.o \
 obj/string.o \
 obj/utf8.o | \
 bin

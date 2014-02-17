@@ -13,6 +13,7 @@ namespace Unicode {
 
 
 	class CodePointInfo;
+	class Locale;
 
 
 	/**
@@ -35,6 +36,9 @@ namespace Unicode {
 		
 		
 			Type cp;
+			
+			
+			static const Locale & get_locale () noexcept;
 			
 			
 		public:
@@ -112,13 +116,18 @@ namespace Unicode {
 			 *	structure containing information about this
 			 *	code point.
 			 *
+			 *	\param [in] locale
+			 *		The locale from which to get information
+			 *		about this code point.  Optional.  Defaults
+			 *		to the current locale.
+			 *
 			 *	\return
 			 *		A pointer to a CodePointInfo structure
 			 *		containing information about this code
 			 *		point if one could be found, \em nullptr
 			 *		otherwise.
 			 */
-			const CodePointInfo * GetInfo () const noexcept;
+			const CodePointInfo * GetInfo (const Locale & locale=get_locale()) const noexcept;
 			
 			
 			/**
@@ -128,12 +137,17 @@ namespace Unicode {
 			 *	A code point is whitespace if it is a
 			 *	member of one of the Unicode general
 			 *	categories Zs, Zl, or Zp.
+			 *
+			 *	\param [in] locale
+			 *		The locale from which to get information
+			 *		about this code point.  Optional.  Defaults
+			 *		to the current locale.
 			 *	
 			 *	\return
 			 *		\em true if this code point is
 			 *		whitespace, \em false otherwise.
 			 */
-			bool IsWhitespace () const noexcept;
+			bool IsWhitespace (const Locale & locale=get_locale()) const noexcept;
 	
 	
 	};
