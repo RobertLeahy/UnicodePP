@@ -159,7 +159,17 @@ namespace Unicode {
 	}
 	
 	
-	Grapheme::Grapheme (char c) noexcept : mode(Mode::Single), cp(static_cast<CodePoint::Type>(c)), count(1) {	}
+	Grapheme::Grapheme (char c) noexcept : mode(Mode::Single), count(1) {
+	
+		union {
+			unsigned char out;
+			char in;
+		};
+		in=c;
+		
+		cp=static_cast<CodePoint::Type>(out);
+	
+	}
 	
 	
 	const CodePoint * Grapheme::begin () const noexcept {
