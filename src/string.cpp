@@ -20,7 +20,7 @@ namespace Unicode {
 		std::memmove(
 			&cps[0],
 			&(*iter),
-			s
+			s*sizeof(CodePoint)
 		);
 		
 		cps.resize(s);
@@ -30,17 +30,14 @@ namespace Unicode {
 	
 	void String::trim_rear () noexcept {
 	
+		auto end=cps.rend();
 		auto iter=std::find_if(
 			cps.rbegin(),
 			cps.rend(),
 			[] (CodePoint cp) noexcept {	return !cp.IsWhitespace();	}
 		);
 		
-		cps.resize(
-			static_cast<std::size_t>(
-				iter-cps.rbegin()
-			)
-		);
+		cps.resize(static_cast<std::size_t>(end-iter));
 	
 	}
 	
