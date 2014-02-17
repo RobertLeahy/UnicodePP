@@ -1,0 +1,10 @@
+bin
+obj
+makefiles
+include/optional
+/*.bat
+!/build.bat
+/*.mk
+/Makefile
+test.cpp
+test.mk
