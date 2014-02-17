@@ -61,6 +61,9 @@ namespace Unicode {
 			Grapheme (char c) noexcept;
 			
 			
+			Grapheme (const CodePoint * ptr, std::size_t count) noexcept;
+			
+			
 			const CodePoint * begin () const noexcept;
 			const CodePoint * end () const noexcept;
 	

@@ -172,6 +172,9 @@ namespace Unicode {
 	}
 	
 	
+	Grapheme::Grapheme (const CodePoint * ptr, std::size_t count) noexcept : mode(Mode::NonOwning), c_ptr(ptr), count(count) {	}
+	
+	
 	const CodePoint * Grapheme::begin () const noexcept {
 	
 		return (mode==Mode::Single) ? &cp : ptr;
