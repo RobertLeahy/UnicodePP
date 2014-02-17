@@ -12,7 +12,7 @@ namespace Unicode {
 		auto iter=std::find_if(
 			cps.begin(),
 			cps.end(),
-			[] (CodePoint cp) noexcept -> bool {	return !cp.IsWhitespace();	}
+			[] (CodePoint cp) noexcept {	return !cp.IsWhitespace();	}
 		);
 		
 		auto s=cps.size()-static_cast<std::size_t>(iter-cps.begin());
@@ -33,7 +33,7 @@ namespace Unicode {
 		auto iter=std::find_if(
 			cps.rbegin(),
 			cps.rend(),
-			[] (CodePoint cp) noexcept -> bool {	return !cp.IsWhitespace();	}
+			[] (CodePoint cp) noexcept {	return !cp.IsWhitespace();	}
 		);
 		
 		cps.resize(
