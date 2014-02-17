@@ -6,7 +6,7 @@
 #pragma once
 
 
-#include <unicode/encoding.hpp>
+#include <unicode/byteencoding.hpp>
 
 
 namespace Unicode {
@@ -15,7 +15,7 @@ namespace Unicode {
 	/**
 	 *	The UTF-8 multi-byte encoding.
 	 */
-	class UTF8 : public Encoding {
+	class UTF8 : public ByteEncoding {
 	
 	
 		public:

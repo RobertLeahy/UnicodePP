@@ -6,6 +6,7 @@ unicode: bin/unicode.dll
 
 
 bin/unicode.dll: \
+obj/byteencoding.o \
 obj/byteordermark.o \
 obj/codepoint.o \
 obj/encoding.o \
