@@ -145,7 +145,8 @@ namespace Unicode {
 			StrictAction(EncodingAction::Throw),
 			StrictReplacement('?'),
 			LossyAction(EncodingAction::Nothing),
-			LossyReplacement(' ')
+			LossyReplacement(' '),
+			OutputBOM(false)
 	{	}
 	
 	

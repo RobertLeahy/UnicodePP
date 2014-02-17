@@ -373,6 +373,12 @@ namespace Unicode {
 			 *	point either, it should throw an exception.
 			 */
 			Grapheme LossyReplacement;
+			/**
+			 *	\em true if the encoder should prepend all
+			 *	encoded output with an appropriate byte order
+			 *	mark, \em false otherwise.
+			 */
+			bool OutputBOM;
 			
 			
 			Encoding () noexcept;
