@@ -221,11 +221,59 @@ namespace Unicode {
 			Encoding & operator = (Encoding &&) = delete;
 			
 			
+			/**
+			 *	Encodes a string.
+			 *
+			 *	\param [in] str
+			 *		A string.
+			 *
+			 *	\return
+			 *		A vector of bytes containing the
+			 *		encoded representation of the string.
+			 */
 			std::vector<char> Encode (const String & str) const;
+			/**
+			 *	Encodes a string.
+			 *
+			 *	\param [in] str
+			 *		A vector containing the code points of
+			 *		the string.
+			 *
+			 *	\return
+			 *		A vector of bytes containing the
+			 *		encoded representation of the string.
+			 */
 			std::vector<char> Encode (const std::vector<CodePoint> & cps) const;
+			/**
+			 *	Encodes a string.
+			 *
+			 *	\param [in] begin
+			 *		An iterator to the beginning of a contiguous
+			 *		range of code points.
+			 *	\param [in] end
+			 *		An iterator to one past the end of a contiguous
+			 *		range of code points.
+			 *
+			 *	\return
+			 *		A vector of bytes containing the
+			 *		encoded representation of the string.
+			 */
 			std::vector<char> Encode (const CodePoint * begin, const CodePoint * end) const;
 			
 			
+			/**
+			 *	Decodes a string.
+			 *
+			 *	\param [in] begin
+			 *		An iterator to the beginning of a contiguous
+			 *		range of bytes.
+			 *	\param [in] end
+			 *		An iterator to the end of a contiguous range
+			 *		of bytes.
+			 *
+			 *	\return
+			 *		A string.
+			 */
 			String Decode (const void * begin, const void * end) const;
 			
 			
