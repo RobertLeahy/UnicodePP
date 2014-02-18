@@ -7,12 +7,12 @@
 namespace Unicode {
 
 
-	void String::trim_front () noexcept {
+	void String::trim_front (const Locale & locale) noexcept {
 	
 		auto iter=std::find_if(
 			cps.begin(),
 			cps.end(),
-			[&] (CodePoint cp) noexcept {	return !cp.IsWhitespace(GetLocale());	}
+			[&] (CodePoint cp) noexcept {	return !cp.IsWhitespace(locale);	}
 		);
 		
 		auto s=cps.size()-static_cast<std::size_t>(iter-cps.begin());
@@ -28,13 +28,13 @@ namespace Unicode {
 	}
 	
 	
-	void String::trim_rear () noexcept {
+	void String::trim_rear (const Locale & locale) noexcept {
 	
 		auto end=cps.rend();
 		auto iter=std::find_if(
 			cps.rbegin(),
 			end,
-			[&] (CodePoint cp) noexcept {	return !cp.IsWhitespace(GetLocale());	}
+			[&] (CodePoint cp) noexcept {	return !cp.IsWhitespace(locale);	}
 		);
 		
 		cps.resize(static_cast<std::size_t>(end-iter));
@@ -88,8 +88,10 @@ namespace Unicode {
 	
 	String & String::Trim () noexcept {
 	
-		trim_front();
-		trim_rear();
+		auto & locale=GetLocale();
+	
+		trim_front(locale);
+		trim_rear(locale);
 		
 		return *this;
 	

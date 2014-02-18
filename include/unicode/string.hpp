@@ -27,8 +27,8 @@ namespace Unicode {
 			const Locale * locale;
 			
 			
-			void trim_front () noexcept;
-			void trim_rear () noexcept;
+			void trim_front (const Locale &) noexcept;
+			void trim_rear (const Locale &) noexcept;
 			
 			
 		public:
