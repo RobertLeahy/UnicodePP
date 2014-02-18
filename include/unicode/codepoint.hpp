@@ -290,17 +290,17 @@ namespace Unicode {
 			/**
 			 *	The code point's combining class, or 0 if it is not a combining mark.
 			 */
-			std::size_t CanonicalCombiningClass;
+			std::size_t CombiningClass;
 			/**
 			 *	The length of the sequence of code points into which this code point
 			 *	canonically decomposes, or 0 if it does not decompose.
 			 */
-			std::size_t DecompositionMappingLength;
+			std::size_t DecompositionLength;
 			/**
 			 *	The code points into which this code point canonically decomposes, or
 			 *	nullptr if it does not decompose.
 			 */
-			const CodePoint * DecompositionMapping;
+			const CodePoint * Decomposition;
 			/**
 			 *	Whether or not this code point corresponds to a decimal digit value.
 			 */
