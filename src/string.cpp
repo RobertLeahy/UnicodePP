@@ -7,6 +7,42 @@
 namespace Unicode {
 
 
+	CodePoint * String::ptr_begin () noexcept {
+	
+		return &cps[0];
+	
+	}
+	
+	
+	const CodePoint * String::ptr_begin () const noexcept {
+	
+		return &cps[0];
+	
+	}
+	
+	
+	CodePoint * String::ptr_end () noexcept {
+	
+		return &cps[0]+cps.size();
+	
+	}
+	
+	
+	const CodePoint * String::ptr_end () const noexcept {
+	
+		return &cps[0]+cps.size();
+	
+	}
+	
+	
+	template <typename T>
+	auto to_pointer (T && iter) noexcept(noexcept(*iter)) -> decltype(&(*iter)) {
+	
+		return &(*iter);
+	
+	}
+
+
 	void String::trim_front (const Locale & locale) noexcept {
 	
 		auto iter=std::find_if(
@@ -18,8 +54,8 @@ namespace Unicode {
 		auto s=cps.size()-static_cast<std::size_t>(iter-cps.begin());
 		
 		std::memmove(
-			&cps[0],
-			&(*iter),
+			ptr_begin(),
+			to_pointer(iter),
 			s*sizeof(CodePoint)
 		);
 		

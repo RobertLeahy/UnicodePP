@@ -27,6 +27,12 @@ namespace Unicode {
 			const Locale * locale;
 			
 			
+			CodePoint * ptr_begin () noexcept;
+			const CodePoint * ptr_begin () const noexcept;
+			CodePoint * ptr_end () noexcept;
+			const CodePoint * ptr_end () const noexcept;
+			
+			
 			void trim_front (const Locale &) noexcept;
 			void trim_rear (const Locale &) noexcept;
 			
