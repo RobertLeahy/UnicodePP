@@ -14,6 +14,7 @@ obj/endianencoding.o \
 obj/encoding.o \
 obj/encodingerror.o \
 obj/error.o \
+obj/normalizer.o \
 obj/grapheme.o \
 obj/locale.o \
 obj/string.o \
