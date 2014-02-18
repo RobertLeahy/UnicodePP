@@ -132,6 +132,32 @@ namespace Unicode {
 		return *this;
 	
 	}
+	
+	
+	String String::Normalize (NormalForm nf) const {
+	
+		Normalizer n(nf,GetLocale());
+		return String(
+			n.Normalize(
+				ptr_begin(),
+				ptr_end()
+			)
+		);
+	
+	}
+	
+	
+	String & String::Normalize (NormalForm nf) {
+	
+		Normalizer n(nf,GetLocale());
+		cps=n.Normalize(
+			ptr_begin(),
+			ptr_end()
+		);
+		
+		return *this;
+	
+	}
 
 
 }

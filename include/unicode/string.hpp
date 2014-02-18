@@ -8,6 +8,7 @@
 
 #include <unicode/codepoint.hpp>
 #include <unicode/locale.hpp>
+#include <unicode/normalizer.hpp>
 #include <cstddef>
 #include <type_traits>
 #include <utility>
@@ -197,6 +198,37 @@ namespace Unicode {
 			 *		A reference to this string.
 			 */
 			String & Trim () noexcept;
+			
+			
+			/**
+			 *	Places this string in a Unicode normal form.
+			 *
+			 *	\param [in] nf
+			 *		The normal form in which to place this
+			 *		string.  Defaults to the default specified
+			 *		by the Normalizer class.
+			 *
+			 *	\return
+			 *		A new string, which is a copy of this
+			 *		string transformed to the desired normal
+			 *		form.
+			 */
+			String Normalize (NormalForm nf=Normalizer::Default) const;
+			/**
+			 *	Places this string in a Unicode normal form.
+			 *
+			 *	\param [in] nf
+			 *		The normal form in which to place this
+			 *		string.  Defaults to the default specified
+			 *		by the Normalizer class.
+			 *
+			 *	\return
+			 *		A reference to this string.
+			 */
+			String & Normalize (NormalForm nf=Normalizer::Default);
+			
+			
+			
 	
 	
 	};
