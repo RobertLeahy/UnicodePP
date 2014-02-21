@@ -10,6 +10,7 @@
 #include <unicode/locale.hpp>
 #include <unicode/normalizer.hpp>
 #include <cstddef>
+#include <functional>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -265,10 +266,56 @@ namespace Unicode {
 			bool IsNormalized (NormalForm nf=Normalizer::Default) const noexcept;
 			
 			
+	
+	
+	};
+	
+	
+}
+
+
+namespace std {
+
+
+	template <>
+	struct hash<Unicode::String> {
+	
+	
+		private:
+		
+		
+			static size_t compute (const Unicode::String & str) noexcept {
 			
+				size_t retr=5381;
+				for (auto cp : str.CodePoints()) {
+				
+					retr*=33;
+					retr^=static_cast<Unicode::CodePoint::Type>(cp);
+				
+				}
+				
+				return retr;
+			
+			}
+	
+	
+		public:
+		
+		
+			template <typename T>
+			size_t operator () (T && str) const {
+			
+				return compute(str.Normalize());
+			
+			}
 	
 	
 	};
 
 
 }
+
+
+/**
+ *	\endcond
+ */
