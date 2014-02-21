@@ -177,6 +177,17 @@ namespace Unicode {
 		return cpy;
 	
 	}
+	
+	
+	bool String::IsNormalized (NormalForm nf) const noexcept {
+	
+		Normalizer n(nf,GetLocale());
+		return n.IsNormalized(
+			ptr_begin(),
+			ptr_end()
+		);
+	
+	}
 
 
 }

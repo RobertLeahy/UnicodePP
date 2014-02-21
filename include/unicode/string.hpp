@@ -250,6 +250,19 @@ namespace Unicode {
 			 *		form.
 			 */
 			String Normalize (NormalForm nf=Normalizer::Default) &&;
+			/**
+			 *	Checks to see if this string is in a Unicode
+			 *	normal form.
+			 *
+			 *	\param [in] nf
+			 *		The normal form to check.  Defaults to the
+			 *		default specified by the Normalizer class.
+			 *
+			 *	\return
+			 *		\em true if this string is in \em nf, \em false
+			 *		otherwise.
+			 */
+			bool IsNormalized (NormalForm nf=Normalizer::Default) const noexcept;
 			
 			
 			
