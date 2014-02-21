@@ -213,7 +213,7 @@ namespace Unicode {
 			 *		string transformed to the desired normal
 			 *		form.
 			 */
-			String Normalize (NormalForm nf=Normalizer::Default) const;
+			String Normalize (NormalForm nf=Normalizer::Default) const &;
 			/**
 			 *	Places this string in a Unicode normal form.
 			 *
@@ -225,7 +225,21 @@ namespace Unicode {
 			 *	\return
 			 *		A reference to this string.
 			 */
-			String & Normalize (NormalForm nf=Normalizer::Default);
+			String & Normalize (NormalForm nf=Normalizer::Default) &;
+			/**
+			 *	Places this string in a Unicode normal form.
+			 *
+			 *	\param [in] nf
+			 *		The normal form in which to place this
+			 *		string.  Defaults to the default specified
+			 *		by the Normalizer class.
+			 *
+			 *	\return
+			 *		A new string, which is a copy of this
+			 *		string transformed to the desired normal
+			 *		form.
+			 */
+			String Normalize (NormalForm nf=Normalizer::Default) &&;
 			
 			
 			

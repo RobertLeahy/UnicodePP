@@ -134,7 +134,7 @@ namespace Unicode {
 	}
 	
 	
-	String String::Normalize (NormalForm nf) const {
+	String String::Normalize (NormalForm nf) const & {
 	
 		Normalizer n(nf,GetLocale());
 		return String(
@@ -147,7 +147,7 @@ namespace Unicode {
 	}
 	
 	
-	String & String::Normalize (NormalForm nf) {
+	String & String::Normalize (NormalForm nf) & {
 	
 		Normalizer n(nf,GetLocale());
 		cps=n.Normalize(
@@ -156,6 +156,16 @@ namespace Unicode {
 		);
 		
 		return *this;
+	
+	}
+	
+	
+	String String::Normalize (NormalForm nf) && {
+	
+		String cpy(std::move(*this));
+		cpy.Normalize(nf);
+		
+		return cpy;
 	
 	}
 
