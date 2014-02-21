@@ -189,7 +189,7 @@ namespace Unicode {
 			 *		this string with all leading and
 			 *		trailing whitespace removed.
 			 */
-			String Trim () const;
+			String Trim () const &;
 			/**
 			 *	Trims whitespace from the beginning and
 			 *	end of this string.
@@ -197,7 +197,17 @@ namespace Unicode {
 			 *	\return
 			 *		A reference to this string.
 			 */
-			String & Trim () noexcept;
+			String & Trim () & noexcept;
+			/**
+			 *	Trims whitespace from the beginning and
+			 *	end of this string.
+			 *
+			 *	\return
+			 *		A new string, which is a copy of
+			 *		this string with all leading and
+			 *		trailing whitespace removed.
+			 */
+			String Trim () && noexcept;
 			
 			
 			/**

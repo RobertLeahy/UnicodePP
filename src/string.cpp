@@ -111,10 +111,9 @@ namespace Unicode {
 	}
 
 
-	String String::Trim () const {
+	String String::Trim () const & {
 	
-		String cpy=*this;
-		
+		String cpy(*this);
 		cpy.Trim();
 		
 		return cpy;
@@ -122,7 +121,7 @@ namespace Unicode {
 	}
 	
 	
-	String & String::Trim () noexcept {
+	String & String::Trim () & noexcept {
 	
 		auto & locale=GetLocale();
 	
@@ -130,6 +129,16 @@ namespace Unicode {
 		trim_rear(locale);
 		
 		return *this;
+	
+	}
+	
+	
+	String String::Trim () && noexcept {
+	
+		String cpy(*this);
+		cpy.Trim();
+		
+		return cpy;
 	
 	}
 	
