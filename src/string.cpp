@@ -45,21 +45,14 @@ namespace Unicode {
 
 	void String::trim_front (const Locale & locale) noexcept {
 	
-		auto iter=std::find_if(
+		cps.erase(
 			cps.begin(),
-			cps.end(),
-			[&] (CodePoint cp) noexcept {	return !cp.IsWhitespace(locale);	}
+			std::find_if(
+				cps.begin(),
+				cps.end(),
+				[&] (CodePoint cp) noexcept {	return !cp.IsWhitespace(locale);	}
+			)
 		);
-		
-		auto s=cps.size()-static_cast<std::size_t>(iter-cps.begin());
-		
-		std::memmove(
-			ptr_begin(),
-			to_pointer(iter),
-			s*sizeof(CodePoint)
-		);
-		
-		cps.resize(s);
 	
 	}
 	
