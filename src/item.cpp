@@ -180,10 +180,18 @@ namespace Unicode {
 		) return retr;
 		
 		//	Get the range separator
-		for (std::size_t i=0;i<2;++i) if (
-			(*begin!='.') ||
-			is_whitespace(begin,end)
-		) return retr;
+		for (std::size_t i=0;i<2;++i) {
+		
+			if (*begin=='.') {
+			
+				++begin;
+				continue;
+			
+			}
+			
+			if (is_whitespace(begin,end)) return retr;
+		
+		}
 		
 		//	Get and check the end of the range
 		auto second=get_code_point(begin,end);
