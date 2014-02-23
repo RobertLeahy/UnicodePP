@@ -89,7 +89,7 @@ namespace Unicode {
 			//	Try and add this digit in
 			auto next=add_digit(i,iter->second);
 			if (!next) return retr;
-			i+=*next;
+			i=*next;
 		
 		}
 		
