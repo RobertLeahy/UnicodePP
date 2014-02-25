@@ -270,6 +270,64 @@ namespace Unicode {
 	};
 	
 	
+	
+	
+	/**
+	 *	Represents a condition.
+	 */
+	class Condition {
+	
+	
+		private:
+		
+		
+			bool negated;
+			bool (* func) (const CodePoint *, const CodePoint *, const CodePoint *, const Locale &) noexcept;
+			
+			
+		public:
+		
+		
+			/**
+			 *	Creates a new Condition.
+			 *
+			 *	\param [in] negated
+			 *		\em true if the sense of the condition
+			 *		should be negated, \em false otherwise.
+			 *	\param [in] func
+			 *		A pointer to a function which implements
+			 *		the condition.
+			 */
+			Condition (
+				bool negated,
+				bool (* func) (const CodePoint *, const CodePoint *, const CodePoint *, const Locale &) noexcept
+			) noexcept : negated(negated), func(func) {	}
+			
+
+			/**
+			 *	Evaluates the condition.
+			 *
+			 *	\param [in] loc
+			 *		An iterator to the current location
+			 *		in the string.
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the
+			 *		string.
+			 *	\param [in] end
+			 *		An iterator to the end of the string.
+			 *	\param [in] locale
+			 *		The current locale.
+			 *
+			 *	\return
+			 *		\em true if the condition holds, \em false
+			 *		otherwise.
+			 */
+			bool operator () (const CodePoint * loc, const CodePoint * begin, const CodePoint * end, const Locale & locale) const noexcept;
+	
+	
+	};
+	
+	
 	/**
 	 *	Contains information about a Unicode code point.
 	 */
