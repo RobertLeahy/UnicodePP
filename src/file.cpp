@@ -40,7 +40,7 @@ namespace Unicode {
 	
 	std::optional<Line> File::Get () {
 	
-		std::vector<char> line;
+		std::string line;
 		bool cr=false;
 		for (;;) {
 		
@@ -56,7 +56,7 @@ namespace Unicode {
 					case '\n':{
 						auto retr=Line::Get(std::move(line));
 						if (retr) return retr;
-						line=std::vector<char>{};
+						line=std::string{};
 					}break;
 						
 					default:

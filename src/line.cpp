@@ -17,7 +17,7 @@ namespace Unicode {
 	}
 	
 	
-	static void trim_front (std::vector<char> & str) {
+	static void trim_front (std::string & str) {
 	
 		str.erase(
 			str.begin(),
@@ -31,7 +31,7 @@ namespace Unicode {
 	}
 	
 	
-	static void trim_back (std::vector<char> & str) {
+	static void trim_back (std::string & str) {
 	
 		auto begin=str.rbegin();
 		auto iter=std::find_if(
@@ -49,7 +49,7 @@ namespace Unicode {
 	}
 	
 	
-	static void trim (std::vector<char> & str) {
+	static void trim (std::string & str) {
 	
 		trim_back(str);
 		trim_front(str);
@@ -57,7 +57,7 @@ namespace Unicode {
 	}
 	
 	
-	std::optional<Line> Line::Get (std::vector<char> str) {
+	std::optional<Line> Line::Get (std::string str) {
 	
 		std::optional<Line> retr;
 		
@@ -76,13 +76,13 @@ namespace Unicode {
 		//	If a hash is found, that means the rest of
 		//	the line is a comment and ought to be ignored
 		std::vector<Item> items;
-		std::vector<char> item;
+		std::string item;
 		for (auto c : str) switch (c) {
 		
 			case ';':
 				trim(item);
 				items.push_back(std::move(item));
-				item=std::vector<char>{};
+				item=std::string{};
 				break;
 				
 			case '#':

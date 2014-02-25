@@ -8,15 +8,10 @@
 namespace Unicode {
 
 
-	Item::Item (std::vector<char> str) : str(std::move(str)) {
-		
-		//	Make into a C string
-		this->str.push_back('\0');
-	
-	}
+	Item::Item (std::string str) noexcept : str(std::move(str)) {	}
 	
 	
-	static const std::unordered_map<char,std::uint32_t> map={
+	static const std::unordered_map<char,Unicode::CodePoint::Type> map={
 		{'0',0},
 		{'1',1},
 		{'2',2},
@@ -36,11 +31,11 @@ namespace Unicode {
 	};
 	
 	
-	static std::optional<std::uint32_t> add_digit (std::uint32_t curr, std::uint32_t digit) noexcept {
+	static std::optional<Unicode::CodePoint::Type> add_digit (Unicode::CodePoint::Type curr, Unicode::CodePoint::Type digit) noexcept {
 	
-		std::optional<std::uint32_t> retr;
+		std::optional<Unicode::CodePoint::Type> retr;
 		
-		constexpr std::uint32_t max=std::numeric_limits<std::uint32_t>::max();
+		constexpr Unicode::CodePoint::Type max=std::numeric_limits<Unicode::CodePoint::Type>::max();
 		
 		//	Checked multiply
 		if (
@@ -59,12 +54,12 @@ namespace Unicode {
 	
 	
 	template <typename T>
-	std::optional<std::uint32_t> get_code_point (T & begin, const T & end) noexcept {
+	std::optional<Unicode::CodePoint::Type> get_code_point (T & begin, const T & end) noexcept {
 	
-		std::optional<std::uint32_t> retr;
+		std::optional<Unicode::CodePoint::Type> retr;
 		
 		bool found=false;
-		std::uint32_t i=0;
+		Unicode::CodePoint::Type i=0;
 		
 		for (;begin!=end;++begin) {
 		
@@ -110,7 +105,7 @@ namespace Unicode {
 	}
 	
 	
-	std::optional<std::uint32_t> Item::CodePoint () const noexcept {
+	std::optional<Unicode::CodePoint::Type> Item::CodePoint () const noexcept {
 	
 		auto begin=this->begin();
 		auto end=this->end();
@@ -120,17 +115,17 @@ namespace Unicode {
 		//	(if any) are whitespace
 		for (;begin!=end;++begin)
 		if (!std::isspace(*begin))
-		return std::optional<std::uint32_t>{};
+		return std::optional<Unicode::CodePoint::Type>{};
 		
 		return retr;
 	
 	}
 	
 	
-	std::optional<std::vector<std::uint32_t>> Item::CodePoints () const {
+	std::optional<std::vector<Unicode::CodePoint::Type>> Item::CodePoints () const {
 	
-		std::optional<std::vector<std::uint32_t>> retr;
-		std::vector<std::uint32_t> vec;
+		std::optional<std::vector<Unicode::CodePoint::Type>> retr;
+		std::vector<Unicode::CodePoint::Type> vec;
 	
 		//	1 for just the null terminator
 		if (str.size()==1) {
@@ -231,7 +226,7 @@ namespace Unicode {
 	std::optional<Condition> get_condition (T & begin, const T & end) {
 	
 		bool negated=false;
-		std::vector<char> name;
+		std::string name;
 		
 		if (is_whitespace(begin,end)) return std::optional<Condition>{};
 		
@@ -246,7 +241,7 @@ namespace Unicode {
 			++begin
 		) name.push_back(*begin);
 		
-		return Condition(negated,std::move(name));
+		return Condition{negated,std::move(name)};
 	
 	}
 	
@@ -272,14 +267,14 @@ namespace Unicode {
 	
 	const char * Item::begin () const noexcept {
 	
-		return *this;
+		return str.c_str();
 	
 	}
 	
 	
 	const char * Item::end () const noexcept {
 	
-		return &(*(str.end()-1));
+		return str.c_str()+str.size();
 	
 	}
 

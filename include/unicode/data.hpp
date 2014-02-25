@@ -6,10 +6,11 @@
 #pragma once
  
 
+#include <unicode/codepoint.hpp>
 #include <cstddef>
-#include <cstdint>
 #include <fstream>
 #include <optional>
+#include <string>
 #include <vector>
  
  
@@ -31,13 +32,13 @@ namespace Unicode {
 			 *
 			 *	Inclusive.
 			 */
-			std::uint32_t Low;
+			CodePoint::Type Low;
 			/**
 			 *	The upper bound of the range.
 			 *
 			 *	Inclusive.
 			 */
-			std::uint32_t High;
+			CodePoint::Type High;
 	
 	
 	};
@@ -49,21 +50,7 @@ namespace Unicode {
 	class Condition {
 	
 	
-		private:
-		
-		
-			std::vector<char> name;
-	
-	
 		public:
-		
-		
-			Condition () = delete;
-			Condition (bool, std::vector<char>);
-			Condition (const Condition &) = default;
-			Condition (Condition &&) = default;
-			Condition & operator = (const Condition &) = default;
-			Condition & operator = (Condition &&) = default;
 		
 		
 			/**
@@ -71,13 +58,10 @@ namespace Unicode {
 			 *	is inverted, \em false otherwise.
 			 */
 			bool Negated;
-			
-			
-			operator const char * () const noexcept {
-			
-				return &name[0];
-			
-			}
+			/**
+			 *	The name of the condition.
+			 */
+			std::string Name;
 	
 	
 	};
@@ -93,14 +77,14 @@ namespace Unicode {
 		private:
 		
 		
-			std::vector<char> str;
+			std::string str;
 			
 			
 		public:
 		
 		
 			Item () = delete;
-			Item (std::vector<char>);
+			Item (std::string) noexcept;
 			Item (const Item &) = default;
 			Item (Item &&) = default;
 			Item & operator = (const Item &) = default;
@@ -111,8 +95,8 @@ namespace Unicode {
 			 *	Attempts to retrieve the code point associated
 			 *	with this 
 			 */
-			std::optional<std::uint32_t> CodePoint () const noexcept;
-			std::optional<std::vector<std::uint32_t>> CodePoints () const;
+			std::optional<Unicode::CodePoint::Type> CodePoint () const noexcept;
+			std::optional<std::vector<Unicode::CodePoint::Type>> CodePoints () const;
 			std::optional<Unicode::Range> Range () const noexcept;
 			std::vector<Condition> Conditions () const;
 			
@@ -121,15 +105,9 @@ namespace Unicode {
 			const char * end () const noexcept;
 			
 			
-			/**
-			 *	Retrieves the C string this item encapsulates.
-			 *
-			 *	\return
-			 *		A C string.
-			 */
-			operator const char * () const noexcept {
+			const std::string & Get () const noexcept {
 			
-				return &str[0];
+				return str;
 			
 			}
 	
@@ -166,7 +144,7 @@ namespace Unicode {
 			 */
 			
 			
-			static std::optional<Line> Get (std::vector<char> str);
+			static std::optional<Line> Get (std::string str);
 			
 			
 			/**
