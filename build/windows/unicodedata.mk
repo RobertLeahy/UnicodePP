@@ -8,6 +8,7 @@ unicodedata: bin/unicodedata.dll
 bin/unicodedata.dll: \
 obj/condition.o \
 obj/file.o \
+obj/fileiterator.o \
 obj/item.o \
 obj/line.o | \
 bin

@@ -9,7 +9,7 @@ namespace Unicode {
 
 	void File::read () {
 	
-		begin=buffer;
+		b_iter=buffer;
 		
 		file.read(buffer,size);
 		
@@ -23,7 +23,7 @@ namespace Unicode {
 			"Error while reading file"
 		);
 		
-		end=begin+file.gcount();
+		e_iter=b_iter+file.gcount();
 	
 	}
 
@@ -33,8 +33,8 @@ namespace Unicode {
 				filename,
 				std::ios::in
 			),
-			begin(nullptr),
-			end(nullptr)
+			b_iter(nullptr),
+			e_iter(nullptr)
 	{	}
 	
 	
@@ -44,9 +44,9 @@ namespace Unicode {
 		bool cr=false;
 		for (;;) {
 		
-			for (;begin!=end;++begin) {
+			for (;b_iter!=e_iter;++b_iter) {
 			
-				switch (*begin) {
+				switch (*b_iter) {
 				
 					case '\r':
 						if (cr) line.push_back('\r');
@@ -64,7 +64,7 @@ namespace Unicode {
 							cr=false;
 							line.push_back('\r');
 						}
-						line.push_back(*begin);
+						line.push_back(*b_iter);
 						break;
 				
 				}
@@ -82,6 +82,20 @@ namespace Unicode {
 			read();
 			
 		}
+	
+	}
+	
+	
+	FileIterator File::begin () {
+	
+		return FileIterator(*this,false);
+	
+	}
+	
+	
+	FileIterator File::end () {
+	
+		return FileIterator(*this,true);
 	
 	}
 

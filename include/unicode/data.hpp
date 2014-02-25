@@ -177,6 +177,123 @@ namespace Unicode {
 	};
 	
 	
+	class File;
+	
+	
+	/**
+	 *	Iterates over the lines in a Unicode data
+	 *	file.
+	 */
+	class FileIterator {
+	
+	
+		private:
+		
+		
+			File & file;
+			std::optional<Line> line;
+			
+			
+		public:
+		
+		
+			/**
+			 *	\cond
+			 */
+		
+		
+			FileIterator (File &, bool);
+			
+			
+			/**
+			 *	\endcond
+			 */
+			
+			
+			/**
+			 *	Compares this iterator for equality with
+			 *	another iterator.
+			 *
+			 *	This comparison is only meaningful if either
+			 *	this iterator, or \em other is an end iterator.
+			 *
+			 *	\param [in] other
+			 *		The other iterator.
+			 *
+			 *	\return
+			 *		\em true if this iterator and \em other
+			 *		should be considered equal, \em false
+			 *		otherwise.
+			 */
+			bool operator == (const FileIterator & other) const noexcept;
+			/**
+			 *	Compares this iterator for inequality with
+			 *	another iterator.
+			 *
+			 *	This comparison is only meaningful if either
+			 *	this iterator, or \em other is an end iterator.
+			 *
+			 *	\param [in] other
+			 *		The other iterator.
+			 *
+			 *	\return
+			 *		\em true if this iterator and \em other
+			 *		should not be considered equal, \em false
+			 *		otherwise.
+			 */
+			bool operator != (const FileIterator & other) const noexcept;
+			
+			
+			/**
+			 *	Dereferences this iterator.
+			 *
+			 *	If this iterator points past the end of
+			 *	the file, the behaviour of this function is
+			 *	undefined.
+			 *
+			 *	\return
+			 *		A pointer to the current line.
+			 */
+			const Line * operator -> () const noexcept;
+			/**
+			 *	Dereferences this iterator.
+			 *
+			 *	If this iterator points past the end of
+			 *	the file, the behaviour of this function is
+			 *	undefined.
+			 *
+			 *	\return
+			 *		A reference to the current line.
+			 */
+			const Line & operator * () const noexcept;
+			
+			
+			/**
+			 *	Increments this iterator so it points to the
+			 *	next line in the underlying file.
+			 *
+			 *	\return
+			 *		A reference to this iterator.
+			 */
+			FileIterator & operator ++ ();
+			/**
+			 *	Retrieves a copy of this iterator, and then
+			 *	increments this iterator.
+			 *
+			 *	Using the returned iterator for any purpose
+			 *	other than dereferencing results in undefined
+			 *	behaviour.
+			 *
+			 *	\return
+			 *		A copy of this iterator before incrementing
+			 *		it.
+			 */
+			FileIterator operator ++ (int);
+	
+	
+	};
+	
+	
 	/**
 	 *	Reads from a Unicode data file.
 	 */
@@ -190,8 +307,8 @@ namespace Unicode {
 		
 		
 			std::fstream file;
-			const char * begin;
-			const char * end;
+			const char * b_iter;
+			const char * e_iter;
 			char buffer [size];
 			
 			
@@ -228,6 +345,24 @@ namespace Unicode {
 			 *		std::optional is returned.
 			 */
 			std::optional<Line> Get ();
+			
+			
+			/**
+			 *	Fetches an iterator to the current point
+			 *	in the file.
+			 *
+			 *	\return
+			 *		An iterator to the current point in the
+			 *		file.
+			 */
+			FileIterator begin ();
+			/**
+			 *	Fetches an iterator to the end of the file.
+			 *
+			 *	\return
+			 *		An iterator to the end of the file.
+			 */
+			FileIterator end ();
 	
 	
 	};
