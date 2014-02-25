@@ -45,9 +45,10 @@ namespace Unicode {
 	
 	
 	/**
-	 *	Encapsulates a condition.
+	 *	Contains information about a condition as
+	 *	read from a data file.
 	 */
-	class Condition {
+	class ConditionInfo {
 	
 	
 		public:
@@ -98,7 +99,7 @@ namespace Unicode {
 			std::optional<Unicode::CodePoint::Type> CodePoint () const noexcept;
 			std::optional<std::vector<Unicode::CodePoint::Type>> CodePoints () const;
 			std::optional<Unicode::Range> Range () const noexcept;
-			std::vector<Condition> Conditions () const;
+			std::vector<ConditionInfo> Conditions () const;
 			
 			
 			const char * begin () const noexcept;

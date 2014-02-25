@@ -223,12 +223,12 @@ namespace Unicode {
 	
 	
 	template <typename T>
-	std::optional<Condition> get_condition (T & begin, const T & end) {
+	std::optional<ConditionInfo> get_condition (T & begin, const T & end) {
 	
 		bool negated=false;
 		std::string name;
 		
-		if (is_whitespace(begin,end)) return std::optional<Condition>{};
+		if (is_whitespace(begin,end)) return std::optional<ConditionInfo>{};
 		
 		if (begins_with("Not_",begin,end)) negated=true;
 		
@@ -241,14 +241,14 @@ namespace Unicode {
 			++begin
 		) name.push_back(*begin);
 		
-		return Condition{negated,std::move(name)};
+		return ConditionInfo{negated,std::move(name)};
 	
 	}
 	
 	
-	std::vector<Condition> Item::Conditions () const {
+	std::vector<ConditionInfo> Item::Conditions () const {
 	
-		std::vector<Condition> retr;
+		std::vector<ConditionInfo> retr;
 		
 		auto begin=this->begin();
 		auto end=this->end();
