@@ -57,6 +57,7 @@ obj/%.o:
 	$(GPP) -c -o $@ $(patsubst obj/%.o,src/%.cpp,$@)
 	
 	
+include data.mk
 include test.mk
 include unicode.mk
 include unicodedata.mk
