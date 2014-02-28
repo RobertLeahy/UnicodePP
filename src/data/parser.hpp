@@ -271,6 +271,14 @@ class Parser {
 		void get_derived_normalization_props ();
 		
 		
+		//	Determines the full composition exclusion
+		//	value for a certain code point
+		void get_full_composition_exclusion (Info &);
+		//	Determines the full composition exclusion
+		//	values for all code points
+		void get_full_composition_exclusion ();
+		
+		
 		//	Outputs integers as hex
 		template <typename T>
 		typename std::enable_if<

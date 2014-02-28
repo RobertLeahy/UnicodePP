@@ -920,6 +920,65 @@ void Parser::get_derived_normalization_props () {
 }
 
 
+void Parser::get_full_composition_exclusion (Info & info) {
+	
+	//	If this code point is excluded from composition
+	//	already, clearly the FullCompositionExclusion
+	//	property is true
+	//
+	//	Alternately, if this code point is a non-starter,
+	//	it's excluded from composition
+	if (
+		info.CompositionExclusion ||
+		(info.CanonicalCombiningClass!=0)
+	) {
+	
+		info.FullCompositionExclusion=true;
+		
+		return;
+	
+	}
+	
+	auto & vec=cps[info.DecompositionMapping];
+	
+	//	If there's no decomposition, ignore
+	if (vec.size()==0) return;
+	
+	//	If this code point decomposes to a single character,
+	//	it shouldn't be composed to
+	if (vec.size()==1) {
+	
+		info.FullCompositionExclusion=true;
+		
+		return;
+	
+	}
+	
+	//	If this code point decomposes to a sequence
+	//	which begins with a non-starter, it is excluded
+	
+	auto iter=find(vec[0]);
+	if (!(
+		(iter==this->info.end()) ||
+		(iter->CanonicalCombiningClass==0)
+	)) {
+	
+		info.FullCompositionExclusion=true;
+		
+		return;
+	
+	}
+
+}
+
+
+void Parser::get_full_composition_exclusion () {
+
+	for (auto & i : info) get_full_composition_exclusion(i);
+
+}
+
+
 void Parser::output (const std::string & str) {
 
 	if (str.size()==0) out << "nullptr";
@@ -1347,6 +1406,9 @@ void Parser::Get () {
 	
 	//	Get DerivedNormalizationProps.txt
 	get_derived_normalization_props();
+	
+	//	Derive full composition exclusion
+	get_full_composition_exclusion();
 
 }
 
