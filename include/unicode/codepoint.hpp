@@ -198,12 +198,12 @@ namespace Unicode {
 		public:
 		
 		
-			T * Data;
+			const T * Data;
 			std::size_t Size;
 			
 			
 			Array () noexcept : Data(nullptr), Size(0) {	}
-			Array (T * data, std::size_t size) noexcept : Data(data), Size(size) {	}
+			Array (const T * data, std::size_t size) noexcept : Data(data), Size(size) {	}
 			
 			
 			Array (const Array &) = default;
@@ -212,23 +212,9 @@ namespace Unicode {
 			Array & operator = (Array &&) = default;
 			
 			
-			T * begin () noexcept {
-			
-				return Data;
-			
-			}
-			
-			
 			const T * begin () const noexcept {
 			
 				return Data;
-			
-			}
-			
-			
-			T * end () noexcept {
-			
-				return Data+Size;
 			
 			}
 			
@@ -243,13 +229,6 @@ namespace Unicode {
 			std::size_t size () const noexcept {
 			
 				return Size;
-			
-			}
-			
-			
-			T & operator [] (std::size_t i) noexcept {
-			
-				return Data[i];
 			
 			}
 			
