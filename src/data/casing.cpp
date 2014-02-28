@@ -1,5 +1,8 @@
 #include "casing.hpp"
+#include "path.hpp"
+#include <unicode/binarysearch.hpp>
 #include <algorithm>
+#include <iostream>
 #include <stdexcept>
 #include <utility>
 
@@ -10,9 +13,10 @@ using namespace Unicode;
 CasingParser::Entry & CasingParser::get (Unicode::CodePoint::Type cp) {
 
 	//	Find the insertion point
+	auto begin=entries.begin();
 	auto end=entries.end();
 	auto iter=std::lower_bound(
-		entries.begin(),
+		begin,
 		end,
 		cp,
 		[] (const Entry & a, Unicode::CodePoint::Type b) noexcept {
@@ -33,8 +37,8 @@ CasingParser::Entry & CasingParser::get (Unicode::CodePoint::Type cp) {
 	
 	//	Otherwise create and insert a new entry
 	
-	auto loc=entries.size();
-	entries.emplace_back();
+	auto loc=iter-begin;
+	entries.emplace(iter,cp);
 	auto & retr=entries[loc];
 	
 	retr.CodePoint=cp;
@@ -56,6 +60,19 @@ CasingParser::conds_key CasingParser::get_tr () {
 	});
 	
 	return *tr;
+
+}
+
+
+std::vector<CasingParser::Entry>::iterator CasingParser::find (CodePoint::Type cp) noexcept {
+
+	return BinarySearch(
+		entries.begin(),
+		entries.end(),
+		cp,
+		[] (const Entry & e, CodePoint::Type cp) noexcept {	return e.CodePoint<cp;	},
+		[] (const Entry & e, CodePoint::Type cp) noexcept {	return e.CodePoint==cp;	}
+	);
 
 }
 
@@ -219,6 +236,19 @@ void CasingParser::get_foldings () {
 }
 
 
+CasingParser::CasingParser (
+	std::string base,
+	ArrayAggregator<Unicode::CodePoint::Type> & cps,
+	ArrayAggregator<Unicode::ConditionInfo> & conds,
+	CodeOutput & out
+)	:	cps(cps),
+		conds(conds),
+		casing(Join(base,"SpecialCasing.txt").c_str()),
+		folding(Join(base,"CaseFolding.txt").c_str()),
+		out(out)
+{	}
+
+
 void CasingParser::Get () {
 
 	//	Get information from SpecialCasing.txt
@@ -226,5 +256,62 @@ void CasingParser::Get () {
 	
 	//	Get information from CaseFolding.txt
 	get_foldings();
+
+}
+
+
+void CasingParser::Output () {
+
+	out.BeginArray("CaseMapping","mappings");
+	
+	bool first=true;
+	for (auto & casing : casings) {
+	
+		if (first) first=false;
+		else out << ",";
+	
+		::Array c{0,0};
+		if (casing.Conditions) c=conds.Get(*casing.Conditions);
+		out << "{{";
+		if (c.Size==0) out << "nullptr,0";
+		else out << "&conds[" << c.Offset << "]," << c.Size;
+		out << "},{";
+		
+		auto mapping=cps.Get(casing.Mapping);
+		if (mapping.Size==0) out << "nullptr,0";
+		else out << "&cps[" << mapping.Offset << "]," << mapping.Size;
+		out << "}}";
+	
+	}
+	
+	out.EndArray();
+
+}
+
+
+CasingParser::Result CasingParser::Get (CodePoint::Type cp) {
+
+	Result retr;
+
+	auto iter=find(cp);
+	if (iter==entries.end()) {
+	
+		::Array arr{0,0};
+		retr.LowercaseMappings=arr;
+		retr.UppercaseMappings=arr;
+		retr.TitlecaseMappings=arr;
+		retr.CaseFoldings=arr;
+	
+	} else {
+	
+		retr.LowercaseMappings=cps.Get(iter->Lower);
+		retr.UppercaseMappings=cps.Get(iter->Upper);
+		retr.TitlecaseMappings=cps.Get(iter->Title);
+		retr.CaseFoldings=cps.Get(iter->Folding);
+		retr.SimpleCaseFolding=iter->SimpleFolding;
+		
+	}
+	
+	return retr;
 
 }

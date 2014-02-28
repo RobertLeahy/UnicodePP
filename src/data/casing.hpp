@@ -2,6 +2,7 @@
 
 
 #include "arrayaggregator.hpp"
+#include "codeoutput.hpp"
 #include <unicode/codepoint.hpp>
 #include <unicode/data.hpp>
 #include <cstddef>
@@ -11,6 +12,25 @@
 
 
 class CasingParser {
+
+
+	public:
+	
+	
+		class Result {
+		
+		
+			public:
+		
+			
+				Array LowercaseMappings;
+				Array TitlecaseMappings;
+				Array UppercaseMappings;
+				Array CaseFoldings;
+				std::optional<Unicode::CodePoint::Type> SimpleCaseFolding;
+		
+		
+		};
 
 
 	private:
@@ -56,6 +76,9 @@ class CasingParser {
 				Type Upper;
 				Type Folding;
 				std::optional<Unicode::CodePoint::Type> SimpleFolding;
+				
+				
+				Entry (Unicode::CodePoint::Type cp) noexcept : CodePoint(cp) {	}
 		
 		};
 		
@@ -75,11 +98,17 @@ class CasingParser {
 		Unicode::File folding;
 		
 		
+		CodeOutput & out;
+		
+		
 		//	Gets an entry for a specific code
 		//	point
 		Entry & get (Unicode::CodePoint::Type);
 		//	Gets the key for turkic conditions
 		conds_key get_tr ();
+		//	Finds an entry for a specific code
+		//	point
+		std::vector<Entry>::iterator find (Unicode::CodePoint::Type) noexcept;
 		
 		
 		//	Adds a casing
@@ -110,14 +139,20 @@ class CasingParser {
 	
 	
 		CasingParser (
-			const char * special_casing,
-			const char * case_folding,
+			std::string base,
 			ArrayAggregator<Unicode::CodePoint::Type> & cps,
-			ArrayAggregator<Unicode::ConditionInfo> & conds
-		) : cps(cps), conds(conds), casing(special_casing), folding(case_folding) {	}
+			ArrayAggregator<Unicode::ConditionInfo> & conds,
+			CodeOutput & out
+		);
 		
 		
 		void Get ();
+		
+		
+		void Output ();
+		
+		
+		Result Get (Unicode::CodePoint::Type);
 
 
 };
