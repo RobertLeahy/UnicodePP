@@ -6,6 +6,7 @@
 #pragma once
 
 
+#include <cstddef>
 #include <cstdint>
 #include <optional>
 
@@ -13,8 +14,18 @@
 namespace Unicode {
 
 
+	/**
+	 *	\cond
+	 */
+
+
 	class CodePointInfo;
 	class Locale;
+	
+	
+	/**
+	 *	\endcond
+	 */
 
 
 	/**
@@ -180,8 +191,81 @@ namespace Unicode {
 	};
 	
 	
+	template <typename T>
+	class Array {
+	
+	
+		public:
+		
+		
+			T * Data;
+			std::size_t Size;
+			
+			
+			Array () noexcept : Data(nullptr), Size(0) {	}
+			Array (T * data, std::size_t size) noexcept : Data(data), Size(size) {	}
+			
+			
+			Array (const Array &) = default;
+			Array (Array &&) = default;
+			Array & operator = (const Array &) = default;
+			Array & operator = (Array &&) = default;
+			
+			
+			T * begin () noexcept {
+			
+				return Data;
+			
+			}
+			
+			
+			const T * begin () const noexcept {
+			
+				return Data;
+			
+			}
+			
+			
+			T * end () noexcept {
+			
+				return Data+Size;
+			
+			}
+			
+			
+			const T * end () const noexcept {
+			
+				return Data+Size;
+			
+			}
+			
+			
+			std::size_t size () const noexcept {
+			
+				return Size;
+			
+			}
+			
+			
+			T & operator [] (std::size_t i) noexcept {
+			
+				return Data[i];
+			
+			}
+			
+			
+			const T & operator [] (std::size_t i) const noexcept {
+			
+				return Data[i];
+			
+			}
+	
+	
+	};
+	
+	
 	/**
-	 *	Possible categories for a Unicode code point.
+	 *	Possible general categories for a Unicode code point.
 	 */
 	enum class GeneralCategory {
 
@@ -223,27 +307,31 @@ namespace Unicode {
 	 *	Possible bidirectional character types for a
 	 *	Unicode code point.
 	 */
-	enum class BidirectionalType {
-
-		L,		/**<	Left-to-Right	*/
-		LRE,	/**<	Left-to-Right Embedding	*/
-		LRO,	/**<	Left-to-Right Override	*/
-		R,		/**<	Right-to-Left	*/
-		AL,		/**<	Right-to-Left Arabic	*/
-		RLE,	/**<	Right-to-Left Embedding	*/
-		RLO,	/**<	Right-to-Left Override	*/
-		PDF,	/**<	Pop Directional Format	*/
-		EN,		/**<	European Number	*/
-		ES,		/**<	European Number Separator	*/
-		ET,		/**<	European Number Terminator	*/
-		AN,		/**<	Arabic Number	*/
-		CS,		/**<	Common Number Separator	*/
-		NSM,	/**<	Nonspacing Mark	*/
-		BN,		/**<	Boundary Neutral	*/
-		B,		/**<	Paragraph Separator	*/
-		S,		/**<	Segment Separator	*/
-		WS,		/**<	Whitespace	*/
-		ON,		/**<	Other Neutrals	*/
+	enum class BidirectionalClass {
+	
+		L,
+		R,
+		AL,
+		EN,
+		ES,
+		ET,
+		AN,
+		CS,
+		NSM,
+		BN,
+		B,
+		S,
+		WS,
+		ON,
+		LRE,
+		LRO,
+		RLE,
+		RLO,
+		PDF,
+		LRI,
+		RLI,
+		FSI,
+		PDI
 
 	};
 	
@@ -251,7 +339,7 @@ namespace Unicode {
 	/**
 	 *	Determines grapheme cluster boundaries.
 	 */
-	enum class GraphemeBreak {
+	enum class GraphemeClusterBreak {
 	
 		CR,
 		LF,
@@ -265,11 +353,130 @@ namespace Unicode {
 		T,
 		LV,
 		LVT,
-		Any
+		XX
 	
 	};
 	
 	
+	enum class LineBreak {
+	
+		BK,
+		CR,
+		LF,
+		CM,
+		NL,
+		SG,
+		WJ,
+		ZW,
+		GL,
+		SP,
+		B2,
+		BA,
+		BB,
+		HY,
+		CB,
+		CL,
+		CP,
+		EX,
+		IN,
+		NS,
+		OP,
+		QU,
+		IS,
+		NU,
+		PO,
+		PR,
+		SY,
+		AI,
+		AL,
+		CJ,
+		H2,
+		H3,
+		HL,
+		ID,
+		JL,
+		JV,
+		JT,
+		RI,
+		SA,
+		XX
+	
+	};
+	
+	
+	enum class WordBreak {
+	
+		CR,
+		LF,
+		Newline,
+		Extend,
+		RegionalIndicator,
+		Format,
+		Katakana,
+		HebrewLetter,
+		ALetter,
+		SingleQuote,
+		DoubleQuote,
+		MidNumLet,
+		MidLetter,
+		MidNum,
+		Numeric,
+		ExtendNumLet,
+		XX
+	
+	};
+	
+	
+	enum class SentenceBreak {
+	
+		CR,
+		LF,
+		Extend,
+		Sep,
+		Format,
+		Sp,
+		Lower,
+		Upper,
+		OLetter,
+		Numeric,
+		ATerm,
+		SContinue,
+		STerm,
+		Close,
+		XX
+	
+	};
+	
+	
+	enum class QuickCheck {
+	
+		Yes,
+		Maybe,
+		No
+	
+	};
+	
+	
+	enum class NumericType {
+	
+		Decimal,
+		Digit,
+		Numeric
+	
+	};
+	
+	
+	class Numeric {
+	
+	
+		public:
+		
+		
+			NumericType Type;
+			double Value;
+	
+	
+	};
 	
 	
 	/**
@@ -283,6 +490,7 @@ namespace Unicode {
 		
 			bool negated;
 			bool (* func) (const CodePoint *, const CodePoint *, const CodePoint *, const Locale &) noexcept;
+			const char * lang;
 			
 			
 		public:
@@ -298,10 +506,26 @@ namespace Unicode {
 			 *		A pointer to a function which implements
 			 *		the condition.
 			 */
-			Condition (
+			constexpr Condition (
 				bool negated,
 				bool (* func) (const CodePoint *, const CodePoint *, const CodePoint *, const Locale &) noexcept
-			) noexcept : negated(negated), func(func) {	}
+			) noexcept : negated(negated), func(func), lang(nullptr) {	}
+			
+			
+			/**
+			 *	Creates a new Condition.
+			 *
+			 *	\param [in] negated
+			 *		\em true if the sense of the condition
+			 *		should be negated, \em false otherwise.
+			 *	\param [in] lang
+			 *		The language for which the condition should
+			 *		be true.
+			 */
+			constexpr Condition (
+				bool negated,
+				const char * lang
+			) noexcept : negated(negated), func(nullptr), lang(lang) {	}
 			
 
 			/**
@@ -328,6 +552,26 @@ namespace Unicode {
 	};
 	
 	
+	class CaseMapping {
+	
+	
+		public:
+		
+		
+			Array<Condition> Conditions;
+			Array<CodePoint::Type> Mapping;
+			
+			
+			operator bool () const noexcept {
+			
+				return Mapping.size()==0;
+			
+			}
+	
+	
+	};
+	
+	
 	/**
 	 *	Contains information about a Unicode code point.
 	 */
@@ -337,109 +581,71 @@ namespace Unicode {
 		public:
 		
 		
-			/**
-			 *	The code point.
-			 */
-			CodePoint CP;
-			/**
-			 *	The Unicode category.
-			 */
-			GeneralCategory Category;
-			/**
-			 *	The code point's combining class, or 0 if it is not a combining mark.
-			 */
-			std::size_t CombiningClass;
-			/**
-			 *	The length of the sequence of code points into which this code point
-			 *	canonically decomposes, or 0 if it does not decompose.
-			 */
-			std::size_t DecompositionLength;
-			/**
-			 *	The code points into which this code point canonically decomposes, or
-			 *	nullptr if it does not decompose.
-			 */
-			const CodePoint * Decomposition;
-			/**
-			 *	Whether or not this code point corresponds to a decimal digit value.
-			 */
-			bool HasDecimalDigitValue;
-			/**
-			 *	The decimal digit value to which this code point corresponds,
-			 *	if any.
-			 */
-			std::size_t DecimalDigitValue;
-			/**
-			 *	Whether or not this code point corresponds to a digit value.
-			 */
-			bool HasDigitValue;
-			/**
-			 *	The digit value to which this code point corresponds, if any.
-			 */
-			std::size_t DigitValue;
-			/**
-			 *	Whether or not this code point corresponds to a numeric value.
-			 */
-			bool HasNumericValue;
-			/**
-			 *	The numeric value to which this code point corresponds, if any.
-			 */
-			double NumericValue;
-			/**
-			 *	Whether or not this code point has an upper case equivalent.
-			 */
-			bool HasUpperCase;
-			/**
-			 *	The upper case equivalent of this code point, if any.
-			 */
-			CodePoint UpperCase;
-			/**
-			 *	Whether or not this code point has a lower case equivalent.
-			 */
-			bool HasLowerCase;
-			/**
-			 *	The lower case equivalent of this code point, if any.
-			 */
-			CodePoint LowerCase;
-			/**
-			 *	Whether or not this code point has a title case equivalent.
-			 */
-			bool HasTitleCase;
-			/**
-			 *	The title case equivalent of this code point, if any.
-			 */
-			CodePoint TitleCase;
-			/**
-			 *	A pointer to a null-terminated string of ASCII characters indicating
-			 *	the Unicode block to which the code point belongs.
-			 */
+			//	General
+			const char * Name;
+			const char * Alias;
+			const char * Abbreviation;
 			const char * Block;
-			/**
-			 *	A pointer to a null-terminated string of ASCII characters indicating
-			 *	the Unicode script to which the code point belongs.
-			 */
+			Unicode::GeneralCategory GeneralCategory;
 			const char * Script;
-			/**
-			 *	The length of the collation elements collection for this code point.
-			 */
-			std::size_t CollationElementsLength;
-			/**
-			 *	A collection of integers representing the collation elements for this
-			 *	code point.
-			 */
-			const std::uint32_t * CollationElements;
-			/**
-			 *	The bidirectional type of this code point.
-			 */
-			BidirectionalType Bidirectionality;
-			/**
-			 *	A string describing the character.
-			 */
-			const char * Description;
-			/**
-			 *	The value of the code point's Grapheme_Cluster_Break
-			 *	property.
-			 */
-			GraphemeBreak Break;
+			bool WhiteSpace;
+			bool Alphabetic;
+			bool NoncharacterCodePoint;
+			bool DefaultIgnorableCodePoint;
+			bool Deprecated;
+			bool LogicalOrderException;
+			bool VariationSelector;
+			
+			//	Case
+			bool Uppercase;
+			bool Lowercase;
+			Array<CaseMapping> LowercaseMappings;
+			Array<CaseMapping> TitlecaseMappings;
+			Array<CaseMapping> UppercaseMappings;
+			Array<CaseMapping> CaseFoldings;
+			std::optional<CodePoint::Type> SimpleLowercaseMapping;
+			std::optional<CodePoint::Type> SimpleTitlecaseMapping;
+			std::optional<CodePoint::Type> SimpleUppercaseMapping;
+			std::optional<CodePoint::Type> SimpleCaseFolding;
+			bool SoftDotted;
+			bool Cased;
+			bool CaseIgnorable;
+			
+			//	Numeric
+			std::optional<Unicode::Numeric> Numeric;
+			bool HexDigit;
+			bool ASCIIHexDigit;
+			
+			//	Normalization
+			std::size_t CanonicalCombiningClass;
+			Array<CodePoint::Type> DecompositionMapping;
+			bool CompositionExclusion;
+			bool FullCompositionExclusion;
+			QuickCheck NFCQuickCheck;
+			QuickCheck NFDQuickCheck;
+			
+			//	Shaping and Rendering
+			Unicode::LineBreak LineBreak;
+			Unicode::GraphemeClusterBreak GraphemeClusterBreak;
+			Unicode::SentenceBreak SentenceBreak;
+			Unicode::WordBreak WordBreak;
+			
+			//	Bidirectional
+			Unicode::BidirectionalClass BidirectionalClass;
+			bool BidirectionalControl;
+			bool Mirrored;
+			
+			//	Miscellaneous
+			bool Math;
+			bool QuotationMark;
+			bool Dash;
+			bool Hyphen;
+			bool STerm;
+			bool TerminalPunctuation;
+			bool Diacritic;
+			bool Extender;
+			bool GraphemeBase;
+			bool GraphemeLink;
 
 
 	};
