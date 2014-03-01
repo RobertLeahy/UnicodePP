@@ -41,13 +41,6 @@ ifeq (0,$(words $(findstring $(MAKECMDGOALS),$(NODEPS))))
 	-include $(subst .cpp,.mk,$(subst src,makefiles,$(subst \,/,$(subst $(shell echo %CD%)\,,$(shell dir /b /s src\*.cpp)))))
 
 endif
-
-
-#	COMMON LIBRARIES AND OBJECTS
-
-
-LIB:=bin/rleahy_lib.dll
-OBJ:=obj/new_delete.o
 	
 	
 obj/%.o:
