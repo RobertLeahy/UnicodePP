@@ -1,4 +1,4 @@
-#include <unicode/data.hpp>
+#include <unicode/ucd.hpp>
 #include <cctype>
 #include <limits>
 #include <unordered_map>

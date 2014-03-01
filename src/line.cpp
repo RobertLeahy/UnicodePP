@@ -1,4 +1,4 @@
-#include <unicode/data.hpp>
+#include <unicode/ucd.hpp>
 #include <algorithm>
 #include <cctype>
 #include <utility>
