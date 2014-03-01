@@ -3,8 +3,8 @@ SUFFIXES+=.mk
 
 #OPTIMIZATION=-O3
 OPTIMIZATION:=-O0 -g -fno-inline -fno-elide-constructors -DDEBUG -fno-omit-frame-pointer
-OPTS_SHARED:=-D_WIN32_WINNT=0x0600 -Wall -Wpedantic -Werror -fno-rtti -std=gnu++1y -I include
-GPP:=..\MCPP\gcc49\bin\g++.exe $(OPTS_SHARED) $(OPTIMIZATION)
+OPTS_SHARED:=-D_WIN32_WINNT=0x0600 -Wall -Wpedantic -Werror -fno-rtti -std=gnu++11 -I include
+GPP:=g++ $(OPTS_SHARED) $(OPTIMIZATION)
 MKDIR=@mkdir_nofail.bat $(subst /,\,$(dir $(1)))
 
 
