@@ -7,10 +7,10 @@ bin/data.exe
 
 
 bin/data.exe: \
-obj/data/casing.o \
-obj/data/codeoutput.o \
-obj/data/main.o \
-obj/data/parser.o \
-obj/data/tointeger.o | \
+obj/parsing/casing.o \
+obj/parsing/codeoutput.o \
+obj/parsing/main.o \
+obj/parsing/parser.o \
+obj/parsing/tointeger.o | \
 bin/unicodedata.dll
 	$(GPP) -o $@ $^ bin/unicodedata.dll

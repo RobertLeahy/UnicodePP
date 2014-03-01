@@ -5,7 +5,7 @@
 #include "casing.hpp"
 #include "codeoutput.hpp"
 #include <unicode/codepoint.hpp>
-#include <unicode/data.hpp>
+#include <unicode/ucd.hpp>
 #include <cstddef>
 #include <fstream>
 #include <stdexcept>
