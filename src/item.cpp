@@ -241,7 +241,7 @@ namespace Unicode {
 			++begin
 		) name.push_back(*begin);
 		
-		return ConditionInfo{negated,std::move(name)};
+		return std::optional<ConditionInfo>({negated,std::move(name)});
 	
 	}
 	
