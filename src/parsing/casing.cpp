@@ -302,10 +302,10 @@ CasingParser::Result CasingParser::Get (CodePoint::Type cp) {
 	
 	} else {
 	
-		retr.LowercaseMappings=cps.Get(iter->Lower);
-		retr.UppercaseMappings=cps.Get(iter->Upper);
-		retr.TitlecaseMappings=cps.Get(iter->Title);
-		retr.CaseFoldings=cps.Get(iter->Folding);
+		retr.LowercaseMappings=casings.Get(iter->Lower);
+		retr.UppercaseMappings=casings.Get(iter->Upper);
+		retr.TitlecaseMappings=casings.Get(iter->Title);
+		retr.CaseFoldings=casings.Get(iter->Folding);
 		retr.SimpleCaseFolding=iter->SimpleFolding;
 		
 	}
