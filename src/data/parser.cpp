@@ -732,8 +732,6 @@ void Parser::get_blocks (const Line & line) {
 
 	if (line.size()<2) throw std::runtime_error("Bad line in Blocks.txt");
 	
-	auto & str=line[1].Get();
-	
 	auto i=get_string(line[1].Get(),blocks,blocks_map);
 	
 	auto range=line[0].Range();
