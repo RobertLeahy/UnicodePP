@@ -202,8 +202,8 @@ namespace Unicode {
 			std::size_t Size;
 			
 			
-			Array () noexcept : Data(nullptr), Size(0) {	}
-			Array (const T * data, std::size_t size) noexcept : Data(data), Size(size) {	}
+			constexpr Array () noexcept : Data(nullptr), Size(0) {	}
+			constexpr Array (const T * data, std::size_t size) noexcept : Data(data), Size(size) {	}
 			
 			
 			Array (const Array &) = default;
@@ -560,6 +560,8 @@ namespace Unicode {
 		public:
 		
 		
+			Unicode::CodePoint::Type CodePoint;
+		
 			//	General
 			const char * Name;
 			const char * Alias;
@@ -582,10 +584,10 @@ namespace Unicode {
 			Array<CaseMapping> TitlecaseMappings;
 			Array<CaseMapping> UppercaseMappings;
 			Array<CaseMapping> CaseFoldings;
-			std::optional<CodePoint::Type> SimpleLowercaseMapping;
-			std::optional<CodePoint::Type> SimpleTitlecaseMapping;
-			std::optional<CodePoint::Type> SimpleUppercaseMapping;
-			std::optional<CodePoint::Type> SimpleCaseFolding;
+			std::optional<Unicode::CodePoint::Type> SimpleLowercaseMapping;
+			std::optional<Unicode::CodePoint::Type> SimpleTitlecaseMapping;
+			std::optional<Unicode::CodePoint::Type> SimpleUppercaseMapping;
+			std::optional<Unicode::CodePoint::Type> SimpleCaseFolding;
 			bool SoftDotted;
 			bool Cased;
 			bool CaseIgnorable;
@@ -597,7 +599,7 @@ namespace Unicode {
 			
 			//	Normalization
 			std::size_t CanonicalCombiningClass;
-			Array<CodePoint::Type> DecompositionMapping;
+			Array<Unicode::CodePoint::Type> DecompositionMapping;
 			bool CompositionExclusion;
 			bool FullCompositionExclusion;
 			QuickCheck NFCQuickCheck;

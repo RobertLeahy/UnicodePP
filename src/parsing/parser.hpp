@@ -294,8 +294,9 @@ class Parser {
 		template <typename T>
 		void output (const std::optional<T> & opt) {
 		
+			out << "{";
 			if (opt) output(*opt);
-			else out << "std::nullopt";
+			out << "}";
 		
 		}
 		//	Outputs booleans

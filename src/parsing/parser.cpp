@@ -1031,8 +1031,7 @@ void Parser::output (const ConditionInfo & c) {
 void Parser::output (const ::Array & arr, const std::string & str) {
 
 	out << "{";
-	if (arr.Size==0) out << "nullptr,0";
-	else out << "&" << str << "[" << arr.Offset << "]," << arr.Size;
+	if (arr.Size!=0) out << "&" << str << "[" << arr.Offset << "]," << arr.Size;
 	out << "}";
 
 }
@@ -1151,6 +1150,9 @@ void Parser::output_code_point_info_inner (const Info & info) {
 	//	Get casing information for this
 	//	code point
 	auto casing_info=casing.Get(info.CodePoint);
+	
+	output(info.CodePoint);
+	next();
 
 	output(info.Name);
 	next();
@@ -1322,14 +1324,7 @@ void Parser::output_code_point_info (const Info & info) {
 	out << "{";
 	out.BeginIndent();
 	
-	output(info.CodePoint);
-	out << "," << Newline << "{";
-	out.BeginIndent();
-	
 	output_code_point_info_inner(info);
-	
-	out.EndIndent();
-	out << "}";
 	
 	out.EndIndent();
 	out << "}";
@@ -1339,7 +1334,7 @@ void Parser::output_code_point_info (const Info & info) {
 
 void Parser::output_code_point_info () {
 
-	out.BeginArray("std::pair<CodePoint::Type,CodePointInfo>","info");
+	out.BeginArray("CodePointInfo","info");
 	out.BeginIndent();
 
 	bool first=true;

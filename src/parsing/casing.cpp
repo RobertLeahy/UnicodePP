@@ -273,13 +273,11 @@ void CasingParser::Output () {
 		::Array c{0,0};
 		if (casing.Conditions) c=conds.Get(*casing.Conditions);
 		out << "{{";
-		if (c.Size==0) out << "nullptr,0";
-		else out << "&conds[" << c.Offset << "]," << c.Size;
+		if (c.Size!=0) out << "&conds[" << c.Offset << "]," << c.Size;
 		out << "},{";
 		
 		auto mapping=cps.Get(casing.Mapping);
-		if (mapping.Size==0) out << "nullptr,0";
-		else out << "&cps[" << mapping.Offset << "]," << mapping.Size;
+		if (mapping.Size!=0) out << "&cps[" << mapping.Offset << "]," << mapping.Size;
 		out << "}}";
 	
 	}
