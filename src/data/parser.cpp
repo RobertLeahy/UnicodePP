@@ -194,6 +194,19 @@ static const std::pair<NumericType,const char *> numeric_type []={
 };
 
 
+template <typename T, std::size_t i>
+static std::string from_enum (const std::pair<T,const char *> (&arr) [i], T e) {
+
+	std::string raw=FromEnum(arr,e);
+	
+	std::string retr;
+	for (auto c : raw) if (c!='_') retr.push_back(c);
+	
+	return retr;
+
+}
+
+
 static bool in_range (CodePoint::Type cp, CodePoint::Type low, CodePoint::Type high) noexcept {
 
 	return (cp>=low) && (cp<=high);
@@ -1027,7 +1040,7 @@ void Parser::output (const ::Array & arr, const std::string & str) {
 
 void Parser::output (const Numeric & n) {
 
-	out << "Numeric{NumericType::" << FromEnum(numeric_type,n.Type) << "," << n.Value << "}";
+	out << "Numeric{NumericType::" << from_enum(numeric_type,n.Type) << "," << n.Value << "}";
 
 }
 
@@ -1152,7 +1165,7 @@ void Parser::output_code_point_info_inner (const Info & info) {
 	else out << "nullptr";
 	next();
 	
-	out << "GeneralCategory::" << FromEnum(general_category,info.GeneralCategory);
+	out << "GeneralCategory::" << from_enum(general_category,info.GeneralCategory);
 	next();
 	
 	if (info.Script) out << "scripts[" << *info.Script << "]";
@@ -1245,25 +1258,25 @@ void Parser::output_code_point_info_inner (const Info & info) {
 	output(info.FullCompositionExclusion);
 	next();
 	
-	out << "QuickCheck::" << FromEnum(quick_check,info.NFCQuickCheck);
+	out << "QuickCheck::" << from_enum(quick_check,info.NFCQuickCheck);
 	next();
 	
-	out << "QuickCheck::" << FromEnum(quick_check,info.NFDQuickCheck);
+	out << "QuickCheck::" << from_enum(quick_check,info.NFDQuickCheck);
 	next();
 	
-	out << "LineBreak::" << FromEnum(::line_break,info.LineBreak);
+	out << "LineBreak::" << from_enum(::line_break,info.LineBreak);
 	next();
 	
-	out << "GraphemeClusterBreak::" << FromEnum(::grapheme_cluster_break,info.GraphemeClusterBreak);
+	out << "GraphemeClusterBreak::" << from_enum(::grapheme_cluster_break,info.GraphemeClusterBreak);
 	next();
 	
-	out << "SentenceBreak::" << FromEnum(::sentence_break,info.SentenceBreak);
+	out << "SentenceBreak::" << from_enum(::sentence_break,info.SentenceBreak);
 	next();
 	
-	out << "WordBreak::" << FromEnum(::word_break,info.WordBreak);
+	out << "WordBreak::" << from_enum(::word_break,info.WordBreak);
 	next();
 	
-	out << "BidirectionalClass::" << FromEnum(bidi_class,info.BidirectionalClass);
+	out << "BidirectionalClass::" << from_enum(bidi_class,info.BidirectionalClass);
 	next();
 	
 	output(info.BidirectionalControl);
