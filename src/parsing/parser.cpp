@@ -1008,21 +1008,9 @@ void Parser::output (bool bln) {
 void Parser::output (const ConditionInfo & c) {
 
 	out << "{";
-	
 	output(c.Negated);
 	out << ",";
-	bool found=false;
-	for (auto & pair : conditions) if (c.Name==pair.first) {
-	
-		out << "Conditions::" << pair.second;
-		
-		found=true;
-		
-		break;
-	
-	}
-	if (!found) out.WriteString(c.Name);
-	
+	out.WriteString(c.Name);
 	out << "}";
 
 }
