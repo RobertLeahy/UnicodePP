@@ -13,8 +13,7 @@
 namespace Unicode {
 
 
-	const CodePointInfo * DataBegin () noexcept;
-	const CodePointInfo * DataEnd () noexcept;
+	Array<CodePointInfo> Data () noexcept;
 
 
 }

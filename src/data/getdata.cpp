@@ -8,16 +8,23 @@
 namespace Unicode {
 
 
-	const CodePointInfo * DataBegin () noexcept {
+	template <typename T>
+	Array<T> make_array (const T * begin, const T * end) noexcept {
 	
-		return std::begin(info);
+		return Array<T>(
+			begin,
+			static_cast<std::size_t>(end-begin)
+		);
 	
 	}
+
+
+	Array<CodePointInfo> Data () noexcept {
 	
-	
-	const CodePointInfo * DataEnd () noexcept {
-	
-		return std::end(info);
+		return make_array(
+			std::begin(info),
+			std::end(info)
+		);
 	
 	}
 
