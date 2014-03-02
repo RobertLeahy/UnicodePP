@@ -1,5 +1,7 @@
 #include <unicode/caseconverter.hpp>
+#include <unicode/normalizer.hpp>
 #include <cstddef>
+#include <optional>
 
 
 namespace Unicode {
@@ -192,9 +194,14 @@ namespace Unicode {
 		//	In certain cases normalization is required
 		//	before case folding, check if this is one
 		//	of those cases
+		std::optional<std::vector<CodePoint>> normalized;
 		if (requires_normalization(begin,end)) {
-		
-			//	TODO: Implement
+			
+			Normalizer n(locale);
+			normalized=n.ToNFD(begin,end);
+			auto & vec=*normalized;
+			begin=&vec[0];
+			end=&vec[0]+vec.size();
 		
 		}
 		
