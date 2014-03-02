@@ -6,6 +6,7 @@
 #pragma once
 
 
+#include <unicode/codepoint.hpp>
 #include <unicode/locale.hpp>
 #include <vector>
 
@@ -22,11 +23,10 @@ namespace Unicode {
 		D	/**<	Normal Form, Canonical Decomposition	*/
 	
 	};
-
-
+	
+	
 	/**
-	 *	Normalizes strings of Unicode code
-	 *	points.
+	 *	Normalizes text.
 	 */
 	class Normalizer {
 	
@@ -34,118 +34,86 @@ namespace Unicode {
 		private:
 		
 		
-			NormalForm nf;
-			const Locale * locale;
+			const Locale & locale;
 			
 			
-			std::vector<CodePoint> nfd (const CodePoint *, const CodePoint *, const Locale &) const;
-			bool is_nfd (const CodePoint *, const CodePoint *, const Locale &) const noexcept;
-			std::vector<CodePoint> nfc (const CodePoint *, const CodePoint *, const Locale &) const;
+			QuickCheck is_impl (const CodePoint *, const CodePoint *, QuickCheck (CodePointInfo::*)) const noexcept;
 			
 			
+			void decompose (std::vector<CodePoint> &, CodePoint) const;
+			std::vector<CodePoint> decompose (const CodePoint *, const CodePoint *) const;
+			
+			
+			void sort_impl (std::vector<CodePoint>::iterator, std::vector<CodePoint>::iterator) const;
+			void sort (std::vector<CodePoint>::iterator, std::vector<CodePoint>::iterator) const;
+		
+		
 		public:
 		
 		
 			/**
-			 *	The default normal form.
-			 *
-			 *	This is the normal form that the normalizer
-			 *	shall use if default constructed.
-			 */
-			static constexpr NormalForm Default=NormalForm::C;
-		
-		
-			/**
-			 *	Creates a new Normalizer.
-			 *
-			 *	\param [in] nf
-			 *		The desired normal form.  If omitted
-			 *		defaults to Default.
-			 */
-			Normalizer (NormalForm nf=Default) noexcept : nf(nf), locale(nullptr) {	}
-			/**
-			 *	Creates a new Normalizer.
-			 *
-			 *	\param [in] nf
-			 *		The desired normal form.  If omitted
-			 *		defaults to Default.
-			 *	\param [in] locale
-			 *		The locale this normalizer should use.
-			 */
-			Normalizer (NormalForm nf, const Locale & locale) noexcept : nf(nf), locale(&locale) {	}
-			
-			
-			/**
-			 *	Retrieves the normalizer's current locale.
-			 *
-			 *	\return
-			 *		The locale.
-			 */
-			const Locale & GetLocale () const noexcept {
-			
-				return (locale==nullptr) ? Locale::Get() : *locale;
-			
-			}
-			
-			
-			/**
-			 *	Sets the normalizer's current locale.
+			 *	Creates a Normalizer.
 			 *
 			 *	\param [in] locale
-			 *		The locale.
+			 *		The locale according to which
+			 *		the Normalizer should normalize
+			 *		text.
 			 */
-			void SetLocale (const Locale & locale) noexcept {
-			
-				this->locale=&locale;
-			
-			}
+			Normalizer (const Locale & locale=Locale::Get()) noexcept : locale(locale) {	}
 			
 			
 			/**
-			 *	Clears the normalizer's internal locale,
-			 *	causing it to use the default locale.
-			 */
-			void ClearLocale () noexcept {
-			
-				locale=nullptr;
-			
-			}
-			
-			
-			/**
-			 *	Normalizes a string of Unicode code points.
+			 *	Checks if a certain string is in Normal Form
+			 *	Canonical Decomposition.
+			 *
+			 *	Note that this method may return \em false
+			 *	for a string that is in NFC, but will never
+			 *	return \em true for a string that is not in
+			 *	NFD.
 			 *
 			 *	\param [in] begin
-			 *		An iterator to the beginning of a string
-			 *		of Unicode code points.
+			 *		An iterator to the beginning of the string.
 			 *	\param [in] end
-			 *		An iterator to the end of a string of
-			 *		Unicode code points.
+			 *		An iterator to the end of the string.
 			 *
 			 *	\return
-			 *		A vector containing the range bounded by
-			 *		\em begin and \em end places in the
-			 *		normal form associated with this object.
-			 */
-			std::vector<CodePoint> Normalize (const CodePoint * begin, const CodePoint * end) const;
-			/**
-			 *	Checks to see if a string of Unicode code points
-			 *	is normalized.
-			 *
-			 *	\param [in] begin
-			 *		An iterator to the beginning of a string
-			 *		of Unicode code points.
-			 *	\param [in] end
-			 *		An iterator to the end of a string of
-			 *		Unicode code points.
-			 *
-			 *	\return
-			 *		\em true if the range bounded by \em begin
-			 *		and \em end is in the normal form
-			 *		associated with this object, \em false
+			 *		\em true if the string is in NFD, \em false
 			 *		otherwise.
 			 */
-			bool IsNormalized (const CodePoint * begin, const CodePoint * end) const;
+			bool IsNFD (const CodePoint * begin, const CodePoint * end) const noexcept;
+			/**
+			 *	Checks if a certain string is in Normal Form
+			 *	Canonical Composition.
+			 *
+			 *	Note that this method may return \em false
+			 *	for a string that is in NFC, but will never
+			 *	return \em true for a string that is not in
+			 *	NFC.
+			 *
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the string.
+			 *	\param [in] end
+			 *		An iterator to the end of the string.
+			 *
+			 *	\return
+			 *		\em true if the string is in NFC, \em false
+			 *		otherwise.
+			 */
+			bool IsNFC (const CodePoint * begin, const CodePoint * end) const noexcept;
+			
+			
+			/**
+			 *	Converts a string to Normal Form Canonical Decomposition.
+			 *
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the string.
+			 *	\param [in] end
+			 *		An iterator to the end of the string.
+			 *
+			 *	\return
+			 *		The string in NFD.
+			 */
+			std::vector<CodePoint> ToNFD (const CodePoint * begin, const CodePoint * end) const;
 	
 	
 	};

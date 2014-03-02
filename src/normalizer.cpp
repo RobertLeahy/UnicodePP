@@ -1,82 +1,46 @@
 #include <unicode/normalizer.hpp>
 #include <algorithm>
-#include <utility>
 
 
 namespace Unicode {
 
 
-	//	Sorts combining marks
-	static void sort (CodePoint * begin, CodePoint * end, const Locale & locale) {
+	QuickCheck Normalizer::is_impl (const CodePoint * begin, const CodePoint * end, QuickCheck (CodePointInfo::* qc)) const noexcept {
 	
-		std::stable_sort(
-			++begin,
-			end,
-			[&] (CodePoint a, CodePoint b) noexcept -> bool {
-			
-				auto a_i=a.GetInfo(locale);
-				if (a_i==nullptr) return false;
-				auto b_i=b.GetInfo(locale);
-				if (b_i==nullptr) return false;
-				
-				return a_i->CombiningClass<b_i->CombiningClass;
-		
-			}
-		);
-	
-	}
-	
-	
-	static const CodePoint * get_joiners (const CodePoint * begin, const CodePoint * end, const Locale & locale) noexcept {
-	
-		while ((++begin)!=end) {
+		QuickCheck retr=QuickCheck::Yes;
+		const CodePointInfo * prev=nullptr;
+		for (;begin!=end;++begin) {
 		
 			auto cpi=begin->GetInfo(locale);
 			
-			if (
-				(cpi==nullptr) ||
-				(cpi->CombiningClass==0)
-			) break;
-		
-		}
-		
-		return begin;
-	
-	}
-	
-	
-	static void decompose (std::vector<CodePoint> & vec, CodePoint cp, const Locale & locale) {
-	
-		auto cpi=cp.GetInfo(locale);
-		
-		if (cpi->DecompositionLength==0) vec.push_back(cp);
-		else for (std::size_t i=0;i<cpi->DecompositionLength;++i) decompose(
-			vec,
-			cpi->Decomposition[i],
-			locale
-		);
-	
-	}
-	
-	
-	std::vector<CodePoint> Normalizer::nfd (const CodePoint * begin, const CodePoint * end, const Locale & locale) const {
-	
-		std::vector<CodePoint> retr;
-		
-		while (begin!=end) {
-		
-			auto size=retr.size();
-		
-			decompose(retr,*begin,locale);
+			if (cpi!=nullptr) {
 			
-			auto e=get_joiners(begin,end,locale);
-			while ((++begin)!=e) retr.push_back(*begin);
+				//	Check quick check
+				switch (cpi->*qc) {
+				
+					//	No is definite, end at once
+					case QuickCheck::No:
+						return QuickCheck::No;
+					//	Maybe overwrites yes
+					case QuickCheck::Maybe:
+						retr=QuickCheck::Maybe;
+					//	Yes is ignored (it is the default)
+					default:
+						break;
+				
+				}
+				
+				//	Check that combining marks are ordered
+				if (
+					(cpi->CanonicalCombiningClass!=0) &&
+					(prev!=nullptr) &&
+					(prev->CanonicalCombiningClass!=0) &&
+					(cpi->CanonicalCombiningClass<prev->CanonicalCombiningClass)
+				) return QuickCheck::No;
 			
-			sort(
-				&retr[0]+size,
-				&retr[0]+retr.size(),
-				locale
-			);
+			}
+			
+			prev=cpi;
 		
 		}
 		
@@ -85,81 +49,98 @@ namespace Unicode {
 	}
 	
 	
-	bool Normalizer::is_nfd (const CodePoint * begin, const CodePoint * end, const Locale & locale) const noexcept {
+	void Normalizer::decompose (std::vector<CodePoint> & vec, CodePoint cp) const {
 	
-		for (
-			const CodePointInfo * prev=nullptr;
-			begin!=end;
-			++begin
+		auto cpi=cp.GetInfo(locale);
+		if (
+			(cpi==nullptr) ||
+			(cpi->DecompositionMapping.size()==0)
 		) {
 		
+			vec.push_back(cp);
+			
+			return;
+		
+		}
+		
+		for (auto cp : cpi->DecompositionMapping) decompose(vec,cp);
+	
+	}
+	
+	
+	std::vector<CodePoint> Normalizer::decompose (const CodePoint * begin, const CodePoint * end) const {
+	
+		std::vector<CodePoint> retr;
+		for (;begin!=end;++begin) decompose(retr,*begin);
+		
+		return retr;
+	
+	}
+	
+	
+	void Normalizer::sort_impl (std::vector<CodePoint>::iterator begin, std::vector<CodePoint>::iterator end) const {
+	
+		std::stable_sort(
+			begin,
+			end,
+			[&] (CodePoint a, CodePoint b) noexcept {
+			
+				return a.GetInfo(locale)->CanonicalCombiningClass<b.GetInfo(locale)->CanonicalCombiningClass;
+			
+			}
+		);
+	
+	}
+	
+	
+	void Normalizer::sort (std::vector<CodePoint>::iterator begin, std::vector<CodePoint>::iterator end) const {
+	
+		auto b=begin;
+		for (;begin!=end;++begin) {
+		
 			auto cpi=begin->GetInfo(locale);
+			if (!((cpi==nullptr) || (cpi->CanonicalCombiningClass==0))) continue;
 			
-			if (
-				!(
-					(cpi==nullptr) ||
-					(cpi->CombiningClass==0)
-				) &&
-				(
-					(cpi->DecompositionLength!=0) ||
-					(
-						!(
-							(prev==nullptr) ||
-							(prev->CombiningClass==0)
-						) &&
-						(prev->CombiningClass>cpi->CombiningClass)
-					)
-				)
-			) return false;
+			if (b!=begin) sort_impl(b,begin);
 			
-			prev=cpi;
+			b=begin+1;
 		
 		}
 		
-		return true;
+		if (b!=end) sort_impl(b,end);
 	
 	}
 	
 	
-	std::vector<CodePoint> Normalizer::nfc (const CodePoint * begin, const CodePoint * end, const Locale & locale) const {
+	bool Normalizer::IsNFD (const CodePoint * begin, const CodePoint * end) const noexcept {
 	
-		return std::vector<CodePoint>{};
-	
-	}
-	
-	
-	std::vector<CodePoint> Normalizer::Normalize (const CodePoint * begin, const CodePoint * end) const {
-	
-		auto & locale=GetLocale();
-	
-		switch (nf) {
-		
-			case NormalForm::C:
-			default:
-				return nfc(begin,end,locale);
-		
-			case NormalForm::D:
-				return nfd(begin,end,locale);
-		
-		}
+		return is_impl(
+			begin,
+			end,
+			&CodePointInfo::NFDQuickCheck
+		)==QuickCheck::Yes;
 	
 	}
 	
 	
-	bool Normalizer::IsNormalized (const CodePoint * begin, const CodePoint * end) const {
+	bool Normalizer::IsNFC (const CodePoint * begin, const CodePoint * end) const noexcept {
 	
-		auto & locale=GetLocale();
+		return is_impl(
+			begin,
+			end,
+			&CodePointInfo::NFCQuickCheck
+		)==QuickCheck::Yes;
+	
+	}
+	
+	
+	std::vector<CodePoint> Normalizer::ToNFD (const CodePoint * begin, const CodePoint * end) const {
+	
+		auto retr=decompose(begin,end);
 		
-		switch (nf) {
+		sort(retr.begin(),retr.end());
 		
-			case NormalForm::C:
-			default:
-				return false;
-				
-			case NormalForm::D:
-				return is_nfd(begin,end,locale);
-		
-		}
+		return retr;
 	
 	}
 

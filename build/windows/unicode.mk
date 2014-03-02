@@ -13,6 +13,7 @@ obj/condition.o \
 obj/conditions.o \
 obj/data/getdata.o \
 obj/defaultlocale.o \
-obj/locale.o | \
+obj/locale.o \
+obj/normalizer.o | \
 bin
 	$(GPP) -shared -o $@ $^
