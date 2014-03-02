@@ -6,20 +6,11 @@ unicode: bin/unicode.dll
 
 
 bin/unicode.dll: \
-obj/byteencoding.o \
-obj/byteordermark.o \
 obj/codepoint.o \
 obj/condition.o \
+obj/conditions.o \
+obj/data/getdata.o \
 obj/defaultlocale.o \
-obj/endianencoding.o \
-obj/encoding.o \
-obj/encodingerror.o \
-obj/error.o \
-obj/normalizer.o \
-obj/grapheme.o \
-obj/locale.o \
-obj/string.o \
-obj/utf8.o \
-obj/utf32.o | \
+obj/locale.o | \
 bin
 	$(GPP) -shared -o $@ $^
