@@ -20,6 +20,10 @@ class Parser {
 
 
 	private:
+	
+	
+		typedef ArrayAggregator<Unicode::CodePoint::Type> cps_type;
+		typedef cps_type::Key cps_key;
 		
 		
 		//	Similar to the Unicode::CodePointInfo structure, but
@@ -75,7 +79,7 @@ class Parser {
 				
 				//	Normalization
 				std::size_t CanonicalCombiningClass;
-				ArrayAggregator<Unicode::CodePoint::Type>::Key DecompositionMapping;
+				cps_key DecompositionMapping;
 				bool CompositionExclusion;
 				bool FullCompositionExclusion;
 				Unicode::QuickCheck NFCQuickCheck;
@@ -114,13 +118,27 @@ class Parser {
 		};
 		
 		
+		class Composition {
+		
+		
+			public:
+			
+			
+				Unicode::CodePoint::Type CodePoint;
+				cps_key Composition;
+		
+		
+		};
+		
+		
 		static const std::pair<bool (Parser::Info::*),const char *> prop_map [];
 	
 	
 		std::vector<Info> info;
+		std::vector<Composition> comps;
 		
 		
-		ArrayAggregator<Unicode::CodePoint::Type> cps;
+		cps_type cps;
 		ArrayAggregator<Unicode::ConditionInfo> conds;
 		
 		
@@ -210,7 +228,7 @@ class Parser {
 		
 		
 		//	Gets a decomposition mapping
-		ArrayAggregator<Unicode::CodePoint::Type>::Key get_decomposition_mapping (const Unicode::Item &);
+		cps_key get_decomposition_mapping (const Unicode::Item &);
 		//	Gets an individual line from UnicodeData.txt
 		void get_data (const Unicode::Line &);
 		//	Gets data from UnicodeData.txt
@@ -269,6 +287,14 @@ class Parser {
 		static void get_derived_normalization_props (Info &, bool, const std::string &);
 		//	Gets data from DerivedNormalizationProps.txt
 		void get_derived_normalization_props ();
+		
+		
+		//	Sorts all compositions
+		void sort_compositions ();
+		//	Gets a single composition
+		void get_compositions (const Info &);
+		//	Gets compositions
+		void get_compositions ();
 		
 		
 		//	Determines the full composition exclusion
@@ -330,6 +356,12 @@ class Parser {
 		void output_code_point_info (const Info &);
 		//	Outputs CodePointInfo structures
 		void output_code_point_info ();
+		
+		
+		//	Outputs a single composition
+		void output_composition (const Composition &);
+		//	Outputs compositions
+		void output_compositions ();
 		
 		
 	public:

@@ -642,10 +642,9 @@ namespace Unicode {
 		public:
 		
 		
-			CodePoint Starter;
-			CodePoint Joiner;
-			CodePoint Result;
-	
+			Array<CodePoint::Type> CodePoints;
+			CodePoint::Type Result;
+			
 	
 	};
 

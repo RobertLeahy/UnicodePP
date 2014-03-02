@@ -14,6 +14,7 @@ namespace Unicode {
 
 
 	Array<CodePointInfo> Data () noexcept;
+	Array<Composition> Compositions () noexcept;
 
 
 }

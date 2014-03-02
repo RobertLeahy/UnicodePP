@@ -463,7 +463,7 @@ static std::optional<CodePoint::Type> get_simple_case_mapping (const Item & i) {
 }
 
 
-ArrayAggregator<CodePoint::Type>::Key Parser::get_decomposition_mapping (const Item & item) {
+Parser::cps_key Parser::get_decomposition_mapping (const Item & item) {
 
 	auto & str=item.Get();
 	
@@ -990,6 +990,90 @@ void Parser::get_full_composition_exclusion () {
 }
 
 
+static bool compare (const std::vector<CodePoint::Type> & a, const std::vector<CodePoint::Type> & b) noexcept {
+
+	auto a_b=a.begin();
+	auto a_e=a.end();
+	auto b_b=b.begin();
+	auto b_e=b.end();
+	
+	for (
+		;
+		!(
+			(a_b==a_e) ||
+			(b_b==b_e)
+		);
+		++a_b,++b_b
+	) {
+	
+		auto & a=*a_b;
+		auto & b=*b_b;
+		
+		if (a<b) return true;
+		
+		if (a==b) continue;
+		
+		return false;
+	
+	}
+	
+	return (a_b==a_e) && (b_b!=b_e);
+
+}
+
+
+void Parser::sort_compositions () {
+
+	std::sort(
+		comps.begin(),
+		comps.end(),
+		[&] (const Composition & a, const Composition & b) noexcept {
+		
+			return compare(
+				cps[a.Composition],
+				cps[b.Composition]
+			);
+		
+		}
+	);
+
+}
+
+
+void Parser::get_compositions (const Info & info) {
+
+	comps.push_back(
+		Composition{
+			info.CodePoint,
+			info.DecompositionMapping
+		}
+	);
+
+}
+
+
+void Parser::get_compositions () {
+
+	for (auto & i : info) {
+	
+		//	Exclude code points that are excluded
+		//	from composition, or which do not have
+		//	a decomposition
+		if (
+			i.FullCompositionExclusion ||
+			(cps[i.DecompositionMapping].size()==0)
+		) continue;
+	
+		get_compositions(i);
+		
+	}
+	
+	//	Sort the compositions
+	sort_compositions();
+
+}
+
+
 void Parser::output (const std::string & str) {
 
 	if (str.size()==0) out << "nullptr";
@@ -1341,6 +1425,38 @@ void Parser::output_code_point_info () {
 }
 
 
+void Parser::output_composition (const Composition & comp) {
+
+	out << "{";
+	output(cps.Get(comp.Composition),"cps");
+	out << ",";
+	output(comp.CodePoint);
+	out << "}";
+
+}
+
+
+void Parser::output_compositions () {
+
+	out.BeginArray("Composition","compositions");
+	out.BeginIndent();
+	
+	bool first=true;
+	for (auto & comp : comps) {
+	
+		if (first) first=false;
+		else out << "," << Newline;
+		
+		output_composition(comp);
+	
+	}
+	
+	out.EndIndent();
+	out.EndArray();
+
+}
+
+
 Parser::Parser (const std::string & base, const std::string & output)
 	:	data(Join(base,"UnicodeData.txt").c_str()),
 		prop_list(Join(base,"PropList.txt").c_str()),
@@ -1403,6 +1519,9 @@ void Parser::Get () {
 	
 	//	Derive full composition exclusion
 	get_full_composition_exclusion();
+	
+	//	Get compositions
+	get_compositions();
 
 }
 
@@ -1424,6 +1543,9 @@ void Parser::Output () {
 	
 	//	Output CodePointInfo structures
 	output_code_point_info();
+	
+	//	Output compositions
+	output_compositions();
 	
 	//	Done
 	out.EndNamespace();

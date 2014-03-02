@@ -27,6 +27,16 @@ namespace Unicode {
 		);
 	
 	}
+	
+	
+	Array<Composition> Compositions () noexcept {
+	
+		return make_array(
+			std::begin(compositions),
+			std::end(compositions)
+		);
+	
+	}
 
 
 }
