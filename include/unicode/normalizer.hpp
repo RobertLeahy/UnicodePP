@@ -12,17 +12,6 @@
 
 
 namespace Unicode {
-
-
-	/**
-	 *	The various Unicode normalization forms.
-	 */
-	enum class NormalForm {
-	
-		C,	/**<	Normal Form, Canonical Composition	*/
-		D	/**<	Normal Form, Canonical Decomposition	*/
-	
-	};
 	
 	
 	/**
