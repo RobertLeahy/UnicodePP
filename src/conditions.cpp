@@ -1,5 +1,6 @@
 #include <unicode/conditions.hpp>
 #include <unicode/locale.hpp>
+#include <unicode/makereverseiterator.hpp>
 #include <iterator>
 #include <utility>
 
@@ -9,14 +10,6 @@ namespace Unicode {
 
 	namespace Conditions {
 	
-	
-		template <typename T>
-		std::reverse_iterator<T> make_reverse_iterator (T iter) noexcept {
-		
-			return std::reverse_iterator<T>(std::move(iter));
-		
-		}
-		
 		
 		template <typename T>
 		bool final_sigma (T begin, T end, const Locale & locale) noexcept {
@@ -55,8 +48,8 @@ namespace Unicode {
 		bool FinalSigma (const CodePoint * loc, const CodePoint * begin, const CodePoint * end, const Locale & locale) noexcept {
 		
 			return final_sigma(
-				make_reverse_iterator(loc),
-				make_reverse_iterator(begin),
+				MakeReverseIterator(loc),
+				MakeReverseIterator(begin),
 				locale
 			) && !final_sigma(
 				loc+1,
@@ -75,7 +68,7 @@ namespace Unicode {
 		bool AfterSoftDotted (const CodePoint * loc, const CodePoint * begin, const CodePoint * end, const Locale & locale) noexcept {
 		
 			for (
-				auto rbegin=make_reverse_iterator(loc),rend=make_reverse_iterator(begin);
+				auto rbegin=MakeReverseIterator(loc),rend=MakeReverseIterator(begin);
 				rbegin!=rend;
 				++rbegin
 			) {
@@ -171,7 +164,7 @@ namespace Unicode {
 		bool AfterI (const CodePoint * loc, const CodePoint * begin, const CodePoint * end, const Locale & locale) noexcept {
 		
 			for (
-				auto rbegin=make_reverse_iterator(loc),rend=make_reverse_iterator(begin);
+				auto rbegin=MakeReverseIterator(loc),rend=MakeReverseIterator(begin);
 				rbegin!=rend;
 				++rbegin
 			) {
