@@ -17,6 +17,7 @@ bin/unicodedata.dll
 	
 	
 src/data/data.cpp: \
-bin/data.exe
+bin/data.exe | \
+UCD
 	$(call MKDIR,$@)
 	bin/data.exe ./UCD ./src/data/data.cpp
