@@ -8,6 +8,7 @@
 
 #include <unicode/codepoint.hpp>
 #include <unicode/locale.hpp>
+#include <optional>
 #include <vector>
 
 
@@ -15,7 +16,7 @@ namespace Unicode {
 	
 	
 	/**
-	 *	Normalizes text.
+	 *	Normalizes Unicode strings.
 	 */
 	class Normalizer {
 	
@@ -35,6 +36,10 @@ namespace Unicode {
 			
 			void sort_impl (std::vector<CodePoint>::iterator, std::vector<CodePoint>::iterator) const;
 			void sort (std::vector<CodePoint>::iterator, std::vector<CodePoint>::iterator) const;
+			
+			
+			std::optional<CodePoint> compose (CodePoint, CodePoint) const noexcept;
+			std::vector<CodePoint> compose (std::vector<CodePoint>) const;
 		
 		
 		public:
@@ -103,6 +108,18 @@ namespace Unicode {
 			 *		The string in NFD.
 			 */
 			std::vector<CodePoint> ToNFD (const CodePoint * begin, const CodePoint * end) const;
+			/**
+			 *	Converts a string to Normal Form Canonical Decomposition.
+			 *
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the string.
+			 *	\param [in] end
+			 *		An iterator to the end of the string.
+			 *
+			 *	\return
+			 *		The string in NFD.
+			 */
+			std::vector<CodePoint> ToNFC (const CodePoint * begin, const CodePoint * end) const;
 	
 	
 	};
