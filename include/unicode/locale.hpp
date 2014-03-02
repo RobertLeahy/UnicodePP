@@ -45,6 +45,10 @@ namespace Unicode {
 			
 			
 			/**
+			 *	The language of this locale.
+			 */
+			const char * Language;
+			/**
 			 *	An array of CodePointInfo structures that
 			 *	given information about code points for
 			 *	this locale.
@@ -65,6 +69,9 @@ namespace Unicode {
 			 *	is ignored for the purposes of sorting).
 			 */
 			Array<Composition> Compositions;
+			
+			
+			constexpr Locale () noexcept : Language(nullptr) {	}
 		
 		
 			/**
