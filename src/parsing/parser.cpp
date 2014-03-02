@@ -653,9 +653,9 @@ void Parser::get_data (const Line & line) {
 	else if (mirrored=="N") info.Mirrored=false;
 	else throw std::runtime_error("Bad mirrored in UnicodeData.txt");
 	
-	info.SimpleUppercaseMapping=get_simple_case_mapping(line[11]);
-	info.SimpleLowercaseMapping=get_simple_case_mapping(line[12]);
-	info.SimpleTitlecaseMapping=get_simple_case_mapping(line[13]);
+	info.SimpleUppercaseMapping=get_simple_case_mapping(line[12]);
+	info.SimpleLowercaseMapping=get_simple_case_mapping(line[13]);
+	info.SimpleTitlecaseMapping=get_simple_case_mapping(line[14]);
 	
 	//	Derived properties
 	info.Derive();
