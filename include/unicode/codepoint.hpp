@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <type_traits>
 
 
 namespace Unicode {
@@ -76,7 +77,7 @@ namespace Unicode {
 			 *	\param [in] cp
 			 *		An integer.
 			 */
-			CodePoint (Type cp) noexcept : cp(cp) {	}
+			constexpr CodePoint (Type cp) noexcept : cp(cp) {	}
 			
 			
 			/**
@@ -105,7 +106,7 @@ namespace Unicode {
 			 *	\return
 			 *		An integer.
 			 */
-			operator Type () const noexcept {
+			constexpr operator Type () const noexcept {
 			
 				return cp;
 			
@@ -144,11 +145,7 @@ namespace Unicode {
 			
 			/**
 			 *	Determines whether this code point is
-			 *	whitespace.
-			 *
-			 *	A code point is whitespace if it is a
-			 *	member of one of the Unicode general
-			 *	categories Zs, Zl, or Zp.
+			 *	white space.
 			 *
 			 *	\param [in] locale
 			 *		The locale from which to get information
@@ -157,40 +154,36 @@ namespace Unicode {
 			 *	
 			 *	\return
 			 *		\em true if this code point is
-			 *		whitespace, \em false otherwise.
+			 *		white space, \em false otherwise.
 			 */
-			bool IsWhitespace (const Locale & locale=get_locale()) const noexcept;
+			bool IsWhiteSpace (const Locale & locale=get_locale()) const noexcept;
 			
 			
 			bool IsBreak (CodePoint next, const Locale & locale=get_locale()) const noexcept;
-			
-			
-			std::optional<CodePoint> DoesCompose (CodePoint cp, const Locale & locale=get_locale()) const noexcept;
-			
-			
-			bool operator == (char c) const noexcept {
-			
-				union {
-					char in;
-					unsigned char out;
-				};
-				in=c;
-				
-				return cp==static_cast<Type>(out);
-			
-			}
-			
-			
-			bool operator == (Type t) const noexcept {
-			
-				return cp==t;
-			
-			}
 	
 	
 	};
 	
 	
+	template <typename T>
+	constexpr typename std::enable_if<std::is_integral<T>::value,bool>::type operator == (CodePoint a, T b) noexcept {
+	
+		return static_cast<CodePoint::Type>(a)==b;
+	
+	}
+	
+	
+	template <typename T>
+	constexpr typename std::enable_if<std::is_integral<T>::value,bool>::type operator == (T a, CodePoint b) noexcept {
+	
+		return b==a;
+	
+	}
+	
+	
+	/**
+	 *	Encapsulates a compile time array.
+	 */
 	template <typename T>
 	class Array {
 	
@@ -202,7 +195,19 @@ namespace Unicode {
 			std::size_t Size;
 			
 			
+			/**
+			 *	Creates an empty array.
+			 */
 			constexpr Array () noexcept : Data(nullptr), Size(0) {	}
+			/**
+			 *	Creates an array.
+			 *
+			 *	\param [in] data
+			 *		A pointer to the array.
+			 *	\param [in] size
+			 *		The size of the array pointed to by
+			 *		\em data.
+			 */
 			constexpr Array (const T * data, std::size_t size) noexcept : Data(data), Size(size) {	}
 			
 			
@@ -212,28 +217,28 @@ namespace Unicode {
 			Array & operator = (Array &&) = default;
 			
 			
-			const T * begin () const noexcept {
+			constexpr const T * begin () const noexcept {
 			
 				return Data;
 			
 			}
 			
 			
-			const T * end () const noexcept {
+			constexpr const T * end () const noexcept {
 			
 				return Data+Size;
 			
 			}
 			
 			
-			std::size_t size () const noexcept {
+			constexpr std::size_t size () const noexcept {
 			
 				return Size;
 			
 			}
 			
 			
-			const T & operator [] (std::size_t i) const noexcept {
+			constexpr const T & operator [] (std::size_t i) const noexcept {
 			
 				return Data[i];
 			
@@ -337,6 +342,9 @@ namespace Unicode {
 	};
 	
 	
+	/**
+	 *	Determines line boundaries.
+	 */
 	enum class LineBreak {
 	
 		BK,
@@ -383,6 +391,9 @@ namespace Unicode {
 	};
 	
 	
+	/**
+	 *	Determines word boundaries.
+	 */
 	enum class WordBreak {
 	
 		CR,
@@ -406,6 +417,9 @@ namespace Unicode {
 	};
 	
 	
+	/**
+	 *	Determines sentence boundaries.
+	 */
 	enum class SentenceBreak {
 	
 		CR,
@@ -427,15 +441,36 @@ namespace Unicode {
 	};
 	
 	
+	/**
+	 *	The values which the quick check properties
+	 *	for various normalization forms may take on.
+	 */
 	enum class QuickCheck {
 	
+		/**
+		 *	The code point-in-question may be present
+		 *	in the specified normalization form.
+		 */
 		Yes,
+		/**
+		 *	Further processing is required to determine
+		 *	whether or not the code point-in-question may
+		 *	be present in the specified normalization form.
+		 */
 		Maybe,
+		/**
+		 *	The code point-in-question may not be present
+		 *	in the specified normalization form.
+		 */
 		No
 	
 	};
 	
 	
+	/**
+	 *	The values the Numeric_Type Unicode property
+	 *	may take on.
+	 */
 	enum class NumericType {
 	
 		Decimal,
@@ -445,13 +480,25 @@ namespace Unicode {
 	};
 	
 	
+	/**
+	 *	Encapsulates the Numeric_Type and Numeric_Value
+	 *	Unicode properties.
+	 */
 	class Numeric {
 	
 	
 		public:
 		
 		
+			/**
+			 *	The type of numeric value.
+			 */
 			NumericType Type;
+			/**
+			 *	The numeric value.  In the case of NumericType::Decimal
+			 *	and NumericType::Digit this is guaranteed to be losslessly
+			 *	convertible to an unsigned integral type.
+			 */
 			double Value;
 	
 	
@@ -468,27 +515,10 @@ namespace Unicode {
 		
 		
 			bool negated;
-			bool (* func) (const CodePoint *, const CodePoint *, const CodePoint *, const Locale &) noexcept;
-			const char * lang;
+			const char * cond;
 			
 			
 		public:
-		
-		
-			/**
-			 *	Creates a new Condition.
-			 *
-			 *	\param [in] negated
-			 *		\em true if the sense of the condition
-			 *		should be negated, \em false otherwise.
-			 *	\param [in] func
-			 *		A pointer to a function which implements
-			 *		the condition.
-			 */
-			constexpr Condition (
-				bool negated,
-				bool (* func) (const CodePoint *, const CodePoint *, const CodePoint *, const Locale &) noexcept
-			) noexcept : negated(negated), func(func), lang(nullptr) {	}
 			
 			
 			/**
@@ -497,14 +527,13 @@ namespace Unicode {
 			 *	\param [in] negated
 			 *		\em true if the sense of the condition
 			 *		should be negated, \em false otherwise.
-			 *	\param [in] lang
-			 *		The language for which the condition should
-			 *		be true.
+			 *	\param [in] cond
+			 *		A string giving the Unicode condition.
 			 */
 			constexpr Condition (
 				bool negated,
-				const char * lang
-			) noexcept : negated(negated), func(nullptr), lang(lang) {	}
+				const char * cond
+			) noexcept : negated(negated), cond(cond) {	}
 			
 
 			/**
@@ -531,21 +560,24 @@ namespace Unicode {
 	};
 	
 	
+	/**
+	 *	Encapsulates a full case mapping.
+	 */
 	class CaseMapping {
 	
 	
 		public:
 		
 		
+			/**
+			 *	The conditions which must hold for this
+			 *	case mapping to be applied.
+			 */
 			Array<Condition> Conditions;
+			/**
+			 *	The mapping.
+			 */
 			Array<CodePoint::Type> Mapping;
-			
-			
-			operator bool () const noexcept {
-			
-				return Mapping.size()==0;
-			
-			}
 	
 	
 	};
@@ -642,7 +674,14 @@ namespace Unicode {
 		public:
 		
 		
+			/**
+			 *	The code points which compose.
+			 */
 			Array<CodePoint::Type> CodePoints;
+			/**
+			 *	The code point to which the code points
+			 *	given by CodePoints compose.
+			 */
 			CodePoint::Type Result;
 			
 	
