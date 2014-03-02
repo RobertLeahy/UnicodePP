@@ -7,10 +7,6 @@
 
 
 #include <unicode/codepoint.hpp>
-#include <cstddef>
-#include <optional>
-#include <type_traits>
-#include <utility>
 
 
 namespace Unicode {
@@ -25,14 +21,6 @@ namespace Unicode {
 	
 	
 		public:
-			
-			
-			template <typename T, std::size_t i>
-			static Array<const T> Make (T (& arr) [i]) noexcept {
-			
-				return Array<const T>(arr,i);
-			
-			}
 		
 		
 			/**
@@ -56,14 +44,42 @@ namespace Unicode {
 			static const Locale & Get () noexcept;
 			
 			
-			Array<const CodePointInfo> Info;
-			
-			
-			Array<const Composition> Compositions;
+			/**
+			 *	An array of CodePointInfo structures that
+			 *	given information about code points for
+			 *	this locale.
+			 *
+			 *	This array must be in ascending sorted order
+			 *	on code point numeric value.
+			 */
+			Array<CodePointInfo> Info;
+			/**
+			 *	An array of Composition structures that
+			 *	give information about how code points
+			 *	should be composed for Normal Form
+			 *	Canonical Composition.
+			 *
+			 *	This array must be in ascending sorted order.
+			 *	The ordering is lexicographic on the composition
+			 *	(the code point to which a composition composes
+			 *	is ignored for the purposes of sorting).
+			 */
+			Array<Composition> Compositions;
 		
 		
+			/**
+			 *	Retrieves information about a certain code point
+			 *	from the information available in this locale.
+			 *
+			 *	\param [in] cp
+			 *		The code point about which information shall
+			 *		be retrieved.
+			 *
+			 *	\return
+			 *		A pointer to a CodePointInfo structure if one
+			 *		exists, \em nullptr otherwise.
+			 */
 			const CodePointInfo * GetInfo (CodePoint cp) const noexcept;
-			std::optional<CodePoint> GetComposition (CodePoint starter, CodePoint joiner) const noexcept;
 	
 	
 	};
