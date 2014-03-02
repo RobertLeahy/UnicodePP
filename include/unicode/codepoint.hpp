@@ -157,9 +157,6 @@ namespace Unicode {
 			 *		white space, \em false otherwise.
 			 */
 			bool IsWhiteSpace (const Locale & locale=get_locale()) const noexcept;
-			
-			
-			bool IsBreak (CodePoint next, const Locale & locale=get_locale()) const noexcept;
 	
 	
 	};
