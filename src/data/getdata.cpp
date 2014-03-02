@@ -1,4 +1,5 @@
 #include <unicode/data.hpp>
+#include <cstddef>
 #include <iterator>
 
 
@@ -8,33 +9,24 @@
 namespace Unicode {
 
 
-	template <typename T>
-	Array<T> make_array (const T * begin, const T * end) noexcept {
+	template <typename T, std::size_t i>
+	Array<T> make_array (const T (& arr) [i]) noexcept {
 	
-		return Array<T>(
-			begin,
-			static_cast<std::size_t>(end-begin)
-		);
+		return Array<T>(arr,i);
 	
 	}
 
 
 	Array<CodePointInfo> Data () noexcept {
 	
-		return make_array(
-			std::begin(info),
-			std::end(info)
-		);
+		return make_array(info);
 	
 	}
 	
 	
 	Array<Composition> Compositions () noexcept {
 	
-		return make_array(
-			std::begin(compositions),
-			std::end(compositions)
-		);
+		return make_array(compositions);
 	
 	}
 
