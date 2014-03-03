@@ -54,12 +54,18 @@ CasingParser::Entry & CasingParser::get (Unicode::CodePoint::Type cp) {
 
 CasingParser::conds_key CasingParser::get_tr () {
 
-	if (!tr) tr=conds.Add({
-		{false,"tr"},
-		{false,"az"}
-	});
+	if (!tr) tr=conds.Add({false,"tr"});
 	
 	return *tr;
+
+}
+
+
+CasingParser::conds_key CasingParser::get_az () {
+
+	if (!az) az=conds.Add({false,"az"});
+	
+	return *az;
 
 }
 
@@ -163,18 +169,34 @@ void CasingParser::get_folding (Entry & entry, const Item & item, bool turkic) {
 	auto mapping=item.CodePoints();
 	
 	if (!mapping) throw std::runtime_error("Expected code points");
-
-	//	Prepare conditions (none by default, otherwise
-	//	turkic languages only)	
-	std::optional<conds_key> key;
-	if (turkic) key=get_tr();
 	
-	//	Add
-	add_casing(
-		entry.Folding,
-		key,
-		std::move(*mapping)
-	);
+	if (turkic) {
+	
+		auto mapping_key=cps.Add(std::move(*mapping));
+		casings.Add(
+			entry.Folding,
+			Casing{
+				get_tr(),
+				mapping_key
+			}
+		);
+		casings.Add(
+			entry.Folding,
+			Casing{
+				get_az(),
+				mapping_key
+			}
+		);
+	
+	} else {
+	
+		add_casing(
+			entry.Folding,
+			std::optional<conds_key>{},
+			std::move(*mapping)
+		);
+	
+	}
 
 }
 

@@ -92,6 +92,7 @@ class CasingParser {
 		
 		
 		std::optional<conds_key> tr;
+		std::optional<conds_key> az;
 		
 		
 		Unicode::File casing;
@@ -106,6 +107,8 @@ class CasingParser {
 		Entry & get (Unicode::CodePoint::Type);
 		//	Gets the key for turkic conditions
 		conds_key get_tr ();
+		//	Gets the key for turkic conditions
+		conds_key get_az ();
 		//	Finds an entry for a specific code
 		//	point
 		std::vector<Entry>::iterator find (Unicode::CodePoint::Type) noexcept;
