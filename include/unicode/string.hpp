@@ -84,8 +84,10 @@ namespace Unicode {
 		public:
 		
 		
-			explicit String (const Locale * locale=nullptr) noexcept : locale(locale) {	}
-			String (std::vector<CodePoint> cps, const Locale * locale=nullptr) noexcept : cps(std::move(cps)), locale(locale) {	}
+			String () noexcept : locale(nullptr) {	}
+			explicit String (const Locale & locale) noexcept : locale(&locale) {	}
+			String (std::vector<CodePoint> cps) noexcept : cps(std::move(cps)), locale(nullptr) {	}
+			String (std::vector<CodePoint> cps, const Locale & locale) noexcept : cps(std::move(cps)), locale(&locale) {	}
 			
 			
 			String (const String &) = default;
