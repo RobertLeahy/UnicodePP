@@ -13,7 +13,7 @@ namespace Unicode {
 
 
 	/**
-	 *	The type of error that shall be thrown
+	 *	The type of exception that shall be thrown
 	 *	on a Unicode error.
 	 */
 	class Error : public std::exception {
