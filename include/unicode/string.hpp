@@ -9,14 +9,50 @@
 #include <unicode/codepoint.hpp>
 #include <unicode/locale.hpp>
 #include <unicode/normalizer.hpp>
+#include <unicode/vector.hpp>
 #include <cstddef>
 #include <functional>
-#include <type_traits>
 #include <utility>
 #include <vector>
 
 
 namespace Unicode {
+
+
+	class CString {
+	
+	
+		private:
+		
+		
+			std::vector<unsigned char> vec;
+			
+			
+		public:
+			
+			
+			CString (std::vector<unsigned char> vec) : vec(std::move(vec)) {
+			
+				vec.push_back(0);
+			
+			}
+			
+			
+			operator const char * () const noexcept {
+			
+				return reinterpret_cast<const char *>(vec.data());
+			
+			}
+			
+			
+			std::size_t Size () const noexcept {
+			
+				return vec.size()-1;
+			
+			}
+	
+	
+	};
 
 
 	class String {
@@ -29,51 +65,39 @@ namespace Unicode {
 			const Locale * locale;
 			
 			
-			CodePoint * ptr_begin () noexcept;
-			const CodePoint * ptr_begin () const noexcept;
-			CodePoint * ptr_end () noexcept;
-			const CodePoint * ptr_end () const noexcept;
-			
-			
 			void trim_front (const Locale &) noexcept;
 			void trim_rear (const Locale &) noexcept;
+			void trim (const Locale &) noexcept;
+			
+			
+			std::vector<CodePoint> to_upper (bool) const;
+			std::vector<CodePoint> to_lower (bool) const;
+			std::vector<CodePoint> to_case_fold (bool) const;
+			
+			
+			bool is_nfd (const Locale &) const noexcept;
+			bool is_nfc (const Locale &) const noexcept;
+			std::vector<CodePoint> to_nfd (const Locale &) const;
+			std::vector<CodePoint> to_nfc (const Locale &) const;
 			
 			
 		public:
 		
 		
-			/**
-			 *	Creates an empty string.
-			 */
-			String () noexcept(std::is_nothrow_constructible<std::vector<CodePoint>>::value) : locale(nullptr) {	}
+			explicit String (const Locale * locale=nullptr) noexcept : locale(locale) {	}
+			String (std::vector<CodePoint> cps, const Locale * locale=nullptr) noexcept : cps(std::move(cps)), locale(locale) {	}
+			
+			
 			String (const String &) = default;
 			String (String &&) = default;
 			String & operator = (const String &) = default;
 			String & operator = (String &&) = default;
 			
 			
-			/**
-			 *	Creates a string containing a certain
-			 *	vector of code points.
-			 *
-			 *	\param [in] cps
-			 *		A vector of Unicode code points.
-			 */
-			String (std::vector<CodePoint> cps) noexcept : cps(std::move(cps)), locale(nullptr) {	}
-			/**
-			 *	Assigns a vector of code points to this
-			 *	string.
-			 *
-			 *	\param [in] cps
-			 *		A vector of Unicode code points.
-			 *
-			 *	\return
-			 *		A reference to this string.
-			 */
 			String & operator = (std::vector<CodePoint> cps) noexcept {
 			
-				this->cps=std::move(cps);
 				locale=nullptr;
+				cps=std::move(cps);
 				
 				return *this;
 			
@@ -84,72 +108,34 @@ namespace Unicode {
 			String & operator = (const char * str);
 			
 			
-			std::vector<char> ToCString () const;
+			const CodePoint * begin () const noexcept {
 			
-			
-			/**
-			 *	Determines the number of code points in
-			 *	this string.
-			 *
-			 *	\return
-			 *		The number of code points in this
-			 *		string.
-			 */
-			std::size_t Size () const noexcept {
-			
-				return cps.size();
+				return Begin(cps);
 			
 			}
 			
 			
-			/**
-			 *	Retrieves a reference to the vector of
-			 *	code points underlying this string.
-			 *
-			 *	\return
-			 *		A reference to a vector of code points.
-			 */
-			const std::vector<CodePoint> & CodePoints () const & noexcept {
+			CodePoint * begin () noexcept {
 			
-				return cps;
+				return Begin(cps);
 			
 			}
 			
 			
-			/**
-			 *	Retrieves a reference to the vector of
-			 *	code points underlying this string.
-			 *
-			 *	\return
-			 *		A reference to a vector of code points.
-			 */
-			std::vector<CodePoint> & CodePoints () & noexcept {
+			const CodePoint * end () const noexcept {
 			
-				return cps;
+				return End(cps);
 			
 			}
 			
 			
-			/**
-			 *	Retrieves the vector of code points
-			 *	underlying this string.
-			 *
-			 *	\return
-			 *		A vector of code points.
-			 */
-			std::vector<CodePoint> CodePoints () && noexcept {
+			CodePoint * end () noexcept {
 			
-				return std::move(cps);
+				return End(cps);
 			
 			}
 			
 			
-			/**
-			 *	Retrieves this string's locale.
-			 *
-			 *	\return
-			 *		A reference to this string's locale.
-			 */
 			const Locale & GetLocale () const noexcept {
 			
 				return (locale==nullptr) ? Locale::Get() : *locale;
@@ -157,12 +143,6 @@ namespace Unicode {
 			}
 			
 			
-			/**
-			 *	Sets this string's locale.
-			 *
-			 *	\param [in] locale
-			 *		This string's new locale.
-			 */
 			void SetLocale (const Locale & locale) noexcept {
 			
 				this->locale=&locale;
@@ -170,108 +150,68 @@ namespace Unicode {
 			}
 			
 			
-			/**
-			 *	Clears this string's locale, causing it
-			 *	to use the current locale.
-			 */
-			void ClearLocale () noexcept {
+			std::vector<CodePoint> & CodePoints () noexcept {
 			
-				locale=nullptr;
+				return cps;
 			
 			}
 			
 			
-			/**
-			 *	Trims whitespace from the beginning and
-			 *	end of this string.
-			 *
-			 *	\return
-			 *		A new string, which is a copy of
-			 *		this string with all leading and
-			 *		trailing whitespace removed.
-			 */
+			const std::vector<CodePoint> & CodePoints () const noexcept {
+			
+				return cps;
+			
+			}
+			
+			
+			CString ToCString (bool utf8=true) const;
+			
+			
+			String TrimFront () const &;
+			String & TrimFront () & noexcept;
+			String TrimFront () && noexcept;
+			
+			String TrimRear () const &;
+			String & TrimRear () & noexcept;
+			String TrimRear () && noexcept;
+			
 			String Trim () const &;
-			/**
-			 *	Trims whitespace from the beginning and
-			 *	end of this string.
-			 *
-			 *	\return
-			 *		A reference to this string.
-			 */
 			String & Trim () & noexcept;
-			/**
-			 *	Trims whitespace from the beginning and
-			 *	end of this string.
-			 *
-			 *	\return
-			 *		A new string, which is a copy of
-			 *		this string with all leading and
-			 *		trailing whitespace removed.
-			 */
 			String Trim () && noexcept;
 			
 			
-			/**
-			 *	Places this string in a Unicode normal form.
-			 *
-			 *	\param [in] nf
-			 *		The normal form in which to place this
-			 *		string.  Defaults to the default specified
-			 *		by the Normalizer class.
-			 *
-			 *	\return
-			 *		A new string, which is a copy of this
-			 *		string transformed to the desired normal
-			 *		form.
-			 */
-			String Normalize (NormalForm nf=Normalizer::Default) const &;
-			/**
-			 *	Places this string in a Unicode normal form.
-			 *
-			 *	\param [in] nf
-			 *		The normal form in which to place this
-			 *		string.  Defaults to the default specified
-			 *		by the Normalizer class.
-			 *
-			 *	\return
-			 *		A reference to this string.
-			 */
-			String & Normalize (NormalForm nf=Normalizer::Default) &;
-			/**
-			 *	Places this string in a Unicode normal form.
-			 *
-			 *	\param [in] nf
-			 *		The normal form in which to place this
-			 *		string.  Defaults to the default specified
-			 *		by the Normalizer class.
-			 *
-			 *	\return
-			 *		A new string, which is a copy of this
-			 *		string transformed to the desired normal
-			 *		form.
-			 */
-			String Normalize (NormalForm nf=Normalizer::Default) &&;
-			/**
-			 *	Checks to see if this string is in a Unicode
-			 *	normal form.
-			 *
-			 *	\param [in] nf
-			 *		The normal form to check.  Defaults to the
-			 *		default specified by the Normalizer class.
-			 *
-			 *	\return
-			 *		\em true if this string is in \em nf, \em false
-			 *		otherwise.
-			 */
-			bool IsNormalized (NormalForm nf=Normalizer::Default) const noexcept;
+			String ToUpper (bool full=true) const &;
+			String & ToUpper (bool full=true) &;
+			
+			String ToLower (bool full=true) const &;
+			String & ToLower (bool full=true) &;
+			
+			String ToCaseFold (bool full=true) const &;
+			String & ToCaseFold (bool full=true) &;
 			
 			
+			bool IsNFD () const noexcept;
+			bool IsNFC () const noexcept;
+			
+			
+			String ToNFD () const &;
+			String & ToNFD () &;
+			String ToNFD () &&;
+			
+			String ToNFC () const &;
+			String & ToNFC () &;
+			String ToNFC () &&;
 	
 	
 	};
 	
 	
 }
+
+
+/**
+ *	\cond
+ */
 
 
 namespace std {
@@ -287,7 +227,7 @@ namespace std {
 			static size_t compute (const Unicode::String & str) noexcept {
 			
 				size_t retr=5381;
-				for (auto cp : str.CodePoints()) {
+				for (auto cp : str) {
 				
 					retr*=33;
 					retr^=static_cast<Unicode::CodePoint::Type>(cp);
@@ -305,7 +245,7 @@ namespace std {
 			template <typename T>
 			size_t operator () (T && str) const {
 			
-				return compute(str.Normalize());
+				return compute(str.ToNFD());
 			
 			}
 	

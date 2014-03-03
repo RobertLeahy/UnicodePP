@@ -71,6 +71,13 @@ namespace Unicode {
 	}
 	
 	
+	std::vector<unsigned char> Encoding::Encode (const String & str) const {
+	
+		return Encode(str.CodePoints());
+	
+	}
+	
+	
 	std::vector<CodePoint> Encoding::Decode (const void * begin, const void * end) const {
 	
 		auto b=reinterpret_cast<const unsigned char *>(begin);

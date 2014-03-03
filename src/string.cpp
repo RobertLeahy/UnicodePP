@@ -1,3 +1,5 @@
+#include <unicode/caseconverter.hpp>
+#include <unicode/normalizer.hpp>
 #include <unicode/string.hpp>
 #include <unicode/utf8.hpp>
 #include <algorithm>
@@ -7,119 +9,203 @@
 namespace Unicode {
 
 
-	CodePoint * String::ptr_begin () noexcept {
-	
-		return &cps[0];
-	
-	}
-	
-	
-	const CodePoint * String::ptr_begin () const noexcept {
-	
-		return &cps[0];
-	
-	}
-	
-	
-	CodePoint * String::ptr_end () noexcept {
-	
-		return &cps[0]+cps.size();
-	
-	}
-	
-	
-	const CodePoint * String::ptr_end () const noexcept {
-	
-		return &cps[0]+cps.size();
-	
-	}
-	
-	
 	template <typename T>
-	auto to_pointer (T && iter) noexcept(noexcept(*iter)) -> decltype(&(*iter)) {
+	T find_non_white_space (T begin, T end, const Locale & locale) noexcept {
 	
-		return &(*iter);
+		return std::find_if(
+			std::move(begin),
+			std::move(end),
+			[&] (CodePoint cp) noexcept {
+			
+				return !cp.IsWhiteSpace();
+			
+			}
+		);
 	
 	}
 
 
 	void String::trim_front (const Locale & locale) noexcept {
 	
-		cps.erase(
-			cps.begin(),
-			std::find_if(
-				cps.begin(),
-				cps.end(),
-				[&] (CodePoint cp) noexcept {	return !cp.IsWhitespace(locale);	}
-			)
-		);
+		auto begin=cps.begin();
+		auto end=find_non_white_space(begin,cps.end(),locale);
+		cps.erase(begin,end);
 	
 	}
 	
 	
 	void String::trim_rear (const Locale & locale) noexcept {
 	
-		auto end=cps.rend();
-		auto iter=std::find_if(
-			cps.rbegin(),
-			end,
-			[&] (CodePoint cp) noexcept {	return !cp.IsWhitespace(locale);	}
-		);
-		
-		cps.resize(static_cast<std::size_t>(end-iter));
+		auto begin=cps.rbegin();
+		auto end=find_non_white_space(begin,cps.rend(),locale);
+		cps.resize(cps.size()-static_cast<std::size_t>(end-begin));
 	
 	}
 	
 	
-	static std::vector<CodePoint> from_c_string (const char * str) {
+	void String::trim (const Locale & locale) noexcept {
+	
+		trim_rear(locale);
+		trim_front(locale);
+	
+	}
+	
+	
+	std::vector<CodePoint> String::to_upper (bool full) const {
+	
+		return CaseConverter(GetLocale(),full).ToUpper(begin(),end());
+	
+	}
+	
+	
+	std::vector<CodePoint> String::to_lower (bool full) const {
+	
+		return CaseConverter(GetLocale(),full).ToLower(begin(),end());
+	
+	}
+	
+	
+	std::vector<CodePoint> String::to_case_fold (bool full) const {
+	
+		return CaseConverter(GetLocale(),full).Fold(begin(),end());
+	
+	}
+	
+	
+	bool String::is_nfd (const Locale & locale) const noexcept {
+	
+		return Normalizer(locale).IsNFD(begin(),end());
+	
+	}
+	
+	
+	bool String::is_nfc (const Locale & locale) const noexcept {
+	
+		return Normalizer(locale).IsNFC(begin(),end());
+	
+	}
+	
+	
+	std::vector<CodePoint> String::to_nfd (const Locale & locale) const {
+	
+		return Normalizer(locale).ToNFD(begin(),end());
+	
+	}
+	
+	
+	std::vector<CodePoint> String::to_nfc (const Locale & locale) const {
+	
+		return Normalizer(locale).ToNFC(begin(),end());
+	
+	}
+	
+	
+	static std::vector<CodePoint> decode (const char * str) {
 	
 		return UTF8{}.Decode(
 			str,
 			str+std::strlen(str)
-		).CodePoints();
+		);
 	
 	}
 	
 	
-	String::String (const char * str) : cps(from_c_string(str)), locale(nullptr) {	}
+	String::String (const char * str)
+		:	cps(decode(str)),
+			locale(nullptr)
+	{	}
 	
 	
 	String & String::operator = (const char * str) {
 	
-		cps=from_c_string(str);
 		locale=nullptr;
+		cps=decode(str);
 		
 		return *this;
 	
 	}
 	
 	
-	std::vector<char> String::ToCString () const {
+	CString String::ToCString (bool utf8) const {
 	
-		auto vec=UTF8{}.Encode(cps);
-		vec.push_back('\0');
-		
-		return vec;
+		//	TODO: ASCII "encoding" for this when
+		//	utf8=false
+		return CString(UTF8{}.Encode(begin(),end()));
 	
 	}
-
-
+	
+	
+	String String::TrimFront () const & {
+	
+		String retr(*this);
+		retr.TrimFront();
+		
+		return retr;
+	
+	}
+	
+	
+	String & String::TrimFront () & noexcept {
+	
+		trim_front(GetLocale());
+		
+		return *this;
+	
+	}
+	
+	
+	String String::TrimFront () && noexcept {
+	
+		String retr(std::move(*this));
+		retr.TrimFront();
+		
+		return retr;
+	
+	}
+	
+	
+	String String::TrimRear () const & {
+	
+		String retr(*this);
+		retr.TrimRear();
+		
+		return retr;
+	
+	}
+	
+	
+	String & String::TrimRear () & noexcept {
+	
+		trim_rear(GetLocale());
+		
+		return *this;
+	
+	}
+	
+	
+	String String::TrimRear () && noexcept {
+	
+		String retr(std::move(*this));
+		retr.TrimRear();
+		
+		return retr;
+	
+	}
+	
+	
 	String String::Trim () const & {
 	
-		String cpy(*this);
-		cpy.Trim();
+		String retr(*this);
+		retr.Trim();
 		
-		return cpy;
+		return retr;
 	
 	}
 	
 	
 	String & String::Trim () & noexcept {
 	
-		auto & locale=GetLocale();
-	
-		trim_front(locale);
-		trim_rear(locale);
+		trim(GetLocale());
 		
 		return *this;
 	
@@ -128,57 +214,138 @@ namespace Unicode {
 	
 	String String::Trim () && noexcept {
 	
-		String cpy(*this);
-		cpy.Trim();
+		String retr(std::move(*this));
+		retr.Trim();
 		
-		return cpy;
+		return retr;
 	
 	}
 	
 	
-	String String::Normalize (NormalForm nf) const & {
+	String String::ToUpper (bool full) const & {
 	
-		Normalizer n(nf,GetLocale());
-		return String(
-			n.Normalize(
-				ptr_begin(),
-				ptr_end()
-			)
-		);
+		return to_upper(full);
 	
 	}
 	
 	
-	String & String::Normalize (NormalForm nf) & {
+	String & String::ToUpper (bool full) & {
 	
-		Normalizer n(nf,GetLocale());
-		cps=n.Normalize(
-			ptr_begin(),
-			ptr_end()
-		);
+		cps=to_upper(full);
 		
 		return *this;
 	
 	}
 	
 	
-	String String::Normalize (NormalForm nf) && {
+	String String::ToLower (bool full) const & {
 	
-		String cpy(std::move(*this));
-		cpy.Normalize(nf);
-		
-		return cpy;
+		return to_lower(full);
 	
 	}
 	
 	
-	bool String::IsNormalized (NormalForm nf) const noexcept {
+	String & String::ToLower (bool full) & {
 	
-		Normalizer n(nf,GetLocale());
-		return n.IsNormalized(
-			ptr_begin(),
-			ptr_end()
-		);
+		cps=to_lower(full);
+		
+		return *this;
+	
+	}
+	
+	
+	String String::ToCaseFold (bool full) const & {
+	
+		return to_case_fold(full);
+	
+	}
+	
+	
+	String & String::ToCaseFold (bool full) & {
+	
+		cps=to_case_fold(full);
+		
+		return *this;
+	
+	}
+	
+	
+	bool String::IsNFD () const noexcept {
+	
+		return is_nfd(GetLocale());
+	
+	}
+	
+	
+	bool String::IsNFC () const noexcept {
+	
+		return is_nfc(GetLocale());
+	
+	}
+	
+	
+	String String::ToNFD () const & {
+	
+		auto & locale=GetLocale();
+		
+		if (is_nfd(locale)) return *this;
+		
+		return to_nfd(locale);
+	
+	}
+	
+	
+	String & String::ToNFD () & {
+	
+		auto & locale=GetLocale();
+		
+		if (!is_nfd(locale)) cps=to_nfd(locale);
+		
+		return *this;
+	
+	}
+	
+	
+	String String::ToNFD () && {
+	
+		auto & locale=GetLocale();
+		
+		if (is_nfd(locale)) return std::move(*this);
+		
+		return to_nfd(locale);
+	
+	}
+	
+	
+	String String::ToNFC () const & {
+	
+		auto & locale=GetLocale();
+		
+		if (is_nfc(locale)) return *this;
+		
+		return to_nfc(locale);
+	
+	}
+	
+	
+	String & String::ToNFC () & {
+	
+		auto & locale=GetLocale();
+		
+		if (!is_nfc(locale)) cps=to_nfc(locale);
+		
+		return *this;
+	
+	}
+	
+	
+	String String::ToNFC () && {
+	
+		auto & locale=GetLocale();
+		
+		if (is_nfc(locale)) return std::move(*this);
+		
+		return to_nfc(locale);
 	
 	}
 

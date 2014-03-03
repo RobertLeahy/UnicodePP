@@ -9,6 +9,7 @@
 #include <unicode/codepoint.hpp>
 #include <unicode/error.hpp>
 #include <unicode/makereverseiterator.hpp>
+#include <unicode/string.hpp>
 #include <algorithm>
 #include <cstddef>
 #include <iterator>
@@ -435,6 +436,17 @@ namespace Unicode {
 			 *		as encoded by the underlying encoding.
 			 */
 			std::vector<unsigned char> Encode (const std::vector<CodePoint> & vec) const;
+			/**
+			 *	Encodes a Unicode string.
+			 *
+			 *	\param [in] str
+			 *		The string.
+			 *
+			 *	\return
+			 *		A buffer of bytes containing the range
+			 *		as encoded by the underlying encoding.
+			 */
+			std::vector<unsigned char> Encode (const String & str) const;
 			
 			
 			/**
