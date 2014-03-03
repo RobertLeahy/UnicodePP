@@ -10,6 +10,7 @@ obj/boundaries.o \
 obj/byteordermark.o \
 obj/caseconverter.o \
 obj/codepoint.o \
+obj/comparer.o \
 obj/condition.o \
 obj/conditions.o \
 obj/data/getdata.o \

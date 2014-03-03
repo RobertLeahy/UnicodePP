@@ -81,6 +81,13 @@ namespace Unicode {
 			 *		An integer.
 			 */
 			constexpr CodePoint (Type cp) noexcept : cp(cp) {	}
+			/**
+			 *	Creates a code point from a character.
+			 *
+			 *	\param [in] c
+			 *		A character.
+			 */
+			constexpr CodePoint (char c) noexcept : cp(static_cast<Type>(c)) {	}
 			
 			
 			/**
