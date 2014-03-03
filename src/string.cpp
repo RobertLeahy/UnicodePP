@@ -1,4 +1,5 @@
 #include <unicode/caseconverter.hpp>
+#include <unicode/comparer.hpp>
 #include <unicode/normalizer.hpp>
 #include <unicode/string.hpp>
 #include <unicode/utf8.hpp>
@@ -346,6 +347,20 @@ namespace Unicode {
 		if (is_nfc(locale)) return std::move(*this);
 		
 		return to_nfc(locale);
+	
+	}
+	
+	
+	bool String::Equals (const String & other, bool case_sensitive) const {
+	
+		return Comparer(GetLocale(),case_sensitive).Compare(begin(),end(),other.begin(),other.end());
+	
+	}
+	
+	
+	bool String::Equals (const char * str, bool case_sensitive) const {
+	
+		return Comparer(GetLocale(),case_sensitive).Compare(begin(),end(),str);
 	
 	}
 

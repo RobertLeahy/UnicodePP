@@ -201,9 +201,55 @@ namespace Unicode {
 			String ToNFC () const &;
 			String & ToNFC () &;
 			String ToNFC () &&;
+			
+			
+			bool Equals (const String & other, bool case_sensitive=true) const;
+			bool Equals (const char * str, bool case_sensitive=true) const;
 	
 	
 	};
+	
+	
+	inline bool operator == (const String & a, const String & b) {
+	
+		return a.Equals(b);
+	
+	}
+	
+	
+	inline bool operator != (const String & a, const String & b) {
+	
+		return !a.Equals(b);
+	
+	}
+	
+	
+	inline bool operator == (const String & a, const char * b) {
+	
+		return a.Equals(b);
+	
+	}
+	
+	
+	inline bool operator != (const String & a, const char * b) {
+	
+		return !a.Equals(b);
+	
+	}
+	
+	
+	inline bool operator == (const char * a, const String & b) {
+	
+		return b.Equals(a);
+	
+	}
+	
+	
+	inline bool operator != (const char * a, const String & b) {
+	
+		return !b.Equals(a);
+	
+	}
 	
 	
 }
