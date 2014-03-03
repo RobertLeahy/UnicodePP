@@ -40,7 +40,7 @@ namespace Unicode {
 		//	has a function which implements it
 		for (auto & pair : conditions) {
 		
-			return retr(
+			if (cmp(pair.first,cond)) return retr(
 				negated,
 				pair.second(
 					loc,
