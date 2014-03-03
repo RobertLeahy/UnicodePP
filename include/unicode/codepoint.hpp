@@ -62,15 +62,18 @@ namespace Unicode {
 			 *	value.
 			 */
 			static constexpr Type Max=0x10FFFFU;
-		
-		
-			CodePoint () = default;
+			
+			
 			CodePoint (const CodePoint &) = default;
 			CodePoint (CodePoint &&) = default;
 			CodePoint & operator = (const CodePoint &) = default;
 			CodePoint & operator = (CodePoint &&) = default;
 		
 		
+			/**
+			 *	Creates a code point.
+			 */
+			constexpr CodePoint () noexcept : cp(0) {	}
 			/**
 			 *	Creates a code point from an integer.
 			 *
