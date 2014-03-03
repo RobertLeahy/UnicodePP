@@ -4,7 +4,11 @@
 namespace Unicode {
 
 
-	EncodingError::EncodingError (const char * what, const void * where, EncodingErrorType type) noexcept : Error(what), w(where), t(type) {	}
+	EncodingError::EncodingError (EncodingErrorType type, const void * where, const char * what) noexcept
+		:	Error(what),
+			t(type),
+			w(where)
+	{	}
 	
 	
 	const void * EncodingError::where () const noexcept {

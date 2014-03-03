@@ -1,4 +1,4 @@
-/** 
+/**
  *	\file
  */
  
@@ -6,7 +6,7 @@
 #pragma once
 
 
-#include <unicode/byteencoding.hpp>
+#include <unicode/encoding.hpp>
 
 
 namespace Unicode {
@@ -15,45 +15,48 @@ namespace Unicode {
 	/**
 	 *	The UTF-8 multi-byte encoding.
 	 */
-	class UTF8 : public ByteEncoding {
+	class UTF8 : public Encoding {
 	
 	
-		public:
-		
-		
-			/**
-			 *	A type which represents a UTF-8
-			 *	code unit.
-			 */
-			typedef unsigned char CodeUnit;
-	
-	
-		private:
-		
-		
-			void to_bytes (std::vector<char> &, CodePoint) const;
-			bool from_bytes (std::vector<CodePoint> &, const CodeUnit * &, const CodeUnit *) const;
-			
-			
 		protected:
 		
 		
-			virtual void Encoder (std::vector<char> &, const CodePoint *, const CodePoint *) const override;
-			virtual void Decoder (std::vector<CodePoint> &, const void *, const void *) const override;
+			virtual void Encoder (
+				std::vector<unsigned char> & buffer,
+				CodePoint cp
+			) const override;
+			
+			virtual std::optional<EncodingErrorType> Decoder (
+				std::vector<CodePoint> & cps,
+				const unsigned char * & begin,
+				const unsigned char * end,
+				std::optional<Endianness> order
+			) const override;
 	
 	
 		public:
 		
 		
 			/**
-			 *	The largest value that can be represented
-			 *	as UTF-8.
+			 *	The type of code unit used by this
+			 *	encoder.
 			 */
-			static constexpr CodePoint::Type Max=0x7FFFFFFFU;
+			typedef unsigned char CodeUnit;
+		
+		
+			/**
+			 *	Creates a new UTF8 encoder/decoder.
+			 *
+			 *	By default UTF8 encoder/decoders do not
+			 *	detect or output a byte order mark, as
+			 *	recommended by the Unicode consortium.
+			 */
+			UTF8 () noexcept;
 			
 			
-			virtual bool CanRepresent (CodePoint) const noexcept override;
-			virtual std::size_t Count (CodePoint) const noexcept override;
+			virtual ByteOrderMark BOM () const noexcept override;
+			virtual bool CanRepresent (CodePoint cp) const noexcept override;
+			virtual std::size_t Count (CodePoint cp) const noexcept override;
 	
 	
 	};

@@ -1,31 +1,32 @@
 #include <unicode/encoding.hpp>
-#include <type_traits>
 
 
 namespace Unicode {
 
 
-	static const unsigned char * to_byte (const void * ptr) noexcept {
-	
-		return reinterpret_cast<const unsigned char *>(ptr);
-	
-	}
-
-
 	std::optional<Endianness> ByteOrderMark::Detect (const void * & begin, const void * end) const noexcept {
 	
 		std::optional<Endianness> retr;
+	
+		auto b=reinterpret_cast<const unsigned char *>(begin);
+		auto e=reinterpret_cast<const unsigned char *>(end);
 		
-		auto b=to_byte(begin);
-		auto e=to_byte(end);
-		auto c=Size();
-		if (static_cast<std::size_t>(e-b)<c) return retr;
-		e=b+c;
+		auto len=static_cast<std::size_t>(e-b);
+		auto size=bom.size();
+		if (len<size) return retr;
+		e=b+size;
 		
-		if (std::equal(b,e,this->b,this->e)) retr=Endianness::Big;
-		else if (std::equal(b,e,reverse(this->e),reverse(this->b))) retr=Endianness::Little;
+		auto b_b=bom.begin();
+		auto b_e=bom.end();
 		
-		if (retr) begin=e;
+		if (std::equal(b_b,b_e,b)) retr=Endianness::Big;
+		else if (std::equal(
+			b_b,
+			b_e,
+			MakeReverseIterator(e)
+		)) retr=Endianness::Little;
+		
+		if (retr) begin=b+size;
 		
 		return retr;
 	

@@ -1,330 +1,191 @@
 #include <unicode/utf8.hpp>
-#include <iterator>
-#include <limits>
 
 
 namespace Unicode {
 
 
-	static const unsigned char bom_bytes []={0xEFU,0xBBU,0xBFU};
-	static const ByteOrderMark bom(
-		std::begin(bom_bytes),
-		std::end(bom_bytes)
-	);
+	static const unsigned char bom_array []={0xEF,0xBB,0xBF};
+	static const ByteOrderMark bom(bom_array);
 
 
-	static char to_char (UTF8::CodeUnit c) noexcept {
+	UTF8::UTF8 () noexcept : Encoding(false,false) {	}
 	
-		union {
-			UTF8::CodeUnit in;
-			char out;
-		};
-		in=c;
+	
+	//	Creates a leading byte from a code point
+	static unsigned char get_leading_byte (std::size_t len, CodePoint::Type cp) noexcept {
+	
+		unsigned char retr=0;
+		for (std::size_t i=0;i<len;++i) {
 		
-		return out;
-	
-	}
-	
-	
-	static CodePoint::Type get_integer (std::size_t bytes, CodePoint cp) noexcept {
-	
-		return static_cast<CodePoint::Type>(cp)>>(6*bytes);
-	
-	}
-	
-	
-	static UTF8::CodeUnit get_lead (std::size_t bytes, CodePoint cp) noexcept {
-	
-		auto i=get_integer(bytes,cp);
-		
-		UTF8::CodeUnit retr=0;
-		for (std::size_t n=0;n<bytes;++n) {
 			retr>>=1;
-			retr&=128;
+			retr|=128;
 		
 		}
 		
-		return retr|static_cast<UTF8::CodeUnit>(i);
-	
-	}
-	
-	
-	static UTF8::CodeUnit get_trail (std::size_t bytes, CodePoint cp) noexcept {
-	
-		return static_cast<UTF8::CodeUnit>(
-			get_integer(bytes,cp)&0x3FU
-		)|128;
-	
-	}
-	
-	
-	void UTF8::to_bytes (std::vector<char> & buffer, CodePoint cp) const {
-	
-		//	Number of bytes we're going
-		//	to use to represent this code
-		//	point
-		auto num=Count(cp);
-		
-		//	Code points that take only one
-		//	byte are trivially representable
-		if (num==1) {
-		
-			buffer.push_back(
-				to_char(
-					static_cast<CodeUnit>(cp)
-				)
-			);
-		
-			return;
-		
-		}
-		
-		buffer.push_back(
-			to_char(
-				get_lead(num,cp)
-			)
-		);
-		
-		for (--num;(num--)>0;) buffer.push_back(
-			to_char(
-				get_trail(num,cp)
-			)
-		);
-	
-	}
-	
-	
-	static std::size_t count (UTF8::CodeUnit lead) noexcept {
-	
-		std::size_t retr=0;
-		while ((lead&128)!=0) {
-		
-			++retr;
-			lead<<=1;
-		
-		}
+		retr|=static_cast<unsigned char>(cp>>(6*(len-1)));
 		
 		return retr;
 	
 	}
 	
 	
-	static CodePoint::Type get_lead_bits (std::size_t bytes, UTF8::CodeUnit lead) noexcept {
+	//	Creates a continuation byte from a code point
+	static unsigned char get_continuation_byte (std::size_t i, CodePoint::Type cp) noexcept {
 	
-		lead<<=bytes;
-		lead>>=bytes;
-		
-		return lead;
-	
-	}
-	
-	
-	static CodePoint::Type get_trail_bits (UTF8::CodeUnit trail) noexcept {
-	
-		return trail&127;
+		return static_cast<unsigned char>(
+			(cp>>(6*(i-1)))&static_cast<CodePoint::Type>(0x3F)
+		)|static_cast<unsigned char>(128);
 	
 	}
 	
 	
-	bool UTF8::from_bytes (std::vector<CodePoint> & cps, const CodeUnit * & begin, const CodeUnit * end) const {
+	void UTF8::Encoder (std::vector<unsigned char> & buffer, CodePoint cp) const {
 	
-		//	Control returns here if an error
-		//	is encountered with the current byte,
-		//	after moving to the next byte
-		start:
+		auto len=Count(cp);
 		
-		//	Bounds check
-		if (begin==end) return false;
+		//	This shouldn't happen
+		if (len==0) return;
+		
+		//	Trivial
+		if (len==1) {
+		
+			buffer.push_back(static_cast<unsigned char>(cp));
+			
+			return;
+		
+		}
+		
+		//	Multi-byte
+		buffer.push_back(get_leading_byte(len,cp));
+		while ((len--)>1) buffer.push_back(get_continuation_byte(len,cp));
 	
-		//	Determine number of code units in
-		//	the next code point
-		auto num=count(*begin);
-		//	This code unit is the only
-		//	code unit and contains literally
-		//	the code point
-		if (num==0) {
+	}
+	
+	
+	//	Gets the number of bytes in the UTF-8 encoding
+	//	of a code point, based on the leading byte
+	static std::size_t count (unsigned char b) noexcept {
+	
+		unsigned char mask=128;
+		//	Check the high bit, if it's not set
+		//	it's just 1 byte
+		if ((b&mask)==0) return 1;
 		
-			cps.push_back(*begin);
-			++begin;
-			return true;
-			
-		}
+		//	Count the number of high bits set
+		std::size_t retr=1;
+		for (
+			mask>>=1;
+			!((mask==0) || ((b&mask)==0));
+			mask>>=1,++retr
+		);
 		
-		//	ILLEGAL UTF-8, CONTINUATION
-		//	BYTE WHERE UNEXPECTED
-		if (num==1) {
+		//	Sift out bad return values
+		//
+		//	UTF-8 can't by more than 6 bytes long,
+		//	and 1 byte at this point wouldn't make
+		//	sense, that would indicate a continuation
+		//	byte where one shouldn't be
+		return ((retr==1) || (retr>6)) ? 0 : retr;
+	
+	}
+	
+	
+	//	Gets the contribution to the final code point
+	//	from the leading byte
+	static CodePoint::Type get_leading_byte (std::size_t len, unsigned char b) noexcept {
+	
+		//	Determine the number of low bits we
+		//	need to mask off
+		len=8-1-len;
 		
-			Handle(
-				cps,
-				begin,
-				EncodingErrorType::Strict
-			);
-			
-			//	Skip to next byte
-			++begin;
-			goto start;
+		unsigned char mask=0;
+		for (std::size_t i=0;i<len;++i) {
 		
-		}
-		
-		//	CANNOT REPRESENT
-		if (num>6) {
-		
-			Handle(
-				cps,
-				begin,
-				EncodingErrorType::Lossy
-			);
-			
-			//	Skip to next byte
-			++begin;
-			goto start;
-		
-		}
-		
-		//	Not valid UTF-8
-		if ((num>4) && !Handle(
-			cps,
-			begin,
-			EncodingErrorType::Strict
-		)) {
-		
-			++begin;
-			goto start;
-			
-		}
-		
-		//	Check to see if there are enough
-		//	code points left in the stream
-		if (static_cast<std::size_t>(end-begin)<num) {
-		
-			Handle(
-				cps,
-				begin,
-				EncodingErrorType::Strict
-			);
-			
-			return false;
+			mask<<=1;
+			mask|=static_cast<unsigned char>(1);
 		
 		}
 		
-		//	Build a code point
-		CodePoint::Type cp;
-		cp=get_lead_bits(num,*(begin++));
-		for (--num;(num--)>0;) {
+		return b&mask;
+	
+	}
+	
+	
+	//	Gets the contribution to the final code point
+	//	from a continuation byte
+	static std::optional<CodePoint::Type> get_continuation_byte (CodePoint::Type curr, unsigned char b) noexcept {
+	
+		//	Check to make sure the high bit is
+		//	set and the second highest bit is
+		//	not set
+		if ((b&static_cast<unsigned char>(192))!=128) return std::optional<CodePoint::Type>{};
 		
-			//	Check for a valid continuation
-			//	byte
-			if (!(
-				(((*begin)&0xC0)==128) ||
-				Handle(
-					cps,
-					begin,
-					EncodingErrorType::Strict
-				)
-			)) goto start;
+		curr<<=6;
+		curr|=static_cast<CodePoint::Type>(static_cast<unsigned char>(63)&b);
+		
+		return curr;
+	
+	}
+	
+	
+	std::optional<EncodingErrorType> UTF8::Decoder (std::vector<CodePoint> & cps, const unsigned char * & begin, const unsigned char * end, std::optional<Endianness>) const {
+	
+		//	Determine the number of bytes in this sequence
+		auto len=count(*begin);
+		
+		//	Invalid sequence
+		if (len==0) return EncodingErrorType::Strict;
+		
+		//	Trivial
+		if (len==1) {
+		
+			cps.push_back(static_cast<CodePoint::Type>(*(begin++)));
 			
-			//	Get bits
-			cp<<=6;
-			cp|=get_trail_bits(*(begin++));
+			return std::optional<EncodingErrorType>{};
+		
+		}
+		
+		//	Perform length check
+		if (static_cast<std::size_t>(end-begin)<len) return EncodingErrorType::UnexpectedEnd;
+		
+		CodePoint::Type cp=get_leading_byte(len,*(begin++));
+		for (std::size_t i=0;i<(len-1);++i) {
+		
+			auto cp_o=get_continuation_byte(cp,*(begin++));
+			if (!cp_o) return EncodingErrorType::Strict;
+			cp=*cp_o;
 		
 		}
 		
 		cps.push_back(cp);
-		
-		return true;
+	
+		return std::optional<EncodingErrorType>{};
 	
 	}
 	
 	
-	void UTF8::Encoder (std::vector<char> & buffer, const CodePoint * begin, const CodePoint * end) const {
+	ByteOrderMark UTF8::BOM () const noexcept {
 	
-		//	Output BOM if necessary
-		if (
-			(buffer.size()==0) &&
-			OutputBOM
-		) bom.Get(buffer);
-	
-		for (;begin!=end;++begin) {
-		
-			//	Unicode strictness -- report an error
-			//	if the code point is not valid
-			//	Unicode
-			if (!(begin->IsValid() || Handle(
-				buffer,
-				begin,
-				end,
-				EncodingErrorType::UnicodeStrict
-			))) continue;
-			
-			//	UTF-8 strictness, even though UTF-8
-			//	can use up to 6 bytes to represent
-			//	code points, the standard restricts it
-			//	to only 4, therefore report an error
-			//	if this code point would take more than
-			//	4 bytes to represent
-			if (!((Count(*begin)<=4) || Handle(
-				buffer,
-				begin,
-				end,
-				EncodingErrorType::Strict
-			))) continue;
-			
-			//	Lossiness.  Some invalid Unicode code points
-			//	(all the way up to 32 bits) cannot be
-			//	represented by UTF-8, therefore report an
-			//	error if this code point is
-			//	unrepresentable
-			if (!CanRepresent(*begin)) {
-			
-				//	There's no way to proceed, so unconditionally
-				//	skip this code point
-				Handle(
-					buffer,
-					begin,
-					end,
-					EncodingErrorType::Lossy
-				);
-				
-				continue;
-			
-			}
-			
-			//	Encode
-			to_bytes(buffer,*begin);
-		
-		}
-	
-	}
-	
-	
-	void UTF8::Decoder (std::vector<CodePoint> & cps, const void * begin, const void * end) const {
-	
-		if (cps.size()==0) SkipBOM(begin,end,bom);
-	
-		auto b=reinterpret_cast<const CodeUnit *>(begin);
-		auto e=reinterpret_cast<const CodeUnit *>(end);
-	
-		CodePoint cp;
-		while (from_bytes(cps,b,e));
+		return bom;
 	
 	}
 	
 	
 	bool UTF8::CanRepresent (CodePoint cp) const noexcept {
 	
-		return cp<=Max;
+		return cp<=0x7FFFFFFF;
 	
 	}
 	
 	
 	std::size_t UTF8::Count (CodePoint cp) const noexcept {
 	
-		if (cp<=0x7FU) return 1;
-		if (cp<=0x7FFU) return 2;
-		if (cp<=0xFFFFU) return 3;
-		if (cp<=0x1FFFFFU) return 4;
-		if (cp<=0x3FFFFFFU) return 5;
-		if (cp<=Max) return 6;
+		if (cp<=0x7F) return 1;
+		if (cp<=0x7FF) return 2;
+		if (cp<=0xFFFF) return 3;
+		if (cp<=0x1FFFFF) return 4;
+		if (cp<=0x3FFFFFF) return 5;
+		if (cp<=0x7FFFFFFF) return 6;
 		
 		return 0;
 	
