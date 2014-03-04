@@ -33,8 +33,6 @@ namespace Unicode {
 				const unsigned char * end,
 				std::optional<Endianness> order
 			) const override;
-			
-			virtual void GetBOM (std::vector<unsigned char> & buffer) const override;
 	
 	
 		public:

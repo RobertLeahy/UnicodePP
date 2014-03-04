@@ -118,13 +118,6 @@ namespace Unicode {
 	}
 	
 	
-	void UTF16::GetBOM (std::vector<unsigned char> & buffer) const {
-	
-		bom.Get(buffer,OutputOrder);
-	
-	}
-	
-	
 	ByteOrderMark UTF16::BOM () const noexcept {
 	
 		return bom;

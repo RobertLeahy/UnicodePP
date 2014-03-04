@@ -156,6 +156,9 @@ namespace Unicode {
 			}
 			
 			
+			virtual void GetBOM (std::vector<unsigned char> & buffer) const override;
+			
+			
 		public:
 			
 			
