@@ -23,6 +23,7 @@ obj/error.o \
 obj/locale.o \
 obj/normalizer.o \
 obj/string.o \
-obj/utf8.o | \
+obj/utf8.o \
+obj/utf16.o | \
 bin
 	$(GPP) -shared -o $@ $^
