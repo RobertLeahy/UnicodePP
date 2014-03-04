@@ -45,7 +45,12 @@ namespace Unicode {
 		/**
 		 *	The stream ended unexpectedly.
 		 */
-		UnexpectedEnd
+		UnexpectedEnd,
+		/**
+		 *	There was a problem with the endianness of the
+		 *	input or output stream.
+		 */
+		Endianness
 	
 	};
 
@@ -485,15 +490,15 @@ namespace Unicode {
 			 */
 			virtual bool CanRepresent (CodePoint cp) const noexcept = 0;
 			/**
-			 *	Determines the number of bytes this encoding will
-			 *	require to represent a certain code point.
+			 *	Determines the number of code units this encoding
+			 *	will require to represent a certain code point.
 			 *
 			 *	\param [in] cp
 			 *		The code point to check.
 			 *
 			 *	\return
-			 *		The number of bytes this encoding will require to
-			 *		represent \em cp, or 0 if this encoding cannot
+			 *		The number of code units this encoding will require
+			 *		to represent \em cp, or 0 if this encoding cannot
 			 *		represent \em cp;
 			 */
 			virtual std::size_t Count (CodePoint cp) const noexcept = 0;
