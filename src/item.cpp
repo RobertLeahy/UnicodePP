@@ -31,11 +31,12 @@ namespace Unicode {
 	};
 	
 	
-	static std::optional<Unicode::CodePoint::Type> add_digit (Unicode::CodePoint::Type curr, Unicode::CodePoint::Type digit) noexcept {
+	template <typename T>
+	std::optional<T> add_digit (T curr, T digit) noexcept {
 	
-		std::optional<Unicode::CodePoint::Type> retr;
+		std::optional<T> retr;
 		
-		constexpr Unicode::CodePoint::Type max=std::numeric_limits<Unicode::CodePoint::Type>::max();
+		constexpr T max=std::numeric_limits<T>::max();
 		
 		//	Checked multiply
 		if (
@@ -53,13 +54,13 @@ namespace Unicode {
 	}
 	
 	
-	template <typename T>
-	std::optional<Unicode::CodePoint::Type> get_code_point (T & begin, const T & end) noexcept {
+	template <typename T, typename Iter>
+	std::optional<T> get_integer (Iter & begin, const Iter & end) noexcept {
 	
-		std::optional<Unicode::CodePoint::Type> retr;
+		std::optional<T> retr;
 		
 		bool found=false;
-		Unicode::CodePoint::Type i=0;
+		T i=0;
 		
 		for (;begin!=end;++begin) {
 		
@@ -109,7 +110,7 @@ namespace Unicode {
 	
 		auto begin=this->begin();
 		auto end=this->end();
-		auto retr=get_code_point(begin,end);
+		auto retr=get_integer<Unicode::CodePoint::Type>(begin,end);
 		
 		//	Make sure all the trailing characters
 		//	(if any) are whitespace
@@ -140,7 +141,7 @@ namespace Unicode {
 		for (;;) {
 		
 			//	Attempt to get next code point
-			auto next=get_code_point(begin,end);
+			auto next=get_integer<Unicode::CodePoint::Type>(begin,end);
 			
 			if (next) {
 			
@@ -167,7 +168,7 @@ namespace Unicode {
 		auto end=this->end();
 		
 		//	Get and check the beginning of the range
-		auto first=get_code_point(begin,end);
+		auto first=get_integer<Unicode::CodePoint::Type>(begin,end);
 		if (
 			!first ||
 			(begin==end) ||
@@ -189,7 +190,7 @@ namespace Unicode {
 		}
 		
 		//	Get and check the end of the range
-		auto second=get_code_point(begin,end);
+		auto second=get_integer<Unicode::CodePoint::Type>(begin,end);
 		if (!(
 			second &&
 			(
