@@ -266,6 +266,91 @@ namespace Unicode {
 	}
 	
 	
+	static std::optional<std::uint16_t> get_weight (const char * & begin, const char * end) {
+	
+		switch (*begin) {
+		
+			case '*':
+			case '.':
+				break;
+			default:
+				return std::nullopt;
+		
+		}
+		
+		++begin;
+		
+		return get_integer<std::uint16_t>(begin,end);
+	
+	}
+	
+	
+	static std::vector<std::uint16_t> get_collation_element (const char * & begin, const char * end) {
+	
+		std::vector<std::uint16_t> vec;
+		
+		if (
+			(*(begin++)!='[') ||
+			(begin==end)
+		) return vec;
+		
+		while (begin!=end) {
+		
+			auto weight=get_weight(begin,end);
+			
+			if (!weight || (begin==end)) {
+			
+				vec.clear();
+				
+				return vec;
+			
+			}
+			
+			vec.push_back(*weight);
+			
+			if (*begin==']') {
+			
+				++begin;
+				
+				return vec;
+			
+			}
+		
+		}
+		
+		vec.clear();
+		
+		return vec;
+	
+	}
+	
+	
+	std::vector<std::vector<std::uint16_t>> Item::CollationElements () const {
+	
+		std::vector<std::vector<std::uint16_t>> vec;
+		auto begin=this->begin();
+		auto end=this->end();
+		while (begin!=end) {
+		
+			auto append=get_collation_element(begin,end);
+			
+			if (append.size()==0) {
+			
+				vec.clear();
+				
+				return vec;
+			
+			}
+			
+			vec.push_back(std::move(append));
+		
+		}
+		
+		return vec;
+	
+	}
+	
+	
 	const char * Item::begin () const noexcept {
 	
 		return str.c_str();

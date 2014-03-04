@@ -8,6 +8,7 @@
 
 #include <unicode/codepoint.hpp>
 #include <cstddef>
+#include <cstdint>
 #include <fstream>
 #include <optional>
 #include <string>
@@ -100,6 +101,7 @@ namespace Unicode {
 			std::optional<std::vector<Unicode::CodePoint::Type>> CodePoints () const;
 			std::optional<Unicode::Range> Range () const noexcept;
 			std::vector<ConditionInfo> Conditions () const;
+			std::vector<std::vector<std::uint16_t>> CollationElements () const;
 			
 			
 			const char * begin () const noexcept;
