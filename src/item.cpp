@@ -11,7 +11,7 @@ namespace Unicode {
 	Item::Item (std::string str) noexcept : str(std::move(str)) {	}
 	
 	
-	static const std::unordered_map<char,Unicode::CodePoint::Type> map={
+	static const std::unordered_map<char,unsigned char> map={
 		{'0',0},
 		{'1',1},
 		{'2',2},
@@ -32,7 +32,7 @@ namespace Unicode {
 	
 	
 	template <typename T>
-	std::optional<T> add_digit (T curr, T digit) noexcept {
+	std::optional<T> add_digit (T curr, unsigned char digit) noexcept {
 	
 		std::optional<T> retr;
 		
