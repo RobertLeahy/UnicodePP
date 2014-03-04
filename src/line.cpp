@@ -67,7 +67,12 @@ namespace Unicode {
 		//	that are just comments
 		if (
 			(str.size()==0) ||
-			(str[0]=='#')
+			(str[0]=='#') ||
+			//	allkeys.txt uses a line beginning with
+			//	an ampersand (i.e. "@") to specify the
+			//	Unicode version of the file.  This line
+			//	should be skipped
+			(str[0]=='@')
 		) return retr;
 		
 		//	Loop and extract each semicolon-delimited
