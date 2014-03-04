@@ -727,6 +727,30 @@ namespace Unicode {
 			
 	
 	};
+	
+	
+	/**
+	 *	An entry in a collation element table.
+	 */
+	class CollationElementTableEntry {
+	
+	
+		public:
+		
+		
+			/**
+			 *	The code points associated with this table
+			 *	entry.
+			 */
+			Array<CodePoint::Type> CodePoints;
+			/**
+			 *	The collation elements associated with this
+			 *	table entry.
+			 */
+			Array<Array<std::uint16_t>> CollationElements;
+	
+	
+	};
 
 
 }
