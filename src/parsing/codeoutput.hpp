@@ -8,7 +8,16 @@
 #include <utility>
 
 
-class NewlineT {	};
+class NewlineT {
+	
+	
+	public:
+	
+	
+		constexpr NewlineT () noexcept {	}
+	
+	
+};
 
 
 extern const NewlineT Newline;
