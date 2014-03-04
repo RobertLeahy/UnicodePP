@@ -18,6 +18,7 @@ obj/defaultlocale.o \
 obj/encoding.o \
 obj/encodingaction.o \
 obj/encodingerror.o \
+obj/endianencoding.o \
 obj/error.o \
 obj/locale.o \
 obj/normalizer.o \
