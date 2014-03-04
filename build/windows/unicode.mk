@@ -13,6 +13,7 @@ obj/codepoint.o \
 obj/comparer.o \
 obj/condition.o \
 obj/conditions.o \
+obj/data/getcollation.o \
 obj/data/getdata.o \
 obj/defaultlocale.o \
 obj/encoding.o \
