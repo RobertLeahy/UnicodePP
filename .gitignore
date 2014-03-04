@@ -6,7 +6,7 @@ include/optional
 !/build.bat
 /*.mk
 /Makefile
-test.cpp
+src/test
 test.mk
 UCD
 src/data/data.cpp
