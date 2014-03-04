@@ -53,6 +53,5 @@ obj/%.o:
 	
 	
 include data.mk
-include test.mk
 include unicode.mk
 include unicodedata.mk
