@@ -4,7 +4,7 @@ SUFFIXES+=.mk
 #OPTIMIZATION=-O3
 OPTIMIZATION:=-O0 -g -fno-inline -fno-elide-constructors -DDEBUG -fno-omit-frame-pointer -fsanitize=address
 OPTS_SHARED:=-Wall -Wpedantic -Werror -fno-rtti -std=gnu++11 -I include -fPIC
-GPP:=clang++ $(OPTS_SHARED) $(OPTIMIZATION)
+GPP:=g++-4.8 $(OPTS_SHARED) $(OPTIMIZATION)
 comma:=,
 LINK=-Wl,-rpath,'$$ORIGIN' -Wl,-rpath-link,bin -Wl,-rpath-link,bin/mods $(if $(1),-Wl$(comma)-soname$(comma)$(notdir $(1)))
 MKDIR=mkdir -p $(dir $(1))
