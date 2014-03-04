@@ -12,6 +12,7 @@ namespace Unicode {
 		Locale retr;
 		retr.Info=Data();
 		retr.Compositions=Compositions();
+		retr.Collation=Collation();
 		
 		return retr;
 	

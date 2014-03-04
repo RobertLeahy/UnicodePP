@@ -69,6 +69,15 @@ namespace Unicode {
 			 *	is ignored for the purposes of sorting).
 			 */
 			Array<Composition> Compositions;
+			/**
+			 *	An array of CollationElementTableEntry objects
+			 *	which give the collation element table for this
+			 *	locale.
+			 *
+			 *	This array must be in ascending sorted order.
+			 *	The ordering is lexicographic on the code points.
+			 */
+			Array<CollationElementTableEntry> Collation;
 			
 			
 			constexpr Locale () noexcept : Language(nullptr) {	}
