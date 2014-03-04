@@ -2,7 +2,7 @@ SUFFIXES+=.mk
 
 
 #OPTIMIZATION=-O3
-OPTIMIZATION:=-O0 -g -fno-inline -fno-elide-constructors -DDEBUG -fno-omit-frame-pointer -fsanitize=address
+OPTIMIZATION:=-O0 -g -fno-inline -fno-elide-constructors -DDEBUG -fno-omit-frame-pointer
 OPTS_SHARED:=-Wall -Wpedantic -Werror -fno-rtti -std=gnu++11 -I include -fPIC
 GPP:=g++-4.8 $(OPTS_SHARED) $(OPTIMIZATION)
 comma:=,
