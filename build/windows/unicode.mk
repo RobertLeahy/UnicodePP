@@ -24,6 +24,7 @@ obj/locale.o \
 obj/normalizer.o \
 obj/string.o \
 obj/utf8.o \
-obj/utf16.o | \
+obj/utf16.o \
+obj/utf32.o | \
 bin
 	$(GPP) -shared -o $@ $^
