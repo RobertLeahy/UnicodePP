@@ -43,7 +43,7 @@ namespace Unicode {
 			 *	encoding.  Unsigned integer exactly
 			 *	16 bits wide.
 			 */
-			typedef std::int16_t CodeUnit;
+			typedef std::uint16_t CodeUnit;
 		
 		
 			using EndianEncoding::EndianEncoding;
