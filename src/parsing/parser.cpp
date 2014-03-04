@@ -1530,7 +1530,6 @@ void Parser::Output () {
 
 	//	Print out required headers
 	out.Header("unicode/codepoint.hpp");
-	out.Header("unicode/conditions.hpp");
 	out.Header("utility");
 	
 	//	Begin the Unicode namespace
