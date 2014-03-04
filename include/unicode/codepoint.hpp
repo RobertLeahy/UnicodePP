@@ -216,6 +216,17 @@ namespace Unicode {
 			 *		\em data.
 			 */
 			constexpr Array (const T * data, std::size_t size) noexcept : Data(data), Size(size) {	}
+			/**
+			 *	Creates an array.
+			 *
+			 *	\tparam i
+			 *		The size of the array to create.
+			 *
+			 *	\param [in] array
+			 *		The array.
+			 */
+			template <std::size_t i>
+			constexpr Array (const T (& arr) [i]) noexcept : Data(arr), Size(i) {	}
 			
 			
 			Array (const Array &) = default;
@@ -253,6 +264,29 @@ namespace Unicode {
 	
 	
 	};
+	
+	
+	/**
+	 *	Creates an array from a C style array.
+	 *
+	 *	\tparam T
+	 *		The type of array to create.
+	 *	\tparam i
+	 *		The size of the array.
+	 *
+	 *	\param [in] arr
+	 *		The array.
+	 *
+	 *	\return
+	 *		An array object which encapsulates the
+	 *		C style array.
+	 */
+	template <typename T, std::size_t i>
+	constexpr Array<T> MakeArray (const T (& arr) [i]) noexcept {
+	
+		return Array<T>(arr);
+	
+	}
 	
 	
 	/**
