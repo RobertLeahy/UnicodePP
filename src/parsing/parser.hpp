@@ -96,6 +96,11 @@ class Parser {
 				bool BidirectionalControl;
 				bool Mirrored;
 				
+				//	CJK
+				bool Ideographic;
+				bool UnifiedIdeograph;
+				bool Radical;
+				
 				//	Miscellaneous
 				bool Math;
 				bool QuotationMark;

@@ -248,6 +248,9 @@ Parser::Info::Info (Unicode::CodePoint::Type cp) noexcept
 		WordBreak(Unicode::WordBreak::XX),
 		BidirectionalControl(false),
 		Mirrored(false),
+		Ideographic(false),
+		UnifiedIdeograph(false),
+		Radical(false),
 		Math(false),
 		QuotationMark(false),
 		Dash(false),
@@ -691,7 +694,10 @@ const std::pair<bool (Parser::Info::*),const char *> Parser::prop_map []={
 	{&Info::LogicalOrderException,"Logical_Order_Exception"},
 	{&Info::VariationSelector,"Variation_Selector"},
 	{&Info::STerm,"STerm"},
-	{&Info::BidirectionalControl,"Bidi_Control"}
+	{&Info::BidirectionalControl,"Bidi_Control"},
+	{&Info::Ideographic,"Ideographic"},
+	{&Info::UnifiedIdeograph,"Unified_Ideograph"},
+	{&Info::Radical,"Radical"}
 };
 
 
@@ -1357,6 +1363,15 @@ void Parser::output_code_point_info_inner (const Info & info) {
 	next();
 	
 	output(info.Mirrored);
+	next();
+	
+	output(info.Ideographic);
+	next();
+	
+	output(info.UnifiedIdeograph);
+	next();
+	
+	output(info.Radical);
 	next();
 	
 	output(info.Math);
