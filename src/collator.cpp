@@ -503,12 +503,11 @@ namespace Unicode {
 	
 	static void shifted (std::vector<CodePoint::Type> & key, std::size_t level, const CollationElementContainer & ce, bool variable) {
 	
-		//	Most of the logic for shifted variables
-		//	deals with level 4, so if it's not level
-		//	4 just do simple handling and return
+		//	At levels above 4, the processing is identical
+		//	to blanked
 		if (level!=3) {
 		
-			if (!variable) append(key,ce[level]);
+			blanked(key,level,ce,variable);
 			
 			return;
 		
