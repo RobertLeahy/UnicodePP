@@ -729,10 +729,20 @@ namespace Unicode {
 	};
 	
 	
-	/**
-	 *	An entry in a collation element table.
-	 */
-	class CollationElementTableEntry {
+	class CollationElement {
+	
+	
+		public:
+		
+		
+			bool Variable;
+			Array<std::uint16_t> Weights;
+	
+	
+	};
+	
+	
+	class CollationTableEntry {
 	
 	
 		public:
@@ -747,7 +757,7 @@ namespace Unicode {
 			 *	The collation elements associated with this
 			 *	table entry.
 			 */
-			Array<Array<std::uint16_t>> CollationElements;
+			Array<CollationElement> CollationElements;
 	
 	
 	};

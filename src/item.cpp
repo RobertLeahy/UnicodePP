@@ -266,45 +266,36 @@ namespace Unicode {
 	}
 	
 	
-	static std::optional<std::uint16_t> get_weight (const char * & begin, const char * end) {
-	
-		switch (*begin) {
-		
-			case '*':
-			case '.':
-				break;
-			default:
-				return std::nullopt;
-		
-		}
-		
-		++begin;
-		
-		return get_integer<std::uint16_t>(begin,end);
-	
-	}
-	
-	
-	static std::vector<std::uint16_t> get_collation_element (const char * & begin, const char * end) {
-	
-		std::vector<std::uint16_t> vec;
+	static std::optional<CollationElementInfo> get_collation_element (const char * & begin, const char * end) {
 		
 		if (
 			(*(begin++)!='[') ||
 			(begin==end)
-		) return vec;
+		) return std::nullopt;
 		
+		std::vector<std::uint16_t> vec;
+		bool variable=false;
+		bool first=true;
 		while (begin!=end) {
 		
-			auto weight=get_weight(begin,end);
+			switch (*(begin++)) {
 			
-			if (!weight || (begin==end)) {
-			
-				vec.clear();
-				
-				return vec;
+				case '*':
+					if (first) variable=true;
+					else return std::nullopt;
+					break;
+				case '.':
+					break;
+				default:
+					return std::nullopt;
 			
 			}
+			
+			first=false;
+			
+			auto weight=get_integer<std::uint16_t>(begin,end);
+			
+			if (!weight || (begin==end)) return std::nullopt;
 			
 			vec.push_back(*weight);
 			
@@ -312,29 +303,29 @@ namespace Unicode {
 			
 				++begin;
 				
-				return vec;
-			
+				return CollationElementInfo{
+					variable,
+					std::move(vec)
+				};			
 			}
 		
 		}
 		
-		vec.clear();
-		
-		return vec;
+		return std::nullopt;
 	
 	}
 	
 	
-	std::vector<std::vector<std::uint16_t>> Item::CollationElements () const {
+	std::vector<CollationElementInfo> Item::CollationElements () const {
 	
-		std::vector<std::vector<std::uint16_t>> vec;
+		std::vector<CollationElementInfo> vec;
 		auto begin=this->begin();
 		auto end=this->end();
 		while (begin!=end) {
 		
 			auto append=get_collation_element(begin,end);
 			
-			if (append.size()==0) {
+			if (!append) {
 			
 				vec.clear();
 				
@@ -342,7 +333,7 @@ namespace Unicode {
 			
 			}
 			
-			vec.push_back(std::move(append));
+			vec.push_back(std::move(*append));
 		
 		}
 		

@@ -67,6 +67,31 @@ namespace Unicode {
 	
 	
 	};
+	
+	
+	/**
+	 *	Contains information about a collation element
+	 *	as read from a data file.
+	 */
+	class CollationElementInfo {
+	
+	
+		public:
+		
+		
+			/**
+			 *	\em true if the collation element is
+			 *	variable.
+			 */
+			bool Variable;
+			/**
+			 *	The weights which make up the collation
+			 *	element.
+			 */
+			std::vector<std::uint16_t> Weights;
+	
+	
+	};
 
 
 	/**
@@ -101,7 +126,7 @@ namespace Unicode {
 			std::optional<std::vector<Unicode::CodePoint::Type>> CodePoints () const;
 			std::optional<Unicode::Range> Range () const noexcept;
 			std::vector<ConditionInfo> Conditions () const;
-			std::vector<std::vector<std::uint16_t>> CollationElements () const;
+			std::vector<CollationElementInfo> CollationElements () const;
 			
 			
 			const char * begin () const noexcept;

@@ -85,13 +85,16 @@ void DUCETParser::process (const Line & line) {
 	auto ces=line[1].CollationElements();
 	if (ces.size()==0) bad_line();
 	
-	std::vector<weights_key> keys;
-	for (auto & vec : ces) keys.push_back(weights.Add(std::move(vec)));
+	std::vector<CollationElement> vec;
+	for (auto & info : ces) vec.push_back(CollationElement{
+		info.Variable,
+		weights.Add(std::move(info.Weights))
+	});
 	
 	entries.push_back(
 		Entry{
 			this->cps.Add(std::move(*cps)),
-			elements.Add(std::move(keys))
+			elements.Add(std::move(vec))
 		}
 	);
 
@@ -180,15 +183,19 @@ void DUCETParser::output_weights () {
 
 void DUCETParser::output_elements () {
 
-	out.BeginArray("Array<std::uint16_t>","elements");
+	out.BeginArray("CollationElement","elements");
 	
 	bool first=true;
-	for (auto key : elements) {
+	for (auto e : elements) {
 	
 		if (first) first=false;
 		else out << ",";
 		
-		output(weights.Get(key),"weights");
+		out << "{" << (e.Variable ? "true" : "false") << ",";
+		
+		output(weights.Get(e.Weights),"weights");
+		
+		out << "}";
 	
 	}
 	
@@ -199,7 +206,7 @@ void DUCETParser::output_elements () {
 
 void DUCETParser::output_table () {
 
-	out.BeginArray("CollationElementTableEntry","table");
+	out.BeginArray("CollationTableEntry","table");
 	out.BeginIndent();
 	
 	bool first=true;

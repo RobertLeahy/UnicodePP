@@ -24,7 +24,20 @@ class DUCETParser {
 		typedef weights_type::Key weights_key;
 		
 		
-		typedef ArrayAggregator<weights_key> elements_type;
+		class CollationElement {
+		
+		
+			public:
+			
+			
+				bool Variable;
+				weights_key Weights;
+		
+		
+		};
+		
+		
+		typedef ArrayAggregator<CollationElement> elements_type;
 		typedef elements_type::Key elements_key;
 		
 		

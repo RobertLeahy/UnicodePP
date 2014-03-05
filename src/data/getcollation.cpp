@@ -7,7 +7,7 @@
 namespace Unicode {
 
 
-	Array<CollationElementTableEntry> Collation () noexcept {
+	Array<CollationTableEntry> CollationTable () noexcept {
 	
 		return MakeArray(table);
 	

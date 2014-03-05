@@ -77,10 +77,17 @@ namespace Unicode {
 			 *	This array must be in ascending sorted order.
 			 *	The ordering is lexicographic on the code points.
 			 */
-			Array<CollationElementTableEntry> Collation;
+			Array<CollationTableEntry> CollationTable;
+			/**
+			 *	In some French dictionary traditions, accents are
+			 *	sorted from the back of the string to the beginning.
+			 *
+			 *	\em true if this is the case, \em false otherwise.
+			 */
+			bool Backwards;
 			
 			
-			constexpr Locale () noexcept : Language(nullptr) {	}
+			constexpr Locale () noexcept : Language(nullptr), Backwards(false) {	}
 		
 		
 			/**
