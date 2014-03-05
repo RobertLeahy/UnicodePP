@@ -9,7 +9,6 @@
 #include <unicode/codepoint.hpp>
 #include <unicode/locale.hpp>
 #include <optional>
-#include <utility>
 #include <vector>
 
 
