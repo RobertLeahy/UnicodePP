@@ -659,8 +659,8 @@ namespace Unicode {
 			if ((level==1) && is_backwards()) add_level(
 				key,
 				level,
-				MakeReverseIterator(begin),
-				MakeReverseIterator(end)
+				MakeReverseIterator(end),
+				MakeReverseIterator(begin)
 			);
 			else add_level(
 				key,
