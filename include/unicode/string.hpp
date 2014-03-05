@@ -557,6 +557,8 @@ namespace Unicode {
 			 *	Determines whether or not this string and another
 			 *	string are canonically equivalent.
 			 *
+			 *	The locale of this string will always be used.
+			 *
 			 *	\param [in] other
 			 *		The string with which to compare this string.
 			 *	\param [in] case_sensitive
