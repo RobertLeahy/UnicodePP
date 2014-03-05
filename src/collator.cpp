@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <iterator>
 #include <type_traits>
 
@@ -366,15 +367,17 @@ namespace Unicode {
 				
 					//	Get information on the current code point
 					auto cpi=begin->GetInfo(locale);
-					if (cpi!=nullptr) {
+					if ((cpi==nullptr) || !cpi->UnifiedIdeograph) return 0xFBC0;
 					
-						//	TODO: Implement
-						//
-						//	Need the Unified_Ideograph property
+					if (
+						(cpi->Block==nullptr) ||
+						!(
+							(std::strcmp(cpi->Block,"CJK Unified Ideographs")==0) ||
+							(std::strcmp(cpi->Block,"CJK Compatibility Ideographs")==0)
+						)
+					) return 0xFB80;
 					
-					}
-					
-					return 0xFBC0;
+					return 0xFB40;
 				
 				}
 				
