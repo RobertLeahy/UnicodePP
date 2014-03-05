@@ -586,6 +586,26 @@ namespace Unicode {
 			 *		considered equivalent, \em false otherwise.
 			 */
 			bool Equals (const char * str, bool case_sensitive=true) const;
+			
+			
+			/**
+			 *	Compares this string with another string, and
+			 *	determines how they should be ordered.
+			 *
+			 *	The locale of this string will always be used.
+			 *
+			 *	\param [in] other
+			 *		The string with which to compare this
+			 *		string.
+			 *
+			 *	\return
+			 *		Zero if this string and \em other should be
+			 *		ordered the same.  A negative value if this
+			 *		string should be ordered before \em other.  A
+			 *		positive value if this string should be ordered
+			 *		after \em other.
+			 */
+			int Compare (const String & other) const;
 	
 	
 	};
@@ -629,6 +649,34 @@ namespace Unicode {
 	inline bool operator != (const char * a, const String & b) {
 	
 		return !b.Equals(a);
+	
+	}
+	
+	
+	inline bool operator < (const String & a, const String & b) {
+	
+		return a.Compare(b)<0;
+	
+	}
+	
+	
+	inline bool operator <= (const String & a, const String & b) {
+	
+		return a.Compare(b)<=0;
+	
+	}
+	
+	
+	inline bool operator > (const String & a, const String & b) {
+	
+		return a.Compare(b)>0;
+	
+	}
+	
+	
+	inline bool operator >= (const String & a, const String & b) {
+	
+		return a.Compare(b)>=0;
 	
 	}
 	

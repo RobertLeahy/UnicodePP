@@ -1,4 +1,5 @@
 #include <unicode/caseconverter.hpp>
+#include <unicode/collator.hpp>
 #include <unicode/comparer.hpp>
 #include <unicode/normalizer.hpp>
 #include <unicode/string.hpp>
@@ -361,6 +362,13 @@ namespace Unicode {
 	bool String::Equals (const char * str, bool case_sensitive) const {
 	
 		return Comparer(GetLocale(),case_sensitive).Compare(begin(),end(),str);
+	
+	}
+	
+	
+	int String::Compare (const String & other) const {
+	
+		return Collator(GetLocale()).Compare(begin(),end(),other.begin(),other.end());
 	
 	}
 
