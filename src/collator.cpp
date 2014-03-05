@@ -582,11 +582,31 @@ namespace Unicode {
 	}
 	
 	
+	static void trim (std::vector<CodePoint::Type> & key) noexcept {
+	
+		auto e=key.end();
+		auto begin=MakeReverseIterator(e);
+		auto end=MakeReverseIterator(key.begin());
+		for (;(begin!=end) && (*begin==0xFFFF);++begin);
+		
+		key.erase(begin.base(),e);
+	
+	}
+	
+	
 	template <typename Iter>
 	void Collator::add_level (std::vector<CodePoint::Type> & key, std::size_t level, Iter begin, Iter end) const {
 	
 		bool variable=false;
 		for (;begin!=end;++begin) add_weight(key,level,*begin,variable);
+		
+		//	If this is the quaternary level, AND the
+		//	variable ordering is ShiftTrimmed, we trim
+		//	all trailing 0xFFFF weights
+		if (
+			(level==3) &&
+			(vo==VariableOrdering::ShiftTrimmed)
+		) trim(key);
 	
 	}
 	
