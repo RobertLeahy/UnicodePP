@@ -729,19 +729,35 @@ namespace Unicode {
 	};
 	
 	
+	/**
+	 *	One of possibly many collation elements associated
+	 *	with a code point or code point sequence in a collation
+	 *	table.
+	 */
 	class CollationElement {
 	
 	
 		public:
 		
 		
+			/**
+			 *	\em true if this collation element is variable,
+			 *	\em false otherwise.
+			 */
 			bool Variable;
+			/**
+			 *	The weights associated with this collation
+			 *	element.
+			 */
 			Array<std::uint16_t> Weights;
 	
 	
 	};
 	
 	
+	/**
+	 *	An entry in a collation table.
+	 */
 	class CollationTableEntry {
 	
 	
