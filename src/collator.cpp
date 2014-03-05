@@ -308,8 +308,7 @@ namespace Unicode {
 						
 							ccc=cpi->CanonicalCombiningClass;
 							
-							auto result=matcher(*begin);
-							switch (result) {
+							switch (matcher(*begin)) {
 							
 								case CollationTableSearchResult::Proceed:
 								case CollationTableSearchResult::Fail:
