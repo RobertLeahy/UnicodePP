@@ -64,6 +64,13 @@ namespace Unicode {
 			{	}
 			
 			
+			void SetVariableOrdering (VariableOrdering ordering) noexcept {
+			
+				vo=ordering;
+			
+			}
+			
+			
 			std::vector<CodePoint::Type> GetSortKey (const CodePoint * begin, const CodePoint * end) const;
 			
 			
