@@ -16,7 +16,7 @@
 namespace Unicode {
 
 
-	enum class VariableWeighting {
+	enum class VariableOrdering {
 	
 		NonIgnorable,
 		Blanked,
@@ -39,7 +39,7 @@ namespace Unicode {
 		
 		
 			const Locale & locale;
-			VariableWeighting vw;
+			VariableOrdering vo;
 			//	Null means all levels, zero means
 			//	identical, otherwise it's numerical
 			std::optional<std::size_t> strength;
@@ -60,7 +60,7 @@ namespace Unicode {
 		
 			Collator (const Locale & locale=Locale::Get()) noexcept
 				:	locale(locale),
-					vw(VariableWeighting::NonIgnorable)
+					vo(VariableOrdering::NonIgnorable)
 			{	}
 			
 			

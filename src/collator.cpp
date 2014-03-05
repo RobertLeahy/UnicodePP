@@ -530,16 +530,16 @@ namespace Unicode {
 	
 	void Collator::add_weight (std::vector<CodePoint::Type> & key, std::size_t level, const CollationElementContainer & ce, bool & variable) const {
 	
-		switch (vw) {
+		switch (vo) {
 		
 			//	Identical to table entries
-			case VariableWeighting::NonIgnorable:
+			case VariableOrdering::NonIgnorable:
 				append(key,ce[level]);
 				return;
 			//	All weights for variable collation elements,
 			//	and collation elements following variable
 			//	collation elements, are zero
-			case VariableWeighting::Blanked:
+			case VariableOrdering::Blanked:
 				if (ce.Variable() || variable) break;
 				append(key,ce[level]);
 				break;
@@ -593,10 +593,10 @@ namespace Unicode {
 	
 	std::size_t Collator::get_max (std::size_t max) const noexcept {
 	
-		if (max<4) switch (vw) {
+		if (max<4) switch (vo) {
 		
-			case VariableWeighting::Shifted:
-			case VariableWeighting::ShiftTrimmed:
+			case VariableOrdering::Shifted:
+			case VariableOrdering::ShiftTrimmed:
 				max=4;
 			default:
 				break;
