@@ -8,7 +8,6 @@
 
 #include <unicode/codepoint.hpp>
 #include <unicode/locale.hpp>
-#include <unicode/normalizer.hpp>
 #include <unicode/vector.hpp>
 #include <cstddef>
 #include <functional>
