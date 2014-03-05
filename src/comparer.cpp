@@ -9,20 +9,6 @@
 namespace Unicode {
 
 
-	static const CodePoint * begin (const CodePoint * ptr, const std::optional<std::vector<CodePoint>> & vec) noexcept {
-	
-		return vec ? Begin(*vec) : ptr;
-	
-	}
-	
-	
-	static const CodePoint * end (const CodePoint * ptr, const std::optional<std::vector<CodePoint>> & vec) noexcept {
-	
-		return vec ? End(*vec) : ptr;
-	
-	}
-
-
 	std::optional<std::vector<CodePoint>> Comparer::prepare (const CodePoint * b, const CodePoint * e, bool nfc) const {
 	
 		std::optional<std::vector<CodePoint>> retr;
@@ -101,10 +87,10 @@ namespace Unicode {
 		
 		//	Compare the strings
 		return compare(
-			begin(begin_a,a),
-			end(end_a,a),
-			begin(begin_b,b),
-			end(end_b,b)
+			Begin(begin_a,a),
+			End(end_a,a),
+			Begin(begin_b,b),
+			End(end_b,b)
 		);
 	
 	}
@@ -120,8 +106,8 @@ namespace Unicode {
 		
 		//	Compare the strings
 		return compare(
-			Unicode::begin(begin,a),
-			Unicode::end(end,a),
+			Begin(begin,a),
+			End(end,a),
 			str
 		);
 	
