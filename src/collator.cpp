@@ -236,21 +236,22 @@ namespace Unicode {
 				}
 				
 				
-				bool longest_initial_substring (CollationTableSearch & matcher) {
+				const CollationTableEntry * longest_initial_substring (CollationTableSearch & matcher) {
 				
-					const CodePoint * last=nullptr;
+					const CodePoint * start=begin;
+					const CollationTableEntry * match=nullptr;
 					for (;begin!=end;++begin,matcher.Next()) {
 					
 						switch (matcher(*begin)) {
 						
 							case CollationTableSearchResult::Done:
-								return true;
+								return matcher.Get();
 							case CollationTableSearchResult::Fail:
-								if (last==nullptr) return false;
-								begin=last;
-								return true;
+								begin=start;
+								return match;
 							case CollationTableSearchResult::Match:
-								last=begin;
+								start=begin;
+								match=matcher.Get();
 							case CollationTableSearchResult::Proceed:
 							default:
 								break;
@@ -259,9 +260,8 @@ namespace Unicode {
 					
 					}
 					
-					if (last==nullptr) return false;
-					begin=last;
-					return true;
+					begin=start;
+					return match;
 				
 				}
 				
@@ -284,20 +284,14 @@ namespace Unicode {
 					//
 					//	Find the longest initial substring S at each point that
 					//	has a match in the table.
-					auto start=begin;
-					if (!longest_initial_substring(matcher)) {
-					
-						begin=start;
-						return nullptr;
-						
-					}
-					
-					auto match=matcher.Get();
+					auto match=longest_initial_substring(matcher);
+					if (match==nullptr) return match;
 					
 					//	S2.1.1
 					//
 					//	If there are any non-starters following S, process
 					//	each non-starter C.
+					auto start=begin;
 					std::size_t ccc=0;
 					for (++begin;begin!=end;++begin) {
 					
