@@ -486,6 +486,21 @@ namespace Unicode {
 	}
 	
 	
+	static void blanked (std::vector<CodePoint::Type> & key, std::size_t level, const CollationElementContainer & ce, bool variable) {
+	
+		if (
+			ce.Variable() ||
+			(
+				is_zero(ce[0]) &&
+				variable
+			)
+		) return;
+		
+		append(key,ce[level]);
+	
+	}
+	
+	
 	static void shifted (std::vector<CodePoint::Type> & key, std::size_t level, const CollationElementContainer & ce, bool variable) {
 	
 		//	Most of the logic for shifted variables
@@ -534,8 +549,7 @@ namespace Unicode {
 			//	and collation elements following variable
 			//	collation elements, are zero
 			case VariableOrdering::Blanked:
-				if (ce.Variable() || variable) break;
-				append(key,ce[level]);
+				blanked(key,level,ce,variable);
 				break;
 			//	Special rules are applied
 			default:
