@@ -1,5 +1,7 @@
 #include <unicode/caseconverter.hpp>
 #include <unicode/normalizer.hpp>
+#include <unicode/vector.hpp>
+#include <algorithm>
 #include <cstddef>
 #include <optional>
 
@@ -142,25 +144,30 @@ namespace Unicode {
 	}
 	
 	
-	bool CaseConverter::normalization_check (CodePoint cp) const noexcept {
+	bool CaseConverter::folding_normalization_check (CodePoint cp) const noexcept {
 	
 		if (cp==0x345) return true;
 	
 		auto cpi=locale.GetInfo(cp);
 		if (cpi==nullptr) return false;
 		
-		for (auto cp : cpi->DecompositionMapping) if (normalization_check(cp)) return true;
+		for (auto cp : cpi->DecompositionMapping) if (folding_normalization_check(cp)) return true;
 		
 		return false;
 	
 	}
 	
 	
-	bool CaseConverter::requires_normalization (const CodePoint * begin, const CodePoint * end) const noexcept {
+	bool CaseConverter::folding_requires_normalization (const CodePoint * begin, const CodePoint * end) const noexcept {
 	
-		for (;begin!=end;++begin) if (normalization_check(*begin)) return true;
-		
-		return false;
+		return std::find_if(begin,end,[&] (CodePoint cp) noexcept {	return folding_normalization_check(cp);	})!=end;
+	
+	}
+	
+	
+	bool CaseConverter::uppercasing_requires_normalization (const CodePoint * begin, const CodePoint * end) const noexcept {
+	
+		return std::find_if(begin,end,[&] (CodePoint cp) noexcept { return cp==0x345;	})!=end;
 	
 	}
 	
@@ -179,6 +186,19 @@ namespace Unicode {
 	
 	std::vector<CodePoint> CaseConverter::ToUpper (const CodePoint * begin, const CodePoint * end) const {
 	
+		//	In certain cases normalization is required before
+		//	uppercasing, check if this is one of those cases
+		std::optional<std::vector<CodePoint>> normalized;
+		if (uppercasing_requires_normalization(begin,end)) {
+		
+			Normalizer n(locale);
+			normalized=n.ToNFC(begin,end);
+			auto & vec=*normalized;
+			begin=Begin(vec);
+			end=End(vec);
+		
+		}
+	
 		return impl(
 			begin,
 			end,
@@ -195,13 +215,13 @@ namespace Unicode {
 		//	before case folding, check if this is one
 		//	of those cases
 		std::optional<std::vector<CodePoint>> normalized;
-		if (requires_normalization(begin,end)) {
+		if (folding_requires_normalization(begin,end)) {
 			
 			Normalizer n(locale);
 			normalized=n.ToNFD(begin,end);
 			auto & vec=*normalized;
-			begin=&vec[0];
-			end=&vec[0]+vec.size();
+			begin=Begin(vec);
+			end=End(vec);
 		
 		}
 		
