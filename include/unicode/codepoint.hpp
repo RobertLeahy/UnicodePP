@@ -383,6 +383,10 @@ namespace Unicode {
 	};
 	
 	
+	#ifdef IN
+	#define IN_OLD IN
+	#undef IN
+	#endif
 	/**
 	 *	Determines line boundaries.
 	 */
@@ -430,6 +434,10 @@ namespace Unicode {
 		XX
 	
 	};
+	#ifdef IN_OLD
+	#define IN IN_OLD
+	#undef IN_OLD
+	#endif
 	
 	
 	/**

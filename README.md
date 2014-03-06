@@ -9,6 +9,7 @@ C++11 implementation of a Unicode-aware string and related utilities, including:
 Dependencies
 ------------
 - C++11 standard library
+- [Catch](https://github.com/philsquared/Catch) (for unit tests only)
 - [`std::optional`](http://en.cppreference.com/w/cpp/utility/optional)
 
 Compiler Support
