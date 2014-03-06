@@ -247,6 +247,19 @@ namespace Unicode {
 			
 			
 			/**
+			 *	Determines how many code points are in this string.
+			 *
+			 *	\return
+			 *		The number of code points in this string.
+			 */
+			std::size_t Size () const noexcept {
+			
+				return cps.size();
+			
+			}
+			
+			
+			/**
 			 *	Retrieves the locale associated with this string.
 			 *
 			 *	\return
