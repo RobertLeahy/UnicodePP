@@ -18,7 +18,6 @@ all:
 .PHONY: clean
 clean: cleandeps
 	-@rm -r -f obj
-	-@rm -r -f UCD
 
 .PHONY: cleanall
 cleanall: clean
