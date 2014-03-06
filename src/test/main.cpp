@@ -390,7 +390,7 @@ SCENARIO("Strings may be compared for canonical equivalence","[comparer]") {
 		
 		THEN("It finds empty strings represented by nullptrs to be equivalent") {
 		
-			REQUIRE(c.Compare(nullptr,nullptr,nullptr,nullptr));
+			CHECK(c.Compare(nullptr,nullptr,nullptr,nullptr));
 			REQUIRE(c.Compare(nullptr,nullptr,nullptr));
 		
 		}
