@@ -741,9 +741,27 @@ SCENARIO("Strings may be placed in Normal Form Canonical Composition","[normaliz
 	
 		Normalizer n;
 		
-		GIVEN("A string containing GREEK SMALL LETTER ALPHA, COMBINING ACUTE ACCENT, COMBINING GREEK YPOGEGRAMMENI") {
+		GIVEN("A string containing LATIN SMALL LETTER A") {
 		
-			String s("ᾴ");
+			String s("a");
+			
+			THEN("It is considered to be in Normal Form Canonical Composition") {
+			
+				REQUIRE(n.IsNFC(s.begin(),s.end()));
+			
+			}
+			
+			THEN("It transforms to itself under Normal Form Canonical Composition") {
+			
+				REQUIRE(IsEqual(n.ToNFC(s.begin(),s.end()),s));
+			
+			}
+		
+		}
+		
+		GIVEN("A string containing LATIN SMALL LETTER A, COMBINING ACUTE ACCENT") {
+		
+			String s("á");
 			
 			THEN("It is not considered to be in Normal Form Canonical Composition") {
 			
@@ -751,9 +769,9 @@ SCENARIO("Strings may be placed in Normal Form Canonical Composition","[normaliz
 			
 			}
 			
-			GIVEN("A string containing GREEK SMALL LETTER ALPHA WITH OXIA AND YPOGEGRAMMENI") {
+			GIVEN("A string containing LATIN SMALL LETTER A WITH ACUTE") {
 			
-				String s2("ᾴ");
+				String s2("á");
 				
 				THEN("They are congruent in Normal Form Canonical Composition") {
 				
@@ -763,6 +781,117 @@ SCENARIO("Strings may be placed in Normal Form Canonical Composition","[normaliz
 			
 			}
 		
+		}
+		
+		GIVEN("A string containing LATIN SMALL LETTER A, LATIN SMALL LETTER I, COMBINING ACUTE ACCENT") {
+		
+			String s("aí");
+			
+			GIVEN("A string containing LATIN SMALL LETTER A, LATIN SMALL LETTER I WITH ACUTE") {
+			
+				String s2("aí");
+			
+				THEN("They are congruent in Normal Form Canonical Composition") {
+				
+					REQUIRE(IsEqual(n.ToNFC(s.begin(),s.end()),s2));
+				
+				}
+			
+			}
+		
+		}
+		
+		GIVEN("A string containing LATIN SMALL LETTER I, COMBINING RING ABOVE, COMBINING ACUTE ACCENT") {
+		
+			String s("i̊́");
+			
+			THEN(
+				"COMBINING ACUTE ACCENT is blocked from LATIN SMALL LETTER I and the string "
+				"does not change under Normal Form Canonical Composition"
+			) {
+			
+				REQUIRE(IsEqual(n.ToNFC(s.begin(),s.end()),s));
+			
+			}
+		
+		}
+		
+		GIVEN("A string containing LATIN SMALL LETTER C, COMBINING GREEK YPOGEGRAMMENI, COMBINING CEDILLA, COMBINING DIAERESIS") {
+		
+			String s("ç̈ͅ");
+			
+			GIVEN("A string containing LATIN SMALL LETTER C WITH CEDILLA, COMBINING DIAERESIS, COMBINING GREEK YPOGEGRAMMENI") {
+			
+				String s2("ç̈ͅ");
+				
+				THEN("They are congruent in Normal Form Canonical Composition") {
+				
+					REQUIRE(IsEqual(n.ToNFC(s.begin(),s.end()),s2));
+				
+				}
+			
+			}
+		
+		}
+		
+		GIVEN("A string containing GREEK SMALL LETTER ALPHA WITH OXIA AND YPOGEGRAMMENI") {
+		
+			String s("ᾴ");
+			
+			THEN("It is considered to be in Normal Form Canonical Composition") {
+			
+				REQUIRE(n.IsNFC(s.begin(),s.end()));
+			
+			}
+		
+			GIVEN("A string containing GREEK SMALL LETTER ALPHA, COMBINING ACUTE ACCENT, COMBINING GREEK YPOGEGRAMMENI") {
+			
+				String s2("ᾴ");
+				
+				THEN("They are congruent in Normal Form Canonical Composition") {
+				
+					REQUIRE(IsEqual(n.ToNFC(s2.begin(),s2.end()),s));
+				
+				}
+				
+			}
+			
+			GIVEN("A string containing GREEK SMALL LETTER ALPHA, COMBINING GREEK YPOGEGRAMMENI, COMBINING ACUTE ACCENT") {
+			
+				String s2("ᾴ");
+				
+				THEN("They are congruent in Normal Form Canonical Composition") {
+				
+					REQUIRE(IsEqual(n.ToNFC(s2.begin(),s2.end()),s));
+				
+				}
+			
+			}
+		
+		}
+		
+		GIVEN("A string containing GREEK SMALL LETTER ALPHA, COMBINING ACUTE ACCENT, COMBINING GREEK YPOGEGRAMMENI") {
+		
+			String s("ᾴ");
+			
+			THEN("It is not considered to be in Normal Form Canonical Composition") {
+		
+				REQUIRE(!n.IsNFC(s.begin(),s.end()));
+		
+			}
+		
+		}
+		
+		GIVEN("A string containing GREEK SMALL LETTER ALPHA, COMBINING GREEK YPOGEGRAMMENI, COMBINING ACUTE ACCENT") {
+		
+			String s("ᾴ");
+			
+			THEN("It is not considered to be in Normal Form Canonical Composition") {
+		
+				REQUIRE(!n.IsNFC(s.begin(),s.end()));
+		
+			}
+			
 		}
 	
 	}
