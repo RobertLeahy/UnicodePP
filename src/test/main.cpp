@@ -4,6 +4,7 @@
 #include <catch.hpp>
 
 
+#include <unicode/binarysearch.hpp>
 #include <unicode/caseconverter.hpp>
 #include <unicode/codepoint.hpp>
 #include <unicode/comparer.hpp>
@@ -12,6 +13,8 @@
 #include <unicode/string.hpp>
 #include <algorithm>
 #include <cstring>
+#include <iterator>
+#include <limits>
 #include <vector>
 
 
@@ -41,6 +44,16 @@ class LocaleChange {
 
 
 };
+
+
+//	Determines if an iterator is bounded above/below
+//	by other iterators
+template <typename Iter>
+bool InRange (const Iter & begin, const Iter & end, const Iter & iter) noexcept {
+
+	return (iter>=begin) && (iter<end);
+
+}
 
 
 //	Matches strings exactly
@@ -74,6 +87,73 @@ bool IsEqual (const String & a, const std::vector<CodePoint> & b) noexcept {
 bool IsEqual (const String & a, const String & b) noexcept {
 
 	return IsEqual(a.CodePoints(),b.CodePoints());
+
+}
+
+
+//
+//	BINARY SEARCH
+//
+
+
+SCENARIO("Elements in a sorted collection may be efficiently located","[binarysearch]") {
+
+	GIVEN("A sorted collection") {
+	
+		int arr []={
+			1,
+			17,
+			93,
+			672,
+			3486,
+			90042
+		};
+		auto begin=std::begin(arr);
+		auto end=std::end(arr);
+		
+		THEN("An element at the beginning of the collection is found successfully") {
+		
+			auto iter=BinarySearch(begin,end,1);
+			REQUIRE(iter==begin);
+			REQUIRE(*iter==1);
+		
+		}
+		
+		THEN("An element at the end of the collection is found successfully") {
+		
+			auto iter=BinarySearch(begin,end,90042);
+			REQUIRE(iter==(end-1));
+			REQUIRE(*iter==90042);
+		
+		}
+		
+		THEN("An element at neither the beginning or the end of the collection is found successfully") {
+		
+			auto iter=BinarySearch(begin,end,672);
+			REQUIRE(InRange(begin,end,iter));
+			REQUIRE(*iter==672);
+		
+		}
+		
+		THEN("An element which would be before the beginning is not found") {
+		
+			REQUIRE(BinarySearch(begin,end,0)==end);
+		
+		}
+		
+		THEN("An element which would be past the end is not found") {
+		
+			REQUIRE(BinarySearch(begin,end,std::numeric_limits<int>::max())==end);
+		
+		}
+		
+		THEN("An element which would be neither before the beginning or past the end is not found") {
+		
+			REQUIRE(BinarySearch(begin,end,400)==end);
+		
+		}
+	
+	}
 
 }
 
