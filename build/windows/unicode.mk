@@ -24,6 +24,9 @@ obj/endianencoding.o \
 obj/error.o \
 obj/locale.o \
 obj/normalizer.o \
+obj/regexcompiler.o \
+obj/regexerror.o \
+obj/regexparser.o \
 obj/string.o \
 obj/utf8.o \
 obj/utf16.o \
