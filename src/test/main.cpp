@@ -15,6 +15,7 @@
 #include <cstring>
 #include <iterator>
 #include <limits>
+#include <utility>
 #include <vector>
 
 
@@ -972,6 +973,160 @@ SCENARIO("Strings may be placed in Normal Form Canonical Composition","[normaliz
 		
 			}
 			
+		}
+	
+	}
+
+}
+
+
+//
+//	STRING
+//
+
+
+SCENARIO("Strings may be trimmed","[string]") {
+
+	GIVEN("The empty string") {
+	
+		const String s;
+		
+		THEN("It does not change when trimmed") {
+		
+			CHECK(s.TrimFront()==s);
+			CHECK(s.TrimRear()==s);
+			REQUIRE(s.Trim()==s);
+		
+		}
+	
+	}
+	
+	GIVEN("A string with no trailing or leading white space") {
+	
+		const String s("hello world");
+		
+		THEN("It does not change when trimmed") {
+		
+			CHECK(s.TrimFront()==s);
+			CHECK(s.TrimRear()==s);
+			REQUIRE(s.Trim()==s);
+		
+		}
+	
+	}
+	
+	GIVEN("An immutable string") {
+	
+		const String s("    right     ");
+		
+		THEN("It may be trimmed, yielding a new string, but it remains unchanged") {
+		
+			REQUIRE(s.Trim()!=s);
+		
+		}
+	
+	}
+	
+	GIVEN("A string rvalue") {
+	
+		String s("    right     ");
+		
+		THEN("Trimming it moves it") {
+		
+			std::move(s).Trim();
+			
+			REQUIRE(s.Size()==0);
+		
+		}
+	
+	}
+	
+	GIVEN("A string with leading and trailing white space") {
+	
+		String s("     hello      ");
+		
+		GIVEN("The same string, with all leading white space removed") {
+		
+			String s2("hello      ");
+			
+			THEN("They are equivalent after having leading white space trimmed") {
+			
+				REQUIRE(s.TrimFront()==s2);
+			
+			}
+		
+		}
+		
+		GIVEN("The same string, with all trailing white space removed") {
+		
+			String s2("     hello");
+			
+			THEN("They are equivalent after having trailing white space removed") {
+			
+				REQUIRE(s.TrimRear()==s2);
+			
+			}
+		
+		}
+		
+		GIVEN("The same string, with all leading and trailing white space removed") {
+		
+			String s2("hello");
+			
+			THEN("They are equivalent after being trimmed") {
+			
+				REQUIRE(s.Trim()==s2);
+			
+			}
+		
+		}
+	
+	}
+	
+	GIVEN("A string with non-ASCII leading and trailing white space") {
+	
+		//	This string has a leading and trailing
+		//	NO-BREAK SPACE (U+00A0)
+		String s("hello");
+		
+		GIVEN("The same string, with all leading and trailing white space removed") {
+		
+			String s2("hello");
+			
+			THEN("They are equivalent after being trimmed") {
+			
+				REQUIRE(s.Trim()==s2);
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Strings may be swapped","[string]") {
+
+	GIVEN("Two strings, one of which has a custom locale") {
+	
+		Locale l=DefaultLocale;
+		l.Language="tr";
+		String s_orig("hello");
+		s_orig.SetLocale(l);
+		String s2_orig("world");
+		String s=s_orig;
+		String s2=s2_orig;
+		
+		THEN("Swapping them causes each to become the other") {
+		
+			std::swap(s,s2);
+			
+			CHECK(s==s2_orig);
+			CHECK(&(s.GetLocale())==&(s2_orig.GetLocale()));
+			CHECK(s2==s_orig);
+			REQUIRE(&(s2.GetLocale())==&(s_orig.GetLocale()));
+		
 		}
 	
 	}
