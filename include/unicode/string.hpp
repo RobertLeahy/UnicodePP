@@ -313,6 +313,20 @@ namespace Unicode {
 			
 			
 			/**
+			 *	Swaps this string with another string.
+			 *
+			 *	\param [in] other
+			 *		The string to swap with this string.
+			 */
+			void swap (String & other) noexcept {
+			
+				std::swap(cps,other.cps);
+				std::swap(locale,other.locale);
+			
+			}
+			
+			
+			/**
 			 *	Converts this string to a C string.
 			 *
 			 *	\param [in] utf8
@@ -740,6 +754,13 @@ namespace std {
 	
 	
 	};
+	
+	
+	inline void swap (Unicode::String & a, Unicode::String & b) noexcept {
+	
+		a.swap(b);
+	
+	}
 
 
 }
