@@ -1,13 +1,8 @@
-#define CATCH_CONFIG_MAIN
-
-
-#include <catch.hpp>
-
-
 #include <unicode/binarysearch.hpp>
 #include <unicode/caseconverter.hpp>
 #include <unicode/codepoint.hpp>
 #include <unicode/comparer.hpp>
+#include <unicode/iostream.hpp>
 #include <unicode/locale.hpp>
 #include <unicode/normalizer.hpp>
 #include <unicode/string.hpp>
@@ -15,8 +10,33 @@
 #include <cstring>
 #include <iterator>
 #include <limits>
+#include <sstream>
+#include <string>
 #include <utility>
 #include <vector>
+
+
+namespace Catch {
+
+
+	//	Formats Unicode strings for output by Catch
+	std::string toString (const Unicode::String & str) {
+
+		std::ostringstream ss;
+		ss << "\"" << str << "\"";
+		
+		return ss.str();
+
+	}
+	
+	
+}
+
+
+#define CATCH_CONFIG_MAIN
+
+
+#include <catch.hpp>
 
 
 using namespace Unicode;
