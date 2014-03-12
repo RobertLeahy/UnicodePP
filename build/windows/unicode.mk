@@ -27,6 +27,7 @@ obj/normalizer.o \
 obj/regex.o \
 obj/regexcompiler.o \
 obj/regexerror.o \
+obj/regexliteral.o \
 obj/regexparser.o \
 obj/regexpatternelement.o \
 obj/string.o \

@@ -18,6 +18,32 @@ namespace Unicode {
 
 
 	/**
+	 *	Encapsulates a string representation of a
+	 *	pattern element.
+	 */
+	class RegexToString {
+	
+	
+		public:
+		
+		
+			/**
+			 *	A string description of the pattern element
+			 *	on which ToString was called.
+			 */
+			String Parent;
+			/** 
+			 *	Descriptions of all the child pattern elements
+			 *	of the pattern element on which ToString was
+			 *	called.
+			 */
+			std::vector<RegexToString> Children;
+	
+	
+	};
+
+
+	/**
 	 *	The base type from which all pattern elements derive.
 	 *
 	 *	A pattern element is a single element in a compiled
@@ -26,14 +52,34 @@ namespace Unicode {
 	class RegexPatternElement {
 	
 	
+		protected:
+		
+		
+			RegexOptions Options;
+			const Unicode::Locale & Locale;
+	
+	
 		public:
 		
 		
+			RegexPatternElement (RegexOptions options, const Unicode::Locale & locale) noexcept;
 			/**
 			 *	Polymorphically cleans up all resources held
 			 *	by this RegexPatternElement.
 			 */
 			virtual ~RegexPatternElement () noexcept;
+			
+			
+			/**
+			 *	Obtains a string representation of a pattern
+			 *	element.
+			 *
+			 *	\return
+			 *		A RegexToString object containing a string
+			 *		representation of this pattern element and
+			 *		all child pattern elements (if applicable).
+			 */
+			virtual RegexToString ToString () const = 0;
 	
 	
 	};
