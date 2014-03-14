@@ -1107,7 +1107,7 @@ SCENARIO("Strings may be trimmed","[string]") {
 	
 		//	This string has a leading and trailing
 		//	NO-BREAK SPACE (U+00A0)
-		String s("hello");
+		String s(" hello ");
 		
 		GIVEN("The same string, with all leading and trailing white space removed") {
 		
