@@ -8,6 +8,7 @@
 #include <unicode/string.hpp>
 #include <algorithm>
 #include <cstring>
+#include <functional>
 #include <iterator>
 #include <limits>
 #include <sstream>
@@ -1146,6 +1147,71 @@ SCENARIO("Strings may be swapped","[string]") {
 			CHECK(&(s.GetLocale())==&(s2_orig.GetLocale()));
 			CHECK(s2==s_orig);
 			REQUIRE(&(s2.GetLocale())==&(s_orig.GetLocale()));
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Strings may be hashed","[string]") {
+	
+	GIVEN("A string") {
+	
+		String s("naïveté");
+		
+		THEN("Hashing the string twice results in the same hash") {
+		
+			REQUIRE(std::hash<String>{}(s)==std::hash<String>{}(s));
+		
+		}
+		
+		GIVEN("An equivalent string") {
+		
+			String s2("naïveté");
+		
+			THEN("Hashing them results in the same hash") {
+			
+				REQUIRE(std::hash<String>{}(s)==std::hash<String>{}(s2));
+			
+			}
+		
+		}
+		
+		GIVEN("A string with the same characters in a different order") {
+		
+			String s2("néatveï");
+			
+			THEN("Hashing them results in a different hash") {
+			
+				REQUIRE(std::hash<String>{}(s)!=std::hash<String>{}(s2));
+			
+			}
+		
+		}
+		
+		GIVEN("A different string") {
+		
+			String s2("hello world");
+			
+			THEN("Hashing them results in a different hash") {
+			
+				REQUIRE(std::hash<String>{}(s)!=std::hash<String>{}(s2));
+			
+			}
+		
+		}
+		
+		GIVEN("A string which has that string as a substring") {
+		
+			String s2("Jonathan's naïveté");
+			
+			THEN("Hashing them results in a different hash") {
+			
+				REQUIRE(std::hash<String>{}(s)!=std::hash<String>{}(s2));
+			
+			}
 		
 		}
 	
