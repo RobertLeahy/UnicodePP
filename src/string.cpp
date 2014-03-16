@@ -371,6 +371,28 @@ namespace Unicode {
 		return Collator(GetLocale()).Compare(begin(),end(),other.begin(),other.end());
 	
 	}
+	
+	
+	String & String::operator << (const String & str) & {
+	
+		cps.insert(
+			cps.end(),
+			str.cps.begin(),
+			str.cps.end()
+		);
+		
+		return *this;
+	
+	}
+	
+	
+	String & String::operator << (CodePoint cp) & {
+	
+		cps.push_back(cp);
+		
+		return *this;
+	
+	}
 
 
 }

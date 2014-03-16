@@ -668,6 +668,42 @@ SCENARIO("Strings may be compared case insensitively","[comparer]") {
 				}
 			
 			}
+			
+			GIVEN("A C style string containing the same string") {
+			
+				const char * s2="Hello world";
+				
+				THEN("They are found to be equivalent") {
+				
+					REQUIRE(c.Compare(s.begin(),s.end(),s2));
+				
+				}
+			
+			}
+			
+			GIVEN("A C style string containing the same string when case is ignored") {
+			
+				const char * s2="HELLO WORLD";
+				
+				THEN("They are found to be equivalent") {
+				
+					REQUIRE(c.Compare(s.begin(),s.end(),s2));
+				
+				}
+			
+			}
+			
+			GIVEN("A C style string containing a different string when case is ignored") {
+			
+				const char * s2="good-bye world";
+				
+				THEN("They are not found to be equivalent") {
+				
+					REQUIRE(!c.Compare(s.begin(),s.end(),s2));
+				
+				}
+			
+			}
 		
 		}
 		
@@ -1147,6 +1183,56 @@ SCENARIO("Strings may be swapped","[string]") {
 			CHECK(&(s.GetLocale())==&(s2_orig.GetLocale()));
 			CHECK(s2==s_orig);
 			REQUIRE(&(s2.GetLocale())==&(s_orig.GetLocale()));
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Strings may be concatenated","[string]") {
+
+	GIVEN("Two strings") {
+	
+		String s("hello");
+		String s2("world");
+		
+		GIVEN("A third string, which is the concatenation of those strings") {
+		
+			String s3("helloworld");
+			
+			THEN("Concatenating the first two results in the third") {
+			
+				REQUIRE((s+s2)==s3);
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Strings may be appended to other strings","[string]") {
+
+	GIVEN("Two strings") {
+	
+		String s("hello");
+		String s2("world");
+		
+		GIVEN("A third string, which is the concatenation of those strings") {
+		
+			String s3("helloworld");
+		
+			THEN("Appending the second to the first causes the first to be equivalent to the third") {
+			
+				s << s2;
+				
+				REQUIRE(s==s3);
+			
+			}
 		
 		}
 	

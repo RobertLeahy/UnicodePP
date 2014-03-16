@@ -634,6 +634,29 @@ namespace Unicode {
 			 *		after \em other.
 			 */
 			int Compare (const String & other) const;
+			
+			
+			/**
+			 *	Appends another string to the end of this string.
+			 *
+			 *	\param [in] str
+			 *		The string to append to the end of this string.
+			 *
+			 *	\return
+			 *		A reference to this string.
+			 */
+			String & operator << (const String & str) &;
+			/**
+			 *	Appends a code point to the end of this string.
+			 *
+			 *	\param [in] cp
+			 *		The code point to append to the end of this
+			 *		string.
+			 *
+			 *	\return
+			 *		A reference to this string.
+			 */
+			String & operator << (CodePoint cp) &;
 	
 	
 	};
@@ -705,6 +728,24 @@ namespace Unicode {
 	inline bool operator >= (const String & a, const String & b) {
 	
 		return a.Compare(b)>=0;
+	
+	}
+	
+	
+	inline String operator + (String a, const String & b) {
+	
+		a << b;
+		
+		return a;
+	
+	}
+	
+	
+	inline String operator + (String a, CodePoint b) {
+	
+		a << b;
+		
+		return a;
 	
 	}
 	
