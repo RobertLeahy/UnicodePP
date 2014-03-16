@@ -7,6 +7,8 @@
 
 
 #include <unicode/codepoint.hpp>
+#include <cstddef>
+#include <utility>
 
 
 namespace Unicode {
@@ -85,9 +87,23 @@ namespace Unicode {
 			 *	\em true if this is the case, \em false otherwise.
 			 */
 			bool Backwards;
+			/**
+			 *	Maps numeric values to the code points that should
+			 *	be used to represent them in this locale.
+			 */
+			Array<CodePoint> Digits;
+			/**
+			 *	The base system to use by default in this locale.
+			 */
+			std::size_t Base;
+			/**
+			 *	The code point to be used to indicate that a
+			 *	number is negative.
+			 */
+			CodePoint Negative;
 			
 			
-			constexpr Locale () noexcept : Language(nullptr), Backwards(false) {	}
+			constexpr Locale () noexcept : Language(nullptr), Backwards(false), Base(10) {	}
 		
 		
 			/**

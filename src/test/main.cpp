@@ -2,6 +2,7 @@
 #include <unicode/caseconverter.hpp>
 #include <unicode/codepoint.hpp>
 #include <unicode/comparer.hpp>
+#include <unicode/converter.hpp>
 #include <unicode/iostream.hpp>
 #include <unicode/locale.hpp>
 #include <unicode/normalizer.hpp>
@@ -12,6 +13,7 @@
 #include <iterator>
 #include <limits>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -109,6 +111,38 @@ bool IsEqual (const String & a, const std::vector<CodePoint> & b) noexcept {
 bool IsEqual (const String & a, const String & b) noexcept {
 
 	return IsEqual(a.CodePoints(),b.CodePoints());
+
+}
+
+
+bool IsEqual (const std::string & a, const std::vector<CodePoint> & b) noexcept {
+
+	if (a.size()!=b.size()) return false;
+	
+	return std::equal(
+		a.begin(),
+		a.end(),
+		b.begin()
+	);
+
+}
+
+
+bool IsEqual (const std::vector<CodePoint> & a, const std::string & b) noexcept {
+
+	return IsEqual(b,a);
+
+}
+
+
+//	Gets a std::string containing some type
+template <typename T>
+std::string Get (const T & t) {
+
+	std::ostringstream ss;
+	ss << t;
+	
+	return ss.str();
 
 }
 
@@ -786,6 +820,229 @@ SCENARIO("Strings may be compared case insensitively","[comparer]") {
 				}
 			
 			}
+		
+		}
+	
+	}
+
+}
+
+
+//
+//	INTEGER CONVERSION
+//
+
+
+SCENARIO("Integers may be converted to strings","[converter]") {
+
+	GIVEN("An integer converter") {
+	
+		Converter<int> c;
+		
+		GIVEN("The largest integer") {
+		
+			auto i=std::numeric_limits<int>::max();
+			
+			GIVEN("A string containing this integer") {
+			
+				auto s=Get(i);
+				
+				THEN("Converting the former to a Unicode string results in the latter") {
+				
+					REQUIRE(IsEqual(c(i),s));
+				
+				}
+			
+			}
+		
+		}
+		
+		GIVEN("The smallest integer") {
+		
+			auto i=std::numeric_limits<int>::min();
+			
+			GIVEN("A string containing this integer") {
+			
+				auto s=Get(i);
+				
+				THEN("Converting the former to a Unicode string results in the latter") {
+				
+					REQUIRE(IsEqual(c(i),s));
+				
+				}
+			
+			}
+		
+		}
+		
+		GIVEN("Zero") {
+		
+			int i=0;
+			
+			GIVEN("A string containing zero") {
+			
+				std::string s="0";
+				
+				THEN("Converting the former to a Unicode string results in the latter") {
+				
+					REQUIRE(IsEqual(c(i),s));
+				
+				}
+			
+			}
+		
+		}
+		
+		int dummy=0;
+		
+		THEN("Attempting to convert using a base higher than 16 results in an exception") {
+		
+			REQUIRE_THROWS_AS(c(dummy,17),ConversionError);
+		
+		}
+		
+		THEN("Attempting to convert using a base of 0 results in an exception") {
+		
+			REQUIRE_THROWS_AS(c(dummy,0),ConversionError);
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Strings may be converted to integers","[converter]") {
+
+	GIVEN("An integer converter") {
+	
+		Converter<int> c;
+		
+		GIVEN("The empty string") {
+		
+			String s;
+			
+			THEN("It is not found to represent an integer") {
+			
+				REQUIRE_THROWS_AS(c(s.begin(),s.end()),ConversionError);
+			
+			}
+		
+		}
+		
+		GIVEN("A string containing the largest integer") {
+		
+			String s(c(std::numeric_limits<int>::max()));
+			
+			THEN("It is found to contain the largest integer") {
+			
+				REQUIRE(c(s.begin(),s.end())==std::numeric_limits<int>::max());
+			
+			}
+		
+		}
+		
+		GIVEN("A string containing the smallest integer") {
+		
+			String s(c(std::numeric_limits<int>::min()));
+			
+			THEN("It is found to contain the smallest integer") {
+			
+				REQUIRE(c(s.begin(),s.end())==std::numeric_limits<int>::min());
+			
+			}
+		
+		}
+		
+		GIVEN("A string containing an integer interspersed with white space") {
+		
+			String s("  - 1 2    3 ");
+			
+			GIVEN("The integer that string represents") {
+			
+				int i=-123;
+				
+				THEN("The former converts to the latter") {
+				
+					REQUIRE(c(s.begin(),s.end())==i);
+				
+				}
+			
+			}
+		
+		}
+		
+		GIVEN("A string which is partially numeric") {
+		
+			String s("hello123");
+			
+			THEN("It is not found to contain an integer") {
+			
+				REQUIRE_THROWS_AS(c(s.begin(),s.end()),ConversionError);
+			
+			}
+		
+		}
+		
+		GIVEN("A string which is not numeric") {
+		
+			String s("hello world");
+			
+			THEN("It is not found to contain an integer") {
+			
+				REQUIRE_THROWS_AS(c(s.begin(),s.end()),ConversionError);
+			
+			}
+		
+		}
+		
+		GIVEN("A string which is numeric, but which has digits disallowed by the specified base") {
+		
+			String s("19");
+			
+			THEN("It is not found to contain an integer") {
+			
+				REQUIRE_THROWS_AS(c(s.begin(),s.end(),9),ConversionError);
+			
+			}
+		
+		}
+		
+		GIVEN("A string containing an integer larger than the largest integer") {
+		
+			String s(c(std::numeric_limits<int>::max()));
+			s << "1";
+			
+			THEN("It cannot be converted to an integer") {
+			
+				REQUIRE_THROWS_AS(c(s.begin(),s.end()),std::overflow_error);
+			
+			}
+		
+		}
+		
+		GIVEN("A string containing an integer smaller than the smallest integer") {
+		
+			String s(c(std::numeric_limits<int>::min()));
+			s << "1";
+			
+			THEN("It cannot be converted to an integer") {
+			
+				REQUIRE_THROWS_AS(c(s.begin(),s.end()),std::underflow_error);
+			
+			}
+		
+		}
+		
+		THEN("Attempting to convert using a base higher than 16 results in an exception") {
+		
+			REQUIRE_THROWS_AS(c(nullptr,nullptr,17),ConversionError);
+		
+		}
+		
+		THEN("Attempting to convert using a base of 0 results in an exception") {
+		
+			REQUIRE_THROWS_AS(c(nullptr,nullptr,0),ConversionError);
 		
 		}
 	
