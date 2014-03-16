@@ -1620,6 +1620,88 @@ SCENARIO("Strings may be constructed","[string]") {
 }
 
 
+SCENARIO("Strings may be copied","[string]") {
+
+	GIVEN("A string") {
+	
+		String s("hello world");
+		
+		GIVEN("A copy of that string") {
+		
+			String s2(s);
+			
+			THEN("They are identical") {
+			
+				CHECK(&(s.GetLocale())==&(s2.GetLocale()));
+				REQUIRE(IsEqual(s,s2));
+			
+			}
+			
+			THEN("When the string is copy assigned to itself, it is still identical to the copy (i.e. it is unchanged)") {
+			
+				s=s;
+				CHECK(&(s.GetLocale())==&(s2.GetLocale()));
+				REQUIRE(IsEqual(s,s2));
+			
+			}
+		
+		}
+		
+		GIVEN("A custom locale set on that string") {
+		
+			Locale l;
+			s.SetLocale(l);
+			
+			GIVEN("A copy of that string") {
+			
+				String s2(s);
+				
+				THEN("They are identical") {
+				
+					CHECK(&(s.GetLocale())==&(s2.GetLocale()));
+					REQUIRE(IsEqual(s,s2));
+				
+				}
+			
+			}
+			
+			GIVEN("Another string") {
+			
+				String s2("good-bye world");
+				
+				THEN("When the former is copy assigned to the latter, they become identical") {
+				
+					s2=s;
+					
+					CHECK(&(s.GetLocale())==&(s2.GetLocale()));
+					REQUIRE(IsEqual(s,s2));
+				
+				}
+			
+			}
+		
+		}
+		
+		GIVEN("Another string") {
+		
+			String s2("good-bye world");
+			
+			THEN("When the former is copy assigned to the latter, they become identical") {
+			
+				s2=s;
+				
+				CHECK(&(s.GetLocale())==&(s2.GetLocale()));
+				REQUIRE(IsEqual(s,s2));
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
 SCENARIO("Strings may be trimmed","[string]") {
 
 	GIVEN("The empty string") {
