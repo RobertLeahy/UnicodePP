@@ -4,8 +4,10 @@
 #include <unicode/normalizer.hpp>
 #include <unicode/string.hpp>
 #include <unicode/utf8.hpp>
+#include <unicode/utf16.hpp>
 #include <algorithm>
-#include <cstring>
+#include <stdexcept>
+#include <type_traits>
 
 
 namespace Unicode {
@@ -102,12 +104,69 @@ namespace Unicode {
 	}
 	
 	
-	static std::vector<CodePoint> decode (const char * str) {
+	template <typename T>
+	std::size_t strlen (const T * str) {
 	
-		return UTF8{}.Decode(
-			str,
-			str+std::strlen(str)
-		);
+		if (str==nullptr) return 0;
+	
+		std::size_t retr=0;
+		for (;*str!=0;++str,++retr);
+		
+		return retr;
+	
+	}
+	
+	
+	template <typename T>
+	typename std::enable_if<
+		sizeof(T)==1,
+		std::vector<CodePoint>
+	>::type decode (const T * begin, const T * end) {
+	
+		return UTF8{}.Decode(begin,end);
+	
+	}
+	
+	
+	template <typename T>
+	typename std::enable_if<
+		sizeof(T)==2,
+		std::vector<CodePoint>
+	>::type decode (const T * begin, const T * end) {
+	
+		auto order=EndianEncoding::Detect();
+		return UTF16(order,order).Decode(begin,end);
+	
+	}
+	
+	
+	template <typename T>
+	typename std::enable_if<
+		sizeof(T)==4,
+		std::vector<CodePoint>
+	>::type decode (const T * begin, const T * end) {
+	
+		return std::vector<CodePoint>(begin,end);
+	
+	}
+	
+	
+	template <typename T>
+	[[noreturn]]
+	typename std::enable_if<
+		!((sizeof(T)==1) || (sizeof(T)==2) || (sizeof(T)==4)),
+		std::vector<CodePoint>
+	>::type decode (const T *, const T *) {
+	
+		throw std::logic_error("No encoding for code units of that size");
+	
+	}
+	
+	
+	template <typename T>
+	std::vector<CodePoint> decode (const T * str) {
+	
+		return decode(str,str+strlen(str));
 	
 	}
 	
@@ -119,6 +178,54 @@ namespace Unicode {
 	
 	
 	String & String::operator = (const char * str) {
+	
+		locale=nullptr;
+		cps=decode(str);
+		
+		return *this;
+	
+	}
+	
+	
+	String::String (const wchar_t * str)
+		:	cps(decode(str)),
+			locale(nullptr)
+	{	}
+	
+	
+	String & String::operator = (const wchar_t * str) {
+	
+		locale=nullptr;
+		cps=decode(str);
+		
+		return *this;
+	
+	}
+	
+	
+	String::String (const char16_t * str)
+		:	cps(decode(str)),
+			locale(nullptr)
+	{	}
+	
+	
+	String & String::operator = (const char16_t * str) {
+	
+		locale=nullptr;
+		cps=decode(str);
+		
+		return *this;
+	
+	}
+	
+	
+	String::String (const char32_t * str)
+		:	cps(decode(str)),
+			locale(nullptr)
+	{	}
+	
+	
+	String & String::operator = (const char32_t * str) {
 	
 		locale=nullptr;
 		cps=decode(str);

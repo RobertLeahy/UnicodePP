@@ -198,6 +198,84 @@ namespace Unicode {
 			 *		A reference to this string.
 			 */
 			String & operator = (const char * str);
+			/**
+			 *	Creates a string from a wide C string.
+			 *
+			 *	The encoding used to decode the string varies
+			 *	depending on the width of wchar_t on this platform:
+			 *
+			 *	-	If the width of wchar_t is 8 bits, UTF-8
+			 *		will be used.
+			 *	-	If the width of wchar_t is 16 bits, UTF-16
+			 *		will be used.
+			 *	-	If the width of wchar_t is 32 bits, the string
+			 *		will be copied directly.
+			 *
+			 *	Otherwise an exception will be thrown.
+			 *
+			 *	\param [in] str
+			 *		A pointer to a null-terminated sequence of
+			 *		wide characters.
+			 */
+			String (const wchar_t * str);
+			/**
+			 *	Overwrites this string with a wide C string.
+			 *
+			 *	The encoding used to decode the string varies
+			 *	depending on the width of wchar_t on this platform:
+			 *
+			 *	-	If the width of wchar_t is 8 bits, UTF-8
+			 *		will be used.
+			 *	-	If the width of wchar_t is 16 bits, UTF-16
+			 *		will be used.
+			 *	-	If the width of wchar_t is 32 bits, the string
+			 *		will be copied directly.
+			 *
+			 *	Otherwise an exception will be thrown.
+			 *
+			 *	\param [in] str
+			 *		A pointer to a null-terminated sequence of
+			 *		wide characters.
+			 */
+			String & operator = (const wchar_t * str);
+			/**
+			 *	Creates a string from a UTF-16 string.
+			 *
+			 *	\param [in] str
+			 *		A pointer to a null-terminated sequence of
+			 *		UTF-16 characters.
+			 */
+			String (const char16_t * str);
+			/**
+			 *	Overwrites this string with a UTF-16 string.
+			 *
+			 *	\param [in] str
+			 *		A pointer to a null-terminated sequence of
+			 *		UTF-16 characters.
+			 *
+			 *	\return
+			 *		A reference to this string.
+			 */
+			String & operator = (const char16_t * str);
+			/**
+			 *	Creates a string from a UTF-32 string.
+			 *
+			 *	\param [in] str
+			 *		A pointer to a null-terminated sequence of
+			 *		UTF-32 characters.
+			 */
+			String (const char32_t * str);
+			/**
+			 *	Overwrites this string with a UTF-32 string.
+			 *
+			 *	\param [in] str
+			 *		A pointer to a null-terminated sequence of
+			 *		UTF-32 characters.
+			 *
+			 *	\return
+			 *		A reference to this string.
+			 */
+			String & operator = (const char32_t * str);
 			
 			
 			/**
