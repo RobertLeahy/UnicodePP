@@ -37,7 +37,7 @@ namespace Unicode {
 	
 	
 	template <typename T, typename=std::true_type>
-	class Converter;
+	class ConverterImpl;
 	
 	
 	/**
@@ -48,7 +48,7 @@ namespace Unicode {
 	 *		The type of integer to convert to/from.
 	 */
 	template <typename T>
-	class Converter<T,typename std::is_integral<T>::type> {
+	class ConverterImpl<T,typename std::is_integral<T>::type> {
 	
 	
 		private:
@@ -197,7 +197,7 @@ namespace Unicode {
 			 *		The locale that this converter will use.
 			 *		Defaults to the current locale.
 			 */
-			Converter (const Locale & locale=Locale::Get()) noexcept : locale(locale) {	}
+			ConverterImpl (const Locale & locale=Locale::Get()) noexcept : locale(locale) {	}
 		
 		
 			/**
@@ -309,6 +309,19 @@ namespace Unicode {
 			
 			}
 		
+	
+	};
+	
+	
+	template <typename T>
+	class Converter : public ConverterImpl<T> {
+	
+	
+		public:
+		
+		
+			using ConverterImpl<T>::ConverterImpl;
+	
 	
 	};
 
