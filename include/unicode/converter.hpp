@@ -9,9 +9,12 @@
 #include <unicode/codepoint.hpp>
 #include <unicode/error.hpp>
 #include <unicode/locale.hpp>
+#include <cmath>
 #include <cstddef>
+#include <iomanip>
 #include <limits>
 #include <optional>
+#include <sstream>
 #include <stdexcept>
 #include <vector>
 #include <type_traits>
@@ -309,6 +312,240 @@ namespace Unicode {
 			
 			}
 		
+	
+	};
+	
+	
+	/**
+	 *	The various output formats for floating point
+	 *	values.
+	 */
+	enum class FloatingPointFormat {
+	
+		Fixed,
+		Scientific,
+		Default
+	
+	};
+	
+	
+	/**
+	 *	\cond
+	 */
+	
+	
+	[[noreturn]]
+	inline void NotFloat () {
+	
+		throw ConversionError("String did not contain a valid representation of a floating point value");
+	
+	}
+	
+	
+	[[noreturn]]
+	inline void FloatOutOfRange () {
+	
+		throw std::overflow_error("Floating point value out of range");
+	
+	}
+	
+	
+	template <typename T>
+	T FloatParser (const char *) {
+	
+		throw std::logic_error("No C standard library function to parse this floating point type");
+	
+	}
+	
+	
+	template <>
+	inline float FloatParser<float> (const char * str) {
+	
+		char * last;
+		auto retr=std::strtof(str,&last);
+		
+		if (last==str) NotFloat();
+		
+		if (retr==HUGE_VALF) FloatOutOfRange();
+		
+		return retr;
+	
+	}
+	
+	
+	template <>
+	inline double FloatParser<double> (const char * str) {
+	
+		char * last;
+		auto retr=std::strtod(str,&last);
+		
+		if (last==str) NotFloat();
+		
+		if (retr==HUGE_VAL) FloatOutOfRange();
+		
+		return retr;
+	
+	}
+	
+	
+	template <>
+	inline long double FloatParser<long double> (const char * str) {
+	
+		char * last;
+		auto retr=std::strtold(str,&last);
+		
+		if (last==str) NotFloat();
+		
+		if (retr==HUGE_VALL) FloatOutOfRange();
+		
+		return retr;
+	
+	}
+	
+	
+	/**
+	 *	\endcond
+	 */
+	
+	
+	/**
+	 *	Converts between Unicode strings and floating point
+	 *	values of arbitrary type.
+	 */
+	template <typename T>
+	class ConverterImpl<T,typename std::is_floating_point<T>::type> {
+	
+	
+		public:
+		
+		
+			/**
+			 *	The precision of the output.
+			 *
+			 *	If disengaged, the default precision is
+			 *	used.
+			 */
+			std::optional<std::size_t> Precision;
+			/**
+			 *	The format of the output.
+			 *
+			 *	Defaults to FloatingPointFormat::Default.
+			 */
+			FloatingPointFormat Format;
+			/**
+			 *	If \em true, a plus sign shall be shown for
+			 *	positive values.
+			 *
+			 *	Defaults to \em false.
+			 */
+			bool ShowPositive;
+	
+	
+		private:
+		
+		
+			template <typename CharT, typename Traits>
+			void setup (std::basic_ostringstream<CharT,Traits> & ss) const {
+				
+				if (ShowPositive) ss << std::showpos;
+				if (Precision) ss << std::setprecision(static_cast<int>(*Precision));
+				switch (Format) {
+				
+					case FloatingPointFormat::Fixed:
+						ss << std::fixed;
+						break;
+					case FloatingPointFormat::Scientific:
+						ss << std::scientific;
+						break;
+					case FloatingPointFormat::Default:
+					default:
+						ss.unsetf(std::ios_base::floatfield);
+						break;
+				
+				}
+			
+			}
+	
+	
+		public:
+		
+		
+			/**
+			 *	Creates a new ConverterImpl.
+			 *
+			 *	\param [in] locale
+			 *		The locale that this converter implementation
+			 *		will use.  Defaults to the current locale.
+			 */
+			ConverterImpl (const Locale & locale=Locale::Get()) noexcept
+				:	Format(FloatingPointFormat::Default),
+					ShowPositive(false)
+			{	}
+			
+			
+			/**
+			 *	Converts a floating point value to a string of Unicode
+			 *	code points.
+			 *
+			 *	\param [in] f
+			 *		The floating point value.
+			 *
+			 *	\return
+			 *		A vector containing Unicode code points which represent
+			 *		\em f.
+			 */
+			std::vector<CodePoint> operator () (T f) const {
+			
+				std::ostringstream ss;
+				setup(ss);
+				
+				ss << f;
+				
+				auto str=ss.str();
+				
+				return std::vector<CodePoint>(str.begin(),str.end());
+			
+			}
+			
+			
+			/**
+			 *	Converts a string of Unicode code points to a floating
+			 *	point value.
+			 *
+			 *	Throws if the converson could not be made.
+			 *
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the string of Unicode
+			 *		characters.
+			 *	\param [in] end
+			 *		An iterator to the end of the string of Unicode characters.
+			 *
+			 *	\return
+			 *		The floating point value represented by the string
+			 *		bounded by \em begin and \em end.
+			 */
+			T operator () (const CodePoint * begin, const CodePoint * end) const {
+			
+				//	TODO: More advanced handling (convert numerics to ASCII,
+				//	for example)
+				std::vector<char> str;
+				for (;begin!=end;++begin) {
+				
+					if (*begin>std::numeric_limits<char>::max()) throw std::out_of_range(
+						"Code point out of range"
+					);
+					
+					str.push_back(static_cast<char>(*begin));
+				
+				}
+				
+				//	Null terminate
+				str.push_back(0);
+				
+				return FloatParser<T>(str.data());
+			
+			}
+	
 	
 	};
 	
