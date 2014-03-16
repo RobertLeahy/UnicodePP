@@ -7,6 +7,9 @@
 #include <unicode/locale.hpp>
 #include <unicode/normalizer.hpp>
 #include <unicode/string.hpp>
+#include <unicode/utf8.hpp>
+#include <unicode/utf16.hpp>
+#include <unicode/vector.hpp>
 #include <algorithm>
 #include <cstring>
 #include <functional>
@@ -129,6 +132,58 @@ bool IsEqual (const std::string & a, const std::vector<CodePoint> & b) noexcept 
 
 
 bool IsEqual (const std::vector<CodePoint> & a, const std::string & b) noexcept {
+
+	return IsEqual(b,a);
+
+}
+
+
+template <typename T>
+bool IsEqual (const String & a, const T * b) noexcept {
+
+	auto begin=a.begin();
+	auto end=a.end();
+	for (;(begin!=end) && (*b!=0) && (*begin==*b);++begin,++b);
+	
+	return (begin==end) && (*b==0);
+
+}
+
+
+template <typename T>
+bool IsEqual (const T * a, const String & b) noexcept {
+
+	return IsEqual(b,a);
+
+}
+
+
+template <typename T>
+bool IsEqual (const T * begin, const T * end, const T * str) noexcept {
+
+	for (;(begin!=end) && (*str!=0) && (*str==*begin);++begin,++str);
+	
+	return (begin==end) && (*str==0);
+
+}
+
+
+template <typename T>
+bool IsEqual (const std::vector<unsigned char> & a, const T * b) noexcept {
+
+	if ((a.size()%sizeof(T))!=0) return false;
+	
+	return IsEqual(
+		reinterpret_cast<const T *>(Begin(a)),
+		reinterpret_cast<const T *>(End(a)),
+		b
+	);
+
+}
+
+
+template <typename T>
+bool IsEqual (const T * a, const std::vector<unsigned char> & b) noexcept {
 
 	return IsEqual(b,a);
 
@@ -1297,6 +1352,272 @@ SCENARIO("Strings may be placed in Normal Form Canonical Composition","[normaliz
 //
 //	STRING
 //
+
+
+SCENARIO("Strings may be constructed","[string]") {
+
+	GIVEN("A default constructed string") {
+	
+		String s;
+		
+		THEN("It is the empty string") {
+		
+			REQUIRE(s.Size()==0);
+		
+		}
+		
+		THEN("It is in the default locale") {
+		
+			REQUIRE(&(s.GetLocale())==&DefaultLocale);
+		
+		}
+	
+	}
+	
+	GIVEN("A custom locale") {
+	
+		Locale l;
+		
+		GIVEN("A string constructed with that locale") {
+		
+			String s(l);
+			
+			THEN("It is the empty string") {
+			
+				REQUIRE(s.Size()==0);
+			
+			}
+			
+			THEN("The string's locale is the custom locale") {
+			
+				REQUIRE(&(s.GetLocale())==&l);
+			
+			}
+		
+		}
+	
+	}
+	
+	GIVEN("An empty vector of code points") {
+	
+		std::vector<CodePoint> cps;
+		
+		GIVEN("A string constructed from that vector") {
+		
+			String s(std::move(cps));
+			
+			THEN("It is the empty string") {
+			
+				REQUIRE(s.Size()==0);
+			
+			}
+			
+			THEN("It is in the default locale") {
+			
+				REQUIRE(&(s.GetLocale())==&DefaultLocale);
+			
+			}
+		
+		}
+		
+		GIVEN("A custom locale") {
+		
+			Locale l;
+			
+			GIVEN("A string constructed from that vector and locale") {
+			
+				String s(std::move(cps),l);
+				
+				THEN("It is the empty string") {
+				
+					REQUIRE(s.Size()==0);
+				
+				}
+				
+				THEN("The string's locale is the custom locale") {
+				
+					REQUIRE(&(s.GetLocale())==&l);
+				
+				}
+			
+			}
+		
+		}
+	
+	}
+	
+	GIVEN("A vector of code points") {
+	
+		std::vector<CodePoint> cps={'h','e','l','l','o'};
+		
+		GIVEN("A string constructed from that vector") {
+		
+			String s(cps);
+			
+			THEN("They are identical") {
+			
+				REQUIRE(IsEqual(cps,s));
+			
+			}
+			
+			THEN("It is in the default locale") {
+			
+				REQUIRE(&(s.GetLocale())==&DefaultLocale);
+			
+			}
+		
+		}
+		
+		GIVEN("A custom locale") {
+		
+			Locale l;
+			
+			GIVEN("A string constructed from that vector and locale") {
+			
+				String s(cps,l);
+				
+				THEN("The string and vector are identical") {
+				
+					REQUIRE(IsEqual(cps,s));
+				
+				}
+				
+				THEN("The string's locale is the custom locale") {
+				
+					REQUIRE(&(s.GetLocale())==&l);
+				
+				}
+			
+			}
+		
+		}
+	
+	}
+
+	GIVEN("A C string containing only ASCII characters") {
+	
+		auto c_str="hello world";
+		
+		GIVEN("A string constructed from that string") {
+		
+			String s(c_str);
+			
+			THEN("They are identical") {
+			
+				REQUIRE(IsEqual(s,c_str));
+			
+			}
+			
+			THEN("It is in the default locale") {
+			
+				REQUIRE(&(s.GetLocale())==&DefaultLocale);
+			
+			}
+		
+		}
+	
+	}
+	
+	GIVEN("A wide C string containing only ASCII characters") {
+	
+		auto w_c_str=L"hello world";
+		
+		GIVEN("A string constructed from that string") {
+		
+			String s(w_c_str);
+			
+			THEN("They are identical") {
+			
+				REQUIRE(IsEqual(s,w_c_str));
+			
+			}
+			
+			THEN("It is in the default locale") {
+			
+				REQUIRE(&(s.GetLocale())==&DefaultLocale);
+			
+			}
+		
+		}
+	
+	}
+	
+	GIVEN("A UTF-8 string literal") {
+	
+		auto u8_str=u8"Привет мир";
+		
+		GIVEN("A string constructed from that string") {
+		
+			String s(u8_str);
+			
+			THEN("The UTF-8 encoding of that string is identical to the literal") {
+			
+				REQUIRE(IsEqual(UTF8{}.Encode(s.begin(),s.end()),u8_str));
+			
+			}
+			
+			THEN("It is in the default locale") {
+			
+				REQUIRE(&(s.GetLocale())==&DefaultLocale);
+			
+			}
+		
+		}
+	
+	}
+	
+	GIVEN("A UTF-16 string literal") {
+	
+		auto u16_str=u"\U0001D11E";
+		
+		GIVEN("A string constructed from that string") {
+		
+			String s(u16_str);
+			
+			THEN("The UTF-16 encoding of that string is identical to the literal") {
+			
+				auto order=EndianEncoding::Detect();
+				UTF16 encoder(order,order);
+				encoder.OutputBOM=false;
+				REQUIRE(IsEqual(encoder.Encode(s.begin(),s.end()),u16_str));
+			
+			}
+			
+			THEN("It is in the default locale") {
+			
+				REQUIRE(&(s.GetLocale())==&DefaultLocale);
+			
+			}
+		
+		}
+	
+	}
+	
+	GIVEN("A UTF-32 string literal") {
+	
+		auto u32_str=U"hello world";
+		
+		GIVEN("A string constructed from that string") {
+		
+			String s(u32_str);
+			
+			THEN("They are identical") {
+			
+				REQUIRE(IsEqual(s,u32_str));
+			
+			}
+			
+			THEN("It is in the default locale") {
+			
+				REQUIRE(&(s.GetLocale())==&DefaultLocale);
+			
+			}
+		
+		}
+	
+	}
+
+}
 
 
 SCENARIO("Strings may be trimmed","[string]") {
