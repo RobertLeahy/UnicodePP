@@ -98,6 +98,7 @@ namespace Unicode {
 			auto cp=static_cast<CodePoint::Type>(*lead-0xD800);
 			cp<<=10;
 			cp|=*trail-0xDC00;
+			cp+=0x10000;
 			
 			cps.push_back(cp);
 			
