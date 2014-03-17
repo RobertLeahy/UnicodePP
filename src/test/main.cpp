@@ -1721,6 +1721,124 @@ SCENARIO("Strings may be copied","[string]") {
 }
 
 
+SCENARIO("Strings may be moved","[string]") {
+
+	GIVEN("A string") {
+	
+		String s("hello world");
+		
+		GIVEN("A copy of that string") {
+		
+			String s2(s);
+			
+			GIVEN("A string that is the result of moving the copy") {
+			
+				String s3(std::move(s2));
+				
+				THEN("The copy is empty") {
+				
+					REQUIRE(s2.Size()==0);
+				
+				}
+				
+				THEN("The moved string is identical to the original") {
+				
+					CHECK(&(s.GetLocale())==&(s3.GetLocale()));
+					REQUIRE(IsEqual(s,s3));
+				
+				}
+			
+			}
+			
+			GIVEN("Another string") {
+			
+				String s3("good-bye world");
+				
+				GIVEN("The copy is move assigned to the last string") {
+				
+					s3=std::move(s2);
+					
+					THEN("The copy is empty") {
+					
+						REQUIRE(s2.Size()==0);
+					
+					}
+					
+					THEN("The moved string is identical to the original") {
+					
+						CHECK(&(s.GetLocale())==&(s3.GetLocale()));
+						REQUIRE(IsEqual(s,s3));
+					
+					}
+				
+				}
+			
+			}
+		
+		}
+		
+		GIVEN("A custom locale set on that string") {
+		
+			Locale l;
+			s.SetLocale(l);
+			
+			GIVEN("A copy of that string") {
+			
+				String s2(s);
+				
+				GIVEN("A string that is the result of moving the copy") {
+				
+					String s3(std::move(s2));
+					
+					THEN("The copy is empty") {
+					
+						REQUIRE(s2.Size()==0);
+					
+					}
+					
+					THEN("The moved string is identical to the original") {
+					
+						CHECK(&(s.GetLocale())==&(s3.GetLocale()));
+						REQUIRE(IsEqual(s,s3));
+					
+					}
+				
+				}
+				
+				GIVEN("Another string") {
+				
+					String s3("good-bye world");
+					
+					GIVEN("The copy is move assigned to the last string") {
+					
+						s3=std::move(s2);
+						
+						THEN("The copy is empty") {
+						
+							REQUIRE(s2.Size()==0);
+						
+						}
+						
+						THEN("The moved string is identical to the original") {
+						
+							CHECK(&(s.GetLocale())==&(s3.GetLocale()));
+							REQUIRE(IsEqual(s,s3));
+						
+						}
+					
+					}
+				
+				}
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
 SCENARIO("Strings may be trimmed","[string]") {
 
 	GIVEN("The empty string") {
