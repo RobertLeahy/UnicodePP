@@ -39,7 +39,7 @@ namespace Unicode {
 	};
 	
 	
-	template <typename T, typename=std::true_type>
+	template <typename, typename=std::true_type>
 	class ConverterImpl;
 	
 	
@@ -194,11 +194,11 @@ namespace Unicode {
 		
 		
 			/**
-			 *	Creates a new Converter.
+			 *	Creates a new ConverterImpl.
 			 *
 			 *	\param [in] locale
-			 *		The locale that this converter will use.
-			 *		Defaults to the current locale.
+			 *		The locale that this converter implementation
+			 *		will use.  Defaults to the current locale.
 			 */
 			ConverterImpl (const Locale & locale=Locale::Get()) noexcept : locale(locale) {	}
 		
@@ -550,6 +550,14 @@ namespace Unicode {
 	};
 	
 	
+	/**
+	 *	Converts between Unicode strings and objects of
+	 *	type \em T.
+	 *
+	 *	\tparam T
+	 *		The type of object to convert to and from
+	 *		Unicode strings.
+	 */
 	template <typename T>
 	class Converter : public ConverterImpl<T> {
 	
