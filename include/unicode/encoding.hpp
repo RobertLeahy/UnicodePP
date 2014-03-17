@@ -132,36 +132,16 @@ namespace Unicode {
 			 *
 			 *	\param [in] type
 			 *		The type of error.
-			 *	\param [in] throws
-			 *		\em true if this action should throw, \em false
-			 *		otherwise.  Defaults to \em true.
-			 *	\param [in] ignore
-			 *		\em true if this error type is ignorable, \em false
-			 *		otherwise.  Defaults to \em false.
 			 */
-			explicit constexpr EncodingAction (EncodingErrorType type, bool throws=true, bool ignore=false) noexcept
-				:	ignore(ignore),
-					action(throws ? Action::Throw : Action::Nothing),
+			explicit constexpr EncodingAction (EncodingErrorType type) noexcept
+				:	ignore(false),
+					action(Action::Throw),
 					type(type)
 			{	}
-			/**
-			 *	Creates a new EncodingAction.
-			 *
-			 *	\param [in] type
-			 *		The type of error.
-			 *	\param [in] cp
-			 *		The code point that shall be substituted in case
-			 *		of an error.
-			 *	\param [in] ignore
-			 *		\em true if this error type is ignorable, \em false
-			 *		otherwise.  Defaults to \em false.
-			 */
-			constexpr EncodingAction (EncodingErrorType type, CodePoint cp, bool ignore=false) noexcept
-				:	ignore(ignore),
-					action(Action::Replace),
-					type(type),
-					cp(cp)
-			{	}
+			
+			
+			EncodingAction & operator = (const EncodingAction &) = delete;
+			EncodingAction & operator = (EncodingAction &&) = delete;
 			
 			
 			/**
@@ -196,6 +176,52 @@ namespace Unicode {
 			constexpr bool Ignored () const noexcept {
 			
 				return ignore;
+			
+			}
+			
+			
+			/**
+			 *	Sets whether or not errors of this type are
+			 *	ignored.
+			 *
+			 *	\param [in] ignore
+			 *		\em true if errors of this type should be
+			 *		ignored, \em false otherwise.  Defaults to
+			 *		\em true.
+			 */
+			void Ignore (bool ignore=true) noexcept {
+			
+				this->ignore=ignore;
+			
+			}
+			/**
+			 *	Specifies that the action for this error shall
+			 *	be throwing an exception.
+			 */
+			void Throw () noexcept {
+			
+				action=Action::Throw;
+			
+			}
+			/**
+			 *	Specifies that the action for this error shall be
+			 *	making a replacement.
+			 *
+			 *	\param [in] cp
+			 *		The code point to replace on error.
+			 */
+			void Replace (CodePoint cp) noexcept {
+			
+				action=Action::Replace;
+				this->cp=cp;
+			
+			}
+			/**
+			 *	Specifies that on error nothing shall occur.
+			 */
+			void Nothing () noexcept {
+			
+				action=Action::Nothing;
 			
 			}
 	
