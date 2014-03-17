@@ -348,12 +348,12 @@ namespace Unicode {
 				std::vector<CodePoint> & cps,
 				const unsigned char * & begin,
 				const unsigned char * end,
-				std::optional<Endianness> order
+				std::optional<Unicode::Endianness> order
 			) const = 0;
 			
 			virtual void GetBOM (std::vector<unsigned char> & buffer) const;
 			
-			virtual std::optional<Endianness> GetBOM (
+			virtual std::optional<Unicode::Endianness> GetBOM (
 				const unsigned char * & begin,
 				const unsigned char * end
 			) const;
@@ -384,6 +384,11 @@ namespace Unicode {
 			 *	stream is unexpectedly encountered.
 			 */
 			EncodingAction UnexpectedEnd;
+			/**
+			 *	The action that shall be taken when an endianness
+			 *	error is encountered.
+			 */
+			EncodingAction Endianness;
 			/**
 			 *	\em true if all output should begin with the
 			 *	underlying encoding's BOM.  \em false otherwise.

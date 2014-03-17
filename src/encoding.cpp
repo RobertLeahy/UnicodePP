@@ -36,6 +36,7 @@ namespace Unicode {
 			Strict(EncodingErrorType::Strict),
 			Lossy(EncodingErrorType::Lossy),
 			UnexpectedEnd(EncodingErrorType::UnexpectedEnd),
+			Endianness(EncodingErrorType::Endianness),
 			OutputBOM(output_bom),
 			DetectBOM(detect_bom)
 	{	}
@@ -83,7 +84,7 @@ namespace Unicode {
 		auto b=reinterpret_cast<const unsigned char *>(begin);
 		auto e=reinterpret_cast<const unsigned char *>(end);
 	
-		std::optional<Endianness> order;
+		std::optional<Unicode::Endianness> order;
 		if (DetectBOM) order=GetBOM(b,e);
 		
 		std::vector<CodePoint> retr;

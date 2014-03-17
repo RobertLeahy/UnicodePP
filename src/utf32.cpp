@@ -19,7 +19,7 @@ namespace Unicode {
 		std::vector<CodePoint> & cps,
 		const unsigned char * & begin,
 		const unsigned char * end,
-		std::optional<Endianness> order
+		std::optional<Unicode::Endianness> order
 	) const {
 	
 		//	Fallback if byte order was not inferred

@@ -128,7 +128,7 @@ namespace Unicode {
 	}
 	
 	
-	std::optional<EncodingErrorType> UTF8::Decoder (std::vector<CodePoint> & cps, const unsigned char * & begin, const unsigned char * end, std::optional<Endianness>) const {
+	std::optional<EncodingErrorType> UTF8::Decoder (std::vector<CodePoint> & cps, const unsigned char * & begin, const unsigned char * end, std::optional<Unicode::Endianness>) const {
 	
 		//	Determine the number of bytes in this sequence
 		auto len=count(*begin);
