@@ -1,16 +1,53 @@
 #include <unicode/caseconverter.hpp>
 #include <unicode/collator.hpp>
 #include <unicode/comparer.hpp>
+#include <unicode/endianencoding.hpp>
 #include <unicode/normalizer.hpp>
 #include <unicode/string.hpp>
 #include <unicode/utf8.hpp>
 #include <unicode/utf16.hpp>
+#include <unicode/utf32.hpp>
 #include <algorithm>
 #include <stdexcept>
-#include <type_traits>
 
 
 namespace Unicode {
+
+
+	[[noreturn]]
+	static void no_encoding () {
+	
+		throw std::logic_error("No encoding for code units of that size");
+	
+	}
+
+
+	std::vector<unsigned char> String::to_c_string (std::size_t cu_size) const {
+	
+		switch (cu_size) {
+		
+			//	UTF-8
+			case 1:
+				return UTF8{}.Encode(begin(),end());
+			//	UTF-16
+			case 2:{
+				UTF16 encoder(EndianEncoding::Detect());
+				encoder.OutputBOM=false;
+				return encoder.Encode(begin(),end());
+			}
+			//	UTF-32
+			case 4:{
+				UTF32 encoder(EndianEncoding::Detect());
+				encoder.OutputBOM=false;
+				return encoder.Encode(begin(),end());
+			}
+			//	No known encoding
+			default:
+				no_encoding();
+		
+		}
+	
+	}
 
 
 	template <typename T>
@@ -158,7 +195,7 @@ namespace Unicode {
 		std::vector<CodePoint>
 	>::type decode (const T *, const T *) {
 	
-		throw std::logic_error("No encoding for code units of that size");
+		no_encoding();
 	
 	}
 	
@@ -235,11 +272,9 @@ namespace Unicode {
 	}
 	
 	
-	CString String::ToCString (bool utf8) const {
+	CString<String::os_type> String::ToOSString () const {
 	
-		//	TODO: ASCII "encoding" for this when
-		//	utf8=false
-		return CString(UTF8{}.Encode(begin(),end()));
+		return ToCString<os_type>();
 	
 	}
 	
