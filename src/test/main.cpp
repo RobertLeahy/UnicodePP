@@ -1000,7 +1000,7 @@ SCENARIO("Strings may be converted to integers","[converter]") {
 		
 		GIVEN("A string containing the largest integer") {
 		
-			String s(c(std::numeric_limits<int>::max()));
+			String s(std::numeric_limits<int>::max());
 			
 			THEN("It is found to contain the largest integer") {
 			
@@ -1012,7 +1012,7 @@ SCENARIO("Strings may be converted to integers","[converter]") {
 		
 		GIVEN("A string containing the smallest integer") {
 		
-			String s(c(std::numeric_limits<int>::min()));
+			String s(std::numeric_limits<int>::min());
 			
 			THEN("It is found to contain the smallest integer") {
 			
@@ -1078,7 +1078,7 @@ SCENARIO("Strings may be converted to integers","[converter]") {
 		
 		GIVEN("A string containing an integer larger than the largest integer") {
 		
-			String s(c(std::numeric_limits<int>::max()));
+			String s(std::numeric_limits<int>::max());
 			s << "1";
 			
 			THEN("It cannot be converted to an integer") {
@@ -1091,7 +1091,7 @@ SCENARIO("Strings may be converted to integers","[converter]") {
 		
 		GIVEN("A string containing an integer smaller than the smallest integer") {
 		
-			String s(c(std::numeric_limits<int>::min()));
+			String s(std::numeric_limits<int>::min());
 			s << "1";
 			
 			THEN("It cannot be converted to an integer") {

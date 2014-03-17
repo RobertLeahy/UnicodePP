@@ -569,6 +569,55 @@ namespace Unicode {
 	
 	
 	};
+	
+	
+	/**
+	 *	Determines whether a Converter specialization
+	 *	exists which can converte between Unicode strings
+	 *	and some type.
+	 *
+	 *	\tparam T
+	 *		The type to check.
+	 */
+	template <typename T, typename=void>
+	class IsConvertible {
+	
+	
+		public:
+		
+		
+			/**
+			 *	\em true if \em T can be converted to
+			 *	and from Unicode strings, \em false
+			 *	otherwise.
+			 */
+			static constexpr bool Value=false;
+	
+	
+	};
+	
+	
+	/**
+	 *	\cond
+	 */
+	 
+	 
+	template <typename T>
+	class IsConvertible<T,typename std::enable_if<sizeof(ConverterImpl<typename std::decay<T>::type>)!=0>::type> {
+	
+	
+		public:
+		
+		
+			static constexpr bool Value=true;
+	
+	
+	};
+	
+	
+	/**
+	 *	\endcond
+	 */
 
 
 }

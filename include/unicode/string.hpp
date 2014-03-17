@@ -7,6 +7,7 @@
 
 
 #include <unicode/codepoint.hpp>
+#include <unicode/converter.hpp>
 #include <unicode/locale.hpp>
 #include <unicode/vector.hpp>
 #include <cstddef>
@@ -345,6 +346,60 @@ namespace Unicode {
 			 *		A reference to this string.
 			 */
 			String & operator = (const char32_t * str);
+			
+			
+			/**
+			 *	Creates a string by converting some object to a
+			 *	string.
+			 *
+			 *	\tparam T
+			 *		The type of the object to convert.
+			 *
+			 *	\param [in] obj
+			 *		The object to convert.
+			 */
+			template <typename T, typename=typename std::enable_if<IsConvertible<T>::Value>::type>
+			String (const T & obj) : cps(Converter<T>{}(obj)), locale(nullptr) {	}
+			/**
+			 *	Creates a string by converting some object to a string
+			 *	according to the rules of some locale, which then becomes
+			 *	the locale of the newly-created string.
+			 *
+			 *	\tparam T
+			 *		The type of the object to convert.
+			 *
+			 *	\param [in] obj
+			 *		The object to convert.
+			 *	\param [in] locale
+			 *		The locale.
+			 */
+			template <typename T, typename=typename std::enable_if<IsConvertible<T>::Value>::type>
+			String (const T & obj, const Locale & locale)
+				:	cps(Converter<T>(locale)(obj)),
+					locale(&locale)
+			{	}
+			/**
+			 *	Overwrites this string with the result of converting
+			 *	some object to a string.
+			 *
+			 *	\tparam T
+			 *		The type of object to convert.
+			 *
+			 *	\param [in] obj
+			 *		The object to convert.
+			 *
+			 *	\return
+			 *		A reference to this string.
+			 */
+			template <typename T>
+			typename std::enable_if<IsConvertible<T>::Value,String &>::type operator = (const T & obj) {
+			
+				locale=nullptr;
+				cps=Converter<T>{}(obj);
+				
+				return *this;
+			
+			}
 			
 			
 			/**
