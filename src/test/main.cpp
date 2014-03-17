@@ -11,6 +11,7 @@
 #include <unicode/utf16.hpp>
 #include <unicode/vector.hpp>
 #include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <functional>
@@ -86,6 +87,19 @@ bool InRange (const Iter & begin, const Iter & end, const Iter & iter) noexcept 
 
 
 template <typename T>
+std::size_t StringLength (const T * str) noexcept {
+
+	if (str==nullptr) return 0;
+
+	std::size_t retr=0;
+	for (;*str!=0;++str,++retr);
+	
+	return retr;
+
+}
+
+
+template <typename T>
 auto normalize (const T & obj) noexcept -> std::vector<typename std::decay<decltype(*(obj.begin()))>::type> {
 
 	return std::vector<typename std::decay<decltype(*(obj.begin()))>::type>(obj.begin(),obj.end());
@@ -96,11 +110,7 @@ auto normalize (const T & obj) noexcept -> std::vector<typename std::decay<declt
 template <typename T>
 std::vector<T> normalize (const T * str) {
 
-	std::vector<T> retr;
-	
-	if (str!=nullptr) for (;*str!=0;++str) retr.push_back(*str);
-	
-	return retr;
+	return std::vector<T>(str,str+StringLength(str));
 
 }
 
@@ -155,8 +165,8 @@ CodePoint remove_signed (CodePoint cp) noexcept {
 template <typename T1, typename T2>
 bool IsEqual (const T1 & a, const T2 & b) {
 
-	decltype(normalize(a)) n_a=normalize(a);
-	decltype(normalize(b)) n_b=normalize(b);
+	auto n_a=normalize(a);
+	auto n_b=normalize(b);
 	
 	auto begin_a=n_a.begin();
 	auto end_a=n_a.end();
@@ -185,8 +195,8 @@ bool IsEqual (const T1 & a, const T2 & b) {
 template <typename T1, typename T2>
 bool IsByteWiseEqual (const T1 & a, const T2 & b) {
 
-	decltype(normalize(a)) n_a=normalize(a);
-	decltype(normalize(b)) n_b=normalize(b);
+	auto n_a=normalize(a);
+	auto n_b=normalize(b);
 	
 	auto begin_a=reinterpret_cast<const unsigned char *>(Begin(n_a));
 	auto end_a=reinterpret_cast<const unsigned char *>(End(n_a));
@@ -1930,6 +1940,195 @@ SCENARIO("Strings may be moved","[string]") {
 							REQUIRE(IsEqual(s,s3));
 						
 						}
+					
+					}
+				
+				}
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Strings may be converted to C style strings","[string]") {
+
+	GIVEN("A UTF-8 literal") {
+	
+		auto literal=u8"Привет мир";
+		
+		GIVEN("A string constructed from that literal") {
+		
+			String s(literal);
+			
+			GIVEN("That string converted to a C-style string") {
+			
+				auto c_str=s.ToCString();
+				
+				THEN("It is of the same size as the literal") {
+				
+					REQUIRE(StringLength(literal)==c_str.Size());
+				
+				}
+				
+				THEN("It is identical to the literal") {
+				
+					REQUIRE(IsByteWiseEqual(literal,c_str));
+				
+				}
+			
+			}
+		
+		}
+	
+	}
+	
+	GIVEN("A wide string literal") {
+	
+		auto literal=L"Hello world";
+		
+		GIVEN("A string constructed from that literal") {
+		
+			String s(literal);
+			
+			GIVEN("That string converted to a C-style shtring") {
+			
+				auto c_str=s.ToCString<wchar_t>();
+				
+				THEN("It is of the same size as the literal") {
+				
+					REQUIRE(StringLength(literal)==c_str.Size());
+				
+				}
+				
+				THEN("It is identical to the literal") {
+				
+					REQUIRE(IsByteWiseEqual(literal,c_str));
+				
+				}
+			
+			}
+		
+		}
+	
+	}
+	
+	GIVEN("A UTF-16 literal") {
+	
+		auto literal=u"Привет мир";
+		
+		GIVEN("A string constructed from that literal") {
+		
+			String s(literal);
+			
+			GIVEN("That string converted to a C-style shtring") {
+			
+				auto c_str=s.ToCString<char16_t>();
+				
+				THEN("It is of the same size as the literal") {
+				
+					REQUIRE(StringLength(literal)==c_str.Size());
+				
+				}
+				
+				THEN("It is identical to the literal") {
+				
+					REQUIRE(IsByteWiseEqual(literal,c_str));
+				
+				}
+			
+			}
+		
+		}
+	
+	}
+	
+	GIVEN("A UTF-32 literal") {
+	
+		auto literal=U"Привет мир";
+		
+		GIVEN("A string constructed from that literal") {
+		
+			String s(literal);
+			
+			GIVEN("That string converted to a C-style shtring") {
+			
+				auto c_str=s.ToCString<char32_t>();
+				
+				THEN("It is of the same size as the literal") {
+				
+					REQUIRE(StringLength(literal)==c_str.Size());
+				
+				}
+				
+				THEN("It is identical to the literal") {
+				
+					REQUIRE(IsByteWiseEqual(literal,c_str));
+				
+				}
+			
+			}
+		
+		}
+	
+	}
+	
+	GIVEN("A string") {
+	
+		String s("Hello world");
+	
+		THEN(
+			"Attempting to convert it to a C-style string that doesn't have a character size of "
+			"8, 16, or 32 bits results in an exception"
+		) {
+		
+			REQUIRE_THROWS_AS(s.ToCString<uint64_t>(),std::logic_error);
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Strings may be converted to strings suitable for consumption by operating system APIs","[string]") {
+
+	#ifdef _WIN32
+	GIVEN("The operating system is Microsoft Windows")
+	#else
+	GIVEN("The operating system is not Microsoft Windows")
+	#endif
+	{
+	
+		#ifdef _WIN32
+		GIVEN("A UTF-16 literal")
+		#else
+		GIVEN("A UTF-8 literal")
+		#endif
+		{
+		
+			auto literal=
+			#ifdef _WIN32
+			u"Hello world"
+			#else
+			u8"Hello world"
+			#endif
+			;
+			
+			GIVEN("A string constructed from that literal") {
+			
+				String s(literal);
+				
+				GIVEN("That string converted to an operating system string") {
+				
+					auto os_str=s.ToOSString();
+					
+					THEN("The literal and the operating system string are identical") {
+					
+						REQUIRE(IsEqual(s,os_str));
 					
 					}
 				
