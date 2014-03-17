@@ -87,6 +87,22 @@ namespace Unicode {
 			}
 			
 			
+			/**
+			 *	Determines the size of the string in characters.
+			 *
+			 *	Unlike calling std::strlen on an actual C-style
+			 *	string, this operation is O(1).
+			 *
+			 *	\return
+			 *		The size of the string in characters.
+			 */
+			std::size_t Size () const noexcept {
+			
+				return size()/sizeof(T);
+			
+			}
+			
+			
 			/** 
 			 *	Gets a begin iterator for this string.
 			 *
@@ -110,23 +126,7 @@ namespace Unicode {
 			 */
 			const T * end () const noexcept {
 			
-				return get()+size();
-			
-			}
-			
-			
-			/**
-			 *	Determines the size of the string in characters.
-			 *
-			 *	Unlike calling std::strlen on an actual C-style
-			 *	string, this operation is O(1).
-			 *
-			 *	\return
-			 *		The size of the string in characters.
-			 */
-			std::size_t Size () const noexcept {
-			
-				return size()/sizeof(T);
+				return get()+Size();
 			
 			}
 	
