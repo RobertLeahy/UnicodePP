@@ -11,6 +11,7 @@
 #include <unicode/utf16.hpp>
 #include <unicode/vector.hpp>
 #include <algorithm>
+#include <cstdint>
 #include <cstring>
 #include <functional>
 #include <iterator>
@@ -1361,6 +1362,110 @@ SCENARIO("Strings may be placed in Normal Form Canonical Composition","[normaliz
 		
 			}
 			
+		}
+	
+	}
+
+}
+
+
+//
+//	OUTPUT STREAMS
+//
+
+
+SCENARIO("Unicode strings may be output to C++ streams","[iostream]") {
+
+	GIVEN("An 8-bit character output stream") {
+	
+		std::basic_ostringstream<char> ss;
+		
+		GIVEN("A UTF-8 string literal") {
+		
+			auto literal=u8"Привет мир";
+			
+			GIVEN("A string constructed from that literal") {
+			
+				String s(literal);
+				
+				THEN("Outputting that string to the stream results in the literal") {
+				
+					ss << s;
+					REQUIRE(IsByteWiseEqual(ss.str(),literal));
+				
+				}
+			
+			}
+		
+		}
+	
+	}
+	
+	GIVEN("A 16-bit character output stream") {
+	
+		std::basic_ostringstream<char16_t> ss;
+		
+		GIVEN("A UTF-16 string literal") {
+		
+			auto literal=u"Привет мир";
+			
+			GIVEN("A string constructed from that literal") {
+			
+				String s(literal);
+				
+				THEN("Outputting that string to the stream results in the literal") {
+				
+					ss << s;
+					REQUIRE(IsByteWiseEqual(ss.str(),literal));
+				
+				}
+			
+			}
+		
+		}
+	
+	}
+	
+	
+	GIVEN("A 32-bit character output stream") {
+	
+		std::basic_ostringstream<char32_t> ss;
+		
+		GIVEN("A UTF-32 string literal") {
+		
+			auto literal=U"Привет мир";
+			
+			GIVEN("A string constructed from that literal") {
+			
+				String s(literal);
+				
+				THEN("Outputting that string to the stream results in the literal") {
+				
+					ss << s;
+					REQUIRE(IsByteWiseEqual(ss.str(),literal));
+				
+				}
+			
+			}
+		
+		}
+	
+	}
+	
+	GIVEN("A 64-bit character output stream") {
+	
+		std::basic_ostringstream<std::uint64_t> ss;
+		
+		GIVEN("A string") {
+		
+			String s("Hello world");
+			
+			THEN("Outputting that string to the stream results in an exception") {
+			
+				REQUIRE_THROWS_AS(ss << s,std::logic_error);
+			
+			}
+		
 		}
 	
 	}
