@@ -986,6 +986,12 @@ SCENARIO("Strings may be converted to integers","[converter]") {
 	
 		Converter<int> c;
 		
+		THEN("The empty string represented as two null pointers is not found to represent an integer") {
+		
+			REQUIRE_THROWS_AS(c(nullptr,nullptr),ConversionError);
+		
+		}
+		
 		GIVEN("The empty string") {
 		
 			String s;
