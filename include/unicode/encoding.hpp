@@ -359,7 +359,9 @@ namespace Unicode {
 		private:
 		
 		
-			std::optional<CodePoint> check (CodePoint cp) const;
+			const EncodingAction & get (EncodingErrorType) const noexcept;
+			std::optional<CodePoint> check (CodePoint) const;
+			std::optional<CodePoint> handle (EncodingErrorType, const void *) const;
 	
 	
 		protected:

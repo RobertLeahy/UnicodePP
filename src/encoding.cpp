@@ -5,10 +5,42 @@
 namespace Unicode {
 
 
+	const EncodingAction & Encoding::get (EncodingErrorType type) const noexcept {
+	
+		switch (type) {
+		
+			case EncodingErrorType::UnicodeStrict:
+				return UnicodeStrict;
+			case EncodingErrorType::Strict:
+			default:
+				return Strict;
+			case EncodingErrorType::Lossy:
+				return Lossy;
+			case EncodingErrorType::UnexpectedEnd:
+				return UnexpectedEnd;
+			case EncodingErrorType::Endianness:
+				return Endianness;
+		
+		}
+	
+	}
+
+
 	std::optional<CodePoint> Encoding::check (CodePoint cp) const {
 	
 		//	TODO: Implement
 		return cp;
+	
+	}
+	
+	
+	std::optional<CodePoint> Encoding::handle (EncodingErrorType type, const void * where) const {
+	
+		auto & action=get(type);
+		
+		if (action.Ignored()) return std::nullopt;
+		
+		return action.Execute(where);
 	
 	}
 
@@ -90,10 +122,65 @@ namespace Unicode {
 		std::vector<CodePoint> retr;
 		while (b!=e) {
 		
+			//	This is the position within the code point
+			//	result vector we started at, so we can check
+			//	each code point decoded to make sure it's
+			//	acceptable Unicode
+			std::size_t pos=retr.size();
+		
+			//	Track the start position, so if the decoder
+			//	fails to advance the iterator we can do it
+			auto start=b;
+			
+			//	Decode
 			auto error=Decoder(retr,b,e,order);
 			
-			//	TODO: Implement
-			if (error) continue;
+			//	Handle error (if any)
+			if (error) {
+			
+				auto repl=handle(*error,b);
+				
+				if (repl) retr.push_back(*repl);
+			
+			}
+			
+			//	If the iterator was not advanced, advance
+			//	it
+			if (b==start) ++b;
+			
+			//	Scan and check code points
+			for (std::size_t i=pos;i<retr.size();) {
+			
+				auto & cp=retr[i];
+				
+				//	If the code point is valid, or strict Unicode
+				//	errors are being ignored, move on
+				if (cp.IsValid() || UnicodeStrict.Ignored()) {
+				
+					++i;
+					
+					continue;
+				
+				}
+				
+				//	Code point isn't valid, handle the error
+				auto repl=handle(EncodingErrorType::UnicodeStrict,b);
+				
+				//	If there's a replacement, make it
+				if (repl) {
+				
+					cp=*repl;
+					
+					++i;
+					
+					continue;
+				
+				}
+				
+				//	Otherwise remove this code point
+				retr.erase(retr.begin()+i);
+			
+			}
 		
 		}
 		
