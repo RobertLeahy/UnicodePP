@@ -18,6 +18,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -83,109 +84,121 @@ bool InRange (const Iter & begin, const Iter & end, const Iter & iter) noexcept 
 }
 
 
-//	Matches strings exactly
-bool IsEqual (const std::vector<CodePoint> & a, const std::vector<CodePoint> & b) noexcept {
+template <typename T>
+auto normalize (const T & obj) noexcept -> std::vector<typename std::decay<decltype(*(obj.begin()))>::type> {
 
-	if (a.size()!=b.size()) return false;
+	return std::vector<typename std::decay<decltype(*(obj.begin()))>::type>(obj.begin(),obj.end());
+
+}
+
+
+template <typename T>
+std::vector<T> normalize (const T * str) {
+
+	std::vector<T> retr;
+	
+	if (str!=nullptr) for (;*str!=0;++str) retr.push_back(*str);
+	
+	return retr;
+
+}
+
+
+template <typename T>
+class remove_signed_helper {
+
+
+	public:
+	
+	
+		typedef typename std::make_unsigned<T>::type type;
+
+
+};
+
+
+template <>
+class remove_signed_helper<CodePoint> {
+
+
+	public:
+	
+	
+		typedef CodePoint type;
+
+
+};
+
+
+template <typename T>
+typename remove_signed_helper<T>::type remove_signed (T i) noexcept {
+
+	union {
+		typename std::make_unsigned<T>::type out;
+		T in;
+	};
+	in=i;
+	
+	return out;
+
+}
+
+
+CodePoint remove_signed (CodePoint cp) noexcept {
+
+	return cp;
+
+}
+
+
+template <typename T1, typename T2>
+bool IsEqual (const T1 & a, const T2 & b) {
+
+	decltype(normalize(a)) n_a=normalize(a);
+	decltype(normalize(b)) n_b=normalize(b);
+	
+	auto begin_a=n_a.begin();
+	auto end_a=n_a.end();
+	auto begin_b=n_b.begin();
+	auto end_b=n_b.end();
+	
+	if ((end_a-begin_a)!=(end_b-begin_b)) return false;
+	
+	typedef typename std::decay<decltype(*begin_a)>::type a_type;
+	typedef typename std::decay<decltype(*begin_b)>::type b_type;
 	
 	return std::equal(
-		a.begin(),
-		a.end(),
-		b.begin()
+		begin_a,
+		end_a,
+		begin_b,
+		[] (a_type a, b_type b) noexcept {
+		
+			return remove_signed(a)==remove_signed(b);
+		
+		}
 	);
 
 }
 
 
-bool IsEqual (const std::vector<CodePoint> & a, const String & b) noexcept {
+template <typename T1, typename T2>
+bool IsByteWiseEqual (const T1 & a, const T2 & b) {
 
-	return IsEqual(a,b.CodePoints());
-
-}
-
-
-bool IsEqual (const String & a, const std::vector<CodePoint> & b) noexcept {
-
-	return IsEqual(a.CodePoints(),b);
-
-}
-
-
-bool IsEqual (const String & a, const String & b) noexcept {
-
-	return IsEqual(a.CodePoints(),b.CodePoints());
-
-}
-
-
-bool IsEqual (const std::string & a, const std::vector<CodePoint> & b) noexcept {
-
-	if (a.size()!=b.size()) return false;
+	decltype(normalize(a)) n_a=normalize(a);
+	decltype(normalize(b)) n_b=normalize(b);
+	
+	auto begin_a=reinterpret_cast<const unsigned char *>(Begin(n_a));
+	auto end_a=reinterpret_cast<const unsigned char *>(End(n_a));
+	auto begin_b=reinterpret_cast<const unsigned char *>(Begin(n_b));
+	auto end_b=reinterpret_cast<const unsigned char *>(End(n_b));
+	
+	if ((end_a-begin_a)!=(end_b-begin_b)) return false;
 	
 	return std::equal(
-		a.begin(),
-		a.end(),
-		b.begin()
+		begin_a,
+		end_a,
+		begin_b
 	);
-
-}
-
-
-bool IsEqual (const std::vector<CodePoint> & a, const std::string & b) noexcept {
-
-	return IsEqual(b,a);
-
-}
-
-
-template <typename T>
-bool IsEqual (const String & a, const T * b) noexcept {
-
-	auto begin=a.begin();
-	auto end=a.end();
-	for (;(begin!=end) && (*b!=0) && (*begin==*b);++begin,++b);
-	
-	return (begin==end) && (*b==0);
-
-}
-
-
-template <typename T>
-bool IsEqual (const T * a, const String & b) noexcept {
-
-	return IsEqual(b,a);
-
-}
-
-
-template <typename T>
-bool IsEqual (const T * begin, const T * end, const T * str) noexcept {
-
-	for (;(begin!=end) && (*str!=0) && (*str==*begin);++begin,++str);
-	
-	return (begin==end) && (*str==0);
-
-}
-
-
-template <typename T>
-bool IsEqual (const std::vector<unsigned char> & a, const T * b) noexcept {
-
-	if ((a.size()%sizeof(T))!=0) return false;
-	
-	return IsEqual(
-		reinterpret_cast<const T *>(Begin(a)),
-		reinterpret_cast<const T *>(End(a)),
-		b
-	);
-
-}
-
-
-template <typename T>
-bool IsEqual (const T * a, const std::vector<unsigned char> & b) noexcept {
-
-	return IsEqual(b,a);
 
 }
 
@@ -1552,7 +1565,7 @@ SCENARIO("Strings may be constructed","[string]") {
 			
 			THEN("The UTF-8 encoding of that string is identical to the literal") {
 			
-				REQUIRE(IsEqual(UTF8{}.Encode(s.begin(),s.end()),u8_str));
+				REQUIRE(IsByteWiseEqual(UTF8{}.Encode(s.begin(),s.end()),u8_str));
 			
 			}
 			
@@ -1579,7 +1592,7 @@ SCENARIO("Strings may be constructed","[string]") {
 				auto order=EndianEncoding::Detect();
 				UTF16 encoder(order,order);
 				encoder.OutputBOM=false;
-				REQUIRE(IsEqual(encoder.Encode(s.begin(),s.end()),u16_str));
+				REQUIRE(IsByteWiseEqual(encoder.Encode(s.begin(),s.end()),u16_str));
 			
 			}
 			
