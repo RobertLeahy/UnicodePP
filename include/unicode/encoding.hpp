@@ -121,7 +121,7 @@ namespace Unicode {
 			
 			
 			[[noreturn]]
-			void raise (const void *);
+			void raise (const void *) const;
 			
 			
 		public:
@@ -176,7 +176,7 @@ namespace Unicode {
 			 *		code point if a replacement is to be made.  This
 			 *		method does not return if the action is to throw.
 			 */
-			std::optional<CodePoint> Execute (const void * where);
+			std::optional<CodePoint> Execute (const void * where) const;
 			/**
 			 *	Throws.
 			 *
@@ -184,13 +184,13 @@ namespace Unicode {
 			 *		The location at which the error occurred.
 			 */
 			[[noreturn]]
-			void Throw (const void * where);
+			void Throw (const void * where) const;
 			/**
 			 *	Determines whether errors of this type may be
 			 *	ignored.
 			 *
 			 *	\return
-			 *		\em true if errors of this type are ignorable,
+			 *		\em true if errors of this type are ignored,
 			 *		\em false otherwise.
 			 */
 			constexpr bool Ignored () const noexcept {

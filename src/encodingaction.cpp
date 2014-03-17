@@ -12,7 +12,7 @@ namespace Unicode {
 	}
 	
 	
-	void EncodingAction::raise (const void * where) {
+	void EncodingAction::raise (const void * where) const {
 	
 		throw EncodingError(
 			type,
@@ -23,7 +23,7 @@ namespace Unicode {
 	}
 
 
-	std::optional<CodePoint> EncodingAction::Execute (const void * where) {
+	std::optional<CodePoint> EncodingAction::Execute (const void * where) const {
 	
 		switch (action) {
 		
@@ -39,7 +39,7 @@ namespace Unicode {
 	}
 	
 	
-	void EncodingAction::Throw (const void * where) {
+	void EncodingAction::Throw (const void * where) const {
 	
 		raise(where);
 	
