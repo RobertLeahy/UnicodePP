@@ -157,6 +157,9 @@ namespace Unicode {
 		
 		}
 		
+		//	Check for overlong sequence
+		if (!((Count(cp)==len) || Strict.Ignored())) return EncodingErrorType::Strict;
+		
 		cps.push_back(cp);
 	
 		return std::optional<EncodingErrorType>{};
