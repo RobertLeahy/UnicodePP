@@ -122,65 +122,44 @@ namespace Unicode {
 		std::vector<CodePoint> retr;
 		while (b!=e) {
 		
-			//	This is the position within the code point
-			//	result vector we started at, so we can check
-			//	each code point decoded to make sure it's
-			//	acceptable Unicode
-			std::size_t pos=retr.size();
-		
 			//	Track the start position, so if the decoder
 			//	fails to advance the iterator we can do it
+			//
+			//	This reduces the complexity of decoder
+			//	implementations and also insures than a
+			//	neglectfully implemented decoder will not cause
+			//	an infinite loop
 			auto start=b;
 			
 			//	Decode
-			auto error=Decoder(retr,b,e,order);
+			CodePoint cp;
+			auto error=Decoder(cp,b,e,order);
 			
-			//	Handle error (if any)
+			//	Advance iterator if it was not advanced
+			if (b==start) ++b;
+			
+			//	Handle error if applicable
 			if (error) {
 			
 				auto repl=handle(*error,b);
 				
-				if (repl) retr.push_back(*repl);
+				if (repl) cp=*repl;
+				else continue;
 			
 			}
 			
-			//	If the iterator was not advanced, advance
-			//	it
-			if (b==start) ++b;
+			//	Check code point for validity, if code point is
+			//	invalid, handle a Unicode strict error
+			if (!(cp.IsValid() || UnicodeStrict.Ignored())) {
 			
-			//	Scan and check code points
-			for (std::size_t i=pos;i<retr.size();) {
-			
-				auto & cp=retr[i];
-				
-				//	If the code point is valid, or strict Unicode
-				//	errors are being ignored, move on
-				if (cp.IsValid() || UnicodeStrict.Ignored()) {
-				
-					++i;
-					
-					continue;
-				
-				}
-				
-				//	Code point isn't valid, handle the error
 				auto repl=handle(EncodingErrorType::UnicodeStrict,b);
 				
-				//	If there's a replacement, make it
-				if (repl) {
-				
-					cp=*repl;
-					
-					++i;
-					
-					continue;
-				
-				}
-				
-				//	Otherwise remove this code point
-				retr.erase(retr.begin()+i);
+				if (repl) cp=*repl;
+				else continue;
 			
 			}
+			
+			retr.push_back(cp);
 		
 		}
 		

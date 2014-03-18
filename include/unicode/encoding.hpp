@@ -373,7 +373,7 @@ namespace Unicode {
 			) const = 0;
 			
 			virtual std::optional<EncodingErrorType> Decoder (
-				std::vector<CodePoint> & cps,
+				CodePoint & cp,
 				const unsigned char * & begin,
 				const unsigned char * end,
 				std::optional<Unicode::Endianness> order

@@ -55,7 +55,7 @@ namespace Unicode {
 	
 	
 	std::optional<EncodingErrorType> UTF16::Decoder (
-		std::vector<CodePoint> & cps,
+		CodePoint & cp,
 		const unsigned char * & begin,
 		const unsigned char * end,
 		std::optional<Unicode::Endianness> order
@@ -95,12 +95,12 @@ namespace Unicode {
 			if (!is_trail(*trail)) return EncodingErrorType::Strict;
 			
 			//	Join the surrogates
-			auto cp=static_cast<CodePoint::Type>(*lead-0xD800);
-			cp<<=10;
-			cp|=*trail-0xDC00;
-			cp+=0x10000;
+			auto c=static_cast<CodePoint::Type>(*lead-0xD800);
+			c<<=10;
+			c|=*trail-0xDC00;
+			c+=0x10000;
 			
-			cps.push_back(cp);
+			cp=c;
 			
 			return std::nullopt;
 		
@@ -112,7 +112,7 @@ namespace Unicode {
 		if (is_trail(*lead)) return EncodingErrorType::Strict;
 		
 		//	The code unit is literally the code point
-		cps.push_back(static_cast<CodePoint::Type>(*lead));
+		cp=static_cast<CodePoint::Type>(*lead);
 		
 		return std::nullopt;
 	

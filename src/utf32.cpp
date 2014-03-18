@@ -16,7 +16,7 @@ namespace Unicode {
 	
 	
 	std::optional<EncodingErrorType> UTF32::Decoder (
-		std::vector<CodePoint> & cps,
+		CodePoint & cp,
 		const unsigned char * & begin,
 		const unsigned char * end,
 		std::optional<Unicode::Endianness> order
@@ -36,7 +36,7 @@ namespace Unicode {
 		auto cu=Get<CodeUnit>(begin,end,*order);
 		if (!cu) return EncodingErrorType::UnexpectedEnd;
 		
-		cps.push_back(*cu);
+		cp=*cu;
 		
 		return std::nullopt;
 	

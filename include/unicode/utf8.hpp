@@ -27,7 +27,7 @@ namespace Unicode {
 			) const override;
 			
 			virtual std::optional<EncodingErrorType> Decoder (
-				std::vector<CodePoint> & cps,
+				CodePoint & cp,
 				const unsigned char * & begin,
 				const unsigned char * end,
 				std::optional<Unicode::Endianness> order
