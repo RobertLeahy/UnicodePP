@@ -152,7 +152,14 @@ namespace Unicode {
 		for (std::size_t i=0;i<(len-1);++i) {
 		
 			auto c_o=get_continuation_byte(cp,*(begin++));
-			if (!c_o) return EncodingErrorType::Strict;
+			if (!c_o) {
+			
+				//	Not a continuation byte at all, rewind
+				//	and return error
+				--begin;
+				return EncodingErrorType::Strict;
+				
+			}
 			cp=*c_o;
 		
 		}
