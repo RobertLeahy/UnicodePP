@@ -81,7 +81,7 @@ namespace Unicode {
 		
 		//	Sift out bad return values
 		//
-		//	UTF-8 can't by more than 6 bytes long,
+		//	UTF-8 can't be more than 6 bytes long,
 		//	and 1 byte at this point wouldn't make
 		//	sense, that would indicate a continuation
 		//	byte where one shouldn't be
@@ -118,7 +118,7 @@ namespace Unicode {
 		//	Check to make sure the high bit is
 		//	set and the second highest bit is
 		//	not set
-		if ((b&static_cast<unsigned char>(192))!=128) return std::optional<CodePoint::Type>{};
+		if ((b&static_cast<unsigned char>(192))!=128) return std::nullopt;
 		
 		curr<<=6;
 		curr|=static_cast<CodePoint::Type>(static_cast<unsigned char>(63)&b);
@@ -141,7 +141,7 @@ namespace Unicode {
 		
 			cp=static_cast<CodePoint::Type>(*(begin++));
 			
-			return std::optional<EncodingErrorType>{};
+			return std::nullopt;
 		
 		}
 		
@@ -160,7 +160,7 @@ namespace Unicode {
 		//	Check for overlong sequence
 		if (!((Count(cp)==len) || Strict.Ignored())) return EncodingErrorType::Strict;
 	
-		return std::optional<EncodingErrorType>{};
+		return std::nullopt;
 	
 	}
 	
