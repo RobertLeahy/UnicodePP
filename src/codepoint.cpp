@@ -23,7 +23,11 @@ namespace Unicode {
 			(
 				(cp>=0xD800U) &&
 				(cp<=0xDFFFU)
-			)
+			) ||
+			//	Invalid Unicode
+			(cp==0xFFFF) ||
+			//	Invalid -- reversed BOM
+			(cp==0xFFFE)
 		);
 	
 	}
