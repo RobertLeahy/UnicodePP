@@ -2405,3 +2405,734 @@ SCENARIO("Strings may be hashed","[string]") {
 	}
 
 }
+
+
+//
+//	UTF-8
+//
+
+
+SCENARIO("UTF-8 strings may be decoded","[utf8]") {
+
+	GIVEN("A UTF-8 encoder/decoder") {
+	
+		UTF8 encoder;
+		
+		THEN("Decoding an empty buffer represented as two null iterators results in the empty string") {
+		
+			REQUIRE(encoder.Decode(nullptr,nullptr).size()==0);
+		
+		}
+		
+		GIVEN("An empty buffer of bytes") {
+		
+			std::vector<unsigned char> buffer;
+			
+			THEN("Attempting to decode the buffer results in the empty string") {
+			
+				REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+			
+			}
+		
+		}
+		
+		GIVEN("A buffer containing ASCII") {
+		
+			auto str="Hello world";
+			auto end=str+StringLength(str);
+			
+			THEN("Decoding the buffer recovers the ASCII") {
+			
+				REQUIRE(IsEqual(encoder.Decode(str,end),str));
+			
+			}
+		
+		}
+		
+		GIVEN("A buffer containing a two byte sequence") {
+		
+			std::vector<unsigned char> buffer={0xC3,0xA5};
+			
+			THEN("Decoding the buffer recovers the code point") {
+			
+				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded[0]==0xE5);
+			
+			}
+		
+		}
+		
+		GIVEN("A buffer containing a three byte sequence") {
+		
+			std::vector<unsigned char> buffer={0xE2,0x80,0x8B};
+			
+			THEN("Decoding the buffer recovers the code point") {
+			
+				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded[0]==0x200B);
+			
+			}
+		
+		}
+		
+		GIVEN("A buffer containing a four byte sequence") {
+		
+			std::vector<unsigned char> buffer={0xF0,0x9D,0x84,0x9E};
+			
+			THEN("Decoding the buffer recovers the code point") {
+			
+				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded[0]==0x1D11E);
+			
+			}
+		
+		}
+		
+		GIVEN("A buffer containing a four byte sequence which represents a code point larger than U+10FFFF") {
+		
+			std::vector<unsigned char> buffer={0xF4,0x90,0x80,0x80};
+			
+			THEN("Attempting to decode the buffer raises an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+			
+			}
+			
+			GIVEN("Unicode strict errors are being ignored") {
+			
+				encoder.UnicodeStrict.Ignore();
+				
+				THEN("Attempting to decode the buffer recovers the code point") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==0x110000);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in a replacement") {
+			
+				CodePoint replacement='?';
+				encoder.UnicodeStrict.Replace(replacement);
+				
+				THEN("Attempting to decode the buffer results in the replacement") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==replacement);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in no action") {
+			
+				encoder.UnicodeStrict.Nothing();
+				
+				THEN("Attempting to decode the buffer results in the empty string") {
+				
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+				
+				}
+			
+			}
+		
+		}
+		
+		GIVEN("A buffer containing a five byte sequence") {
+		
+			std::vector<unsigned char> buffer={0xF8,0xBF,0xBF,0xBF,0xBF};
+			
+			THEN("Attempting to decode the buffer raises an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+			
+			}
+			
+			GIVEN("Unicode strict errors are being ignored") {
+			
+				encoder.UnicodeStrict.Ignore();
+				
+				THEN("Attempting to decode the buffer recovers the code point") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==0xFFFFFF);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in a replacement") {
+			
+				CodePoint replacement='?';
+				encoder.UnicodeStrict.Replace(replacement);
+			
+				THEN("Attempting to decode the buffer results in the replacement") {
+			
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==replacement);
+					
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in no action") {
+			
+				encoder.UnicodeStrict.Nothing();
+				
+				THEN("Attempting to decode the buffer results in the empty string") {
+				
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+				
+				}
+			
+			}
+		
+		}
+		
+		GIVEN("A buffer containing a six byte sequence") {
+		
+			std::vector<unsigned char> buffer={0xFC,0xBF,0xBF,0xBF,0xBF,0xBF};
+			
+			THEN("Attempting to decode the buffer raises an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+			
+			}
+			
+			GIVEN("Unicode strict errors are being ignored") {
+			
+				encoder.UnicodeStrict.Ignore();
+				
+				THEN("Attempting to decode the buffer recovers the code point") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==0x3FFFFFFF);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in a replacement") {
+			
+				CodePoint replacement='?';
+				encoder.UnicodeStrict.Replace(replacement);
+			
+				THEN("Attempting to decode the buffer results in the replacement") {
+			
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==replacement);
+					
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in no action") {
+			
+				encoder.UnicodeStrict.Nothing();
+				
+				THEN("Attempting to decode the buffer results in the empty string") {
+				
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+				
+				}
+			
+			}
+		
+		}
+		
+		GIVEN("A buffer containing a seven byte sequence") {
+		
+			std::vector<unsigned char> buffer={0xFE,0xBF,0xBF,0xBF,0xBF,0xBF,0xBF};
+			
+			THEN("Attempting to decode the buffer raises an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+			
+			}
+			
+			GIVEN("Unicode strict errors are being ignored") {
+			
+				encoder.Strict.Ignore();
+				
+				THEN("Attempting to decode the buffer results in the empty string") {
+				
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in a replacement") {
+			
+				CodePoint replacement='?';
+				encoder.Strict.Replace(replacement);
+				
+				THEN("Attempting to decode the buffer results in the replacement") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==7);
+					CHECK(decoded[0]==replacement);
+					CHECK(decoded[1]==replacement);
+					CHECK(decoded[2]==replacement);
+					CHECK(decoded[3]==replacement);
+					CHECK(decoded[4]==replacement);
+					CHECK(decoded[5]==replacement);
+					REQUIRE(decoded[6]==replacement);
+				
+				}
+			
+			}
+		
+		}
+		
+		GIVEN("A buffer containing a seven byte sequence") {
+		
+			std::vector<unsigned char> buffer={0xFF,0xBF,0xBF,0xBF,0xBF,0xBF,0xBF,0xBF};
+			
+			THEN("Attempting to decode the buffer raises an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+			
+			}
+			
+			GIVEN("Unicode strict errors are being ignored") {
+			
+				encoder.Strict.Ignore();
+				
+				THEN("Attempting to decode the buffer results in the empty string") {
+				
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in a replacement") {
+			
+				CodePoint replacement='?';
+				encoder.Strict.Replace(replacement);
+				
+				THEN("Attempting to decode the buffer results in the replacement") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==8);
+					CHECK(decoded[0]==replacement);
+					CHECK(decoded[1]==replacement);
+					CHECK(decoded[2]==replacement);
+					CHECK(decoded[3]==replacement);
+					CHECK(decoded[4]==replacement);
+					CHECK(decoded[5]==replacement);
+					CHECK(decoded[6]==replacement);
+					REQUIRE(decoded[7]==replacement);
+				
+				}
+			
+			}
+		
+		}
+		
+		GIVEN("A buffer of bytes representing a UTF-16 surrogate") {
+		
+			UTF8 temp;
+			temp.UnicodeStrict.Ignore();
+			std::vector<CodePoint> cps={static_cast<CodePoint::Type>(0xDC00)};
+			auto buffer=temp.Encode(Begin(cps),End(cps));
+			
+			THEN("Attempting to decode the buffer raises an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+			
+			}
+			
+			GIVEN("Unicode strict errors are being ignored") {
+			
+				encoder.UnicodeStrict.Ignore();
+				
+				THEN("Attempting to decode the buffer results in the UTF-16 surrogate") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==0xDC00);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in a replacement") {
+			
+				CodePoint replacement='?';
+				encoder.UnicodeStrict.Replace(replacement);
+				
+				THEN("Attempting to decode the buffer results in the replacement") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==replacement);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in no action") {
+			
+				encoder.UnicodeStrict.Nothing();
+				
+				THEN("Attempting to decode the buffer results in the empty string") {
+				
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+				
+				}
+			
+			}
+		
+		}
+		
+		GIVEN("A buffer of bytes representing U+FFFE") {
+		
+			UTF8 temp;
+			temp.UnicodeStrict.Ignore();
+			std::vector<CodePoint> cps={static_cast<CodePoint::Type>(0xFFFE)};
+			auto buffer=temp.Encode(Begin(cps),End(cps));
+			
+			THEN("Attempting to decode the buffer raises an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+			
+			}
+			
+			GIVEN("Unicode strict errors are being ignored") {
+			
+				encoder.UnicodeStrict.Ignore();
+				
+				THEN("Attempting to decode the buffer results in the UTF-16 surrogate") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==0xFFFE);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in a replacement") {
+			
+				CodePoint replacement='?';
+				encoder.UnicodeStrict.Replace(replacement);
+				
+				THEN("Attempting to decode the buffer results in the replacement") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==replacement);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in no action") {
+			
+				encoder.UnicodeStrict.Nothing();
+				
+				THEN("Attempting to decode the buffer results in the empty string") {
+				
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+				
+				}
+			
+			}
+		
+		}
+		
+		GIVEN("A buffer of bytes representing U+FFFF") {
+		
+			UTF8 temp;
+			temp.UnicodeStrict.Ignore();
+			std::vector<CodePoint> cps={static_cast<CodePoint::Type>(0xFFFF)};
+			auto buffer=temp.Encode(Begin(cps),End(cps));
+			
+			THEN("Attempting to decode the buffer raises an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+			
+			}
+			
+			GIVEN("Unicode strict errors are being ignored") {
+			
+				encoder.UnicodeStrict.Ignore();
+				
+				THEN("Attempting to decode the buffer results in the UTF-16 surrogate") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==0xFFFF);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in a replacement") {
+			
+				CodePoint replacement='?';
+				encoder.UnicodeStrict.Replace(replacement);
+				
+				THEN("Attempting to decode the buffer results in the replacement") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==replacement);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in no action") {
+			
+				encoder.UnicodeStrict.Nothing();
+				
+				THEN("Attempting to decode the buffer results in the empty string") {
+				
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+				
+				}
+			
+			}
+		
+		}
+		
+		GIVEN("A buffer of bytes containing an invalid UTF-8 sequence") {
+		
+			std::vector<unsigned char> buffer={0x87,'a'};
+			
+			THEN("Attempting to decode the buffer raises an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+			
+			}
+			
+			GIVEN("Strict errors are being ignored") {
+			
+				encoder.Strict.Ignore();
+				
+				THEN("Attempting to decode the buffer results in everything except the problematic area being decoded") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]=='a');
+				
+				}
+			
+			}
+			
+			GIVEN("Strict errors result in a replacement") {
+			
+				CodePoint replacement='?';
+				encoder.Strict.Replace(replacement);
+				
+				THEN("Attempting to decode the buffer results in the invalid sequence being replaced by the replacement") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==2);
+					CHECK(decoded[0]==replacement);
+					REQUIRE(decoded[1]=='a');
+				
+				}
+			
+			}
+			
+			GIVEN("Strict errors result in no action") {
+			
+				encoder.Strict.Nothing();
+				
+				THEN("Attempting to decode the buffer results in everything except the problematic area being decoded") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]=='a');
+				
+				}
+			
+			}
+		
+		}
+	
+		GIVEN("A buffer of bytes containing an overlong UTF-8 sequence") {
+		
+			std::vector<unsigned char> buffer={0xF0,0x82,0x82,0xAC};
+			
+			THEN("Attempting to decode the buffer raises an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+			
+			}
+			
+			GIVEN("Strict errors are being ignored") {
+			
+				encoder.Strict.Ignore();
+				
+				THEN("Attempting to decode the buffer results in the code point being recovered") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==0x20AC);
+				
+				}
+			
+			}
+			
+			GIVEN("Strict errors result in a replacement") {
+			
+				CodePoint replacement='?';
+				encoder.Strict.Replace(replacement);
+				
+				THEN("Attempting to decode the buffer results in the replacement") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==replacement);
+				
+				}
+			
+			}
+			
+			GIVEN("Strict errors result in no action") {
+			
+				encoder.Strict.Nothing();
+				
+				THEN("Attempting to decode the buffer results in the empty string") {
+				
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+				
+				}
+			
+			}
+		
+		}
+	
+		GIVEN("A buffer of bytes containing an incomplete multi-byte sequence followed by a single byte sequence") {
+		
+			//	This is MUSICAL SYMBOL G CLEF minus the last byte
+			//	followed by LATIN SMALL LETTER A
+			std::vector<unsigned char> buffer={0xF0,0x9D,0x84,'a'};
+			
+			THEN("Attempting to decode the buffer raises an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+			
+			}
+			
+			GIVEN("Strict errors are being ignored") {
+			
+				encoder.Strict.Ignore();
+				
+				THEN("Attempting to decode the buffer recovers the code point corresponding to the single byte sequence") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]=='a');
+				
+				}
+			
+			}
+			
+			GIVEN("Strict errors result in a replacement") {
+			
+				CodePoint replacement='?';
+				encoder.Strict.Replace(replacement);
+				
+				THEN(
+					"Attempting to decode the buffer results in the replacement "
+					"followed by the code point corresponding to the single byte sequence"
+				) {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==2);
+					CHECK(decoded[0]==replacement);
+					REQUIRE(decoded[1]=='a');
+				
+				}
+			
+			}
+			
+			GIVEN("Strict errors result in no action") {
+			
+				encoder.Strict.Nothing();
+				
+				THEN("Attempting to decode the buffer recovers the code point corresponding to the single byte sequence") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]=='a');
+				
+				}
+			
+			}
+		
+		}
+	
+		GIVEN("A buffer of bytes containing an incomplete multi-byte sequence") {
+		
+			//	This is MUSICAL SYMBOL G CLEF minus the last byte
+			std::vector<unsigned char> buffer={0xF0,0x9D,0x84};
+			
+			THEN("Attempting to decode the buffer raises an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+			
+			}
+			
+			GIVEN("Unexpected end errors are being ignored") {
+			
+				encoder.UnexpectedEnd.Ignore();
+				
+				THEN("Attempting to decode the buffer results in the empty string") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Unexpected end errors result in a replacement") {
+			
+				CodePoint replacement='?';
+				encoder.UnexpectedEnd.Replace(replacement);
+				
+				THEN("Attempting to decode the buffer results in the replacement") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					CHECK(decoded[0]==replacement);
+				
+				}
+			
+			}
+			
+			GIVEN("Unexpected end errors result in no action") {
+			
+				encoder.UnexpectedEnd.Nothing();
+				
+				THEN("Attempting to decode the buffer results in the empty string") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==0);
+				
+				}
+			
+			}
+		
+		}
+	
+	}
+
+}
