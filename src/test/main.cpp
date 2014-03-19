@@ -593,6 +593,171 @@ SCENARIO("Strings may be converted to uppercase","[caseconverter]") {
 
 
 //
+//	CODE POINT
+//
+
+
+SCENARIO("Code points may be checked for validity","[codepoint]") {
+
+	GIVEN("A valid code point") {
+	
+		CodePoint cp='a';
+		
+		THEN("It is found to be valid") {
+		
+			REQUIRE(cp.IsValid());
+		
+		}
+	
+	}
+	
+	GIVEN("A code point beyond U+10FFFF") {
+	
+		CodePoint cp=0x10FFFFU+1;
+		
+		THEN("It is found to be invalid") {
+		
+			REQUIRE(!cp.IsValid());
+		
+		}
+	
+	}
+	
+	GIVEN("A UTF-16 surrogate") {
+	
+		CodePoint cp=0xD800U;
+		
+		THEN("It is found to be invalid") {
+		
+			REQUIRE(!cp.IsValid());
+		
+		}
+	
+	}
+	
+	GIVEN("The reversed byte order mark (i.e. U+FFFE)") {
+	
+		CodePoint cp=0xFFFEU;
+		
+		THEN("It is found to be invalid") {
+		
+			REQUIRE(!cp.IsValid());
+		
+		}
+	
+	}
+	
+	GIVEN("A non-character") {
+	
+		CodePoint cp=0x1FFFFU;
+		
+		THEN("It is found to be invalid") {
+		
+			REQUIRE(!cp.IsValid());
+		
+		}
+	
+	}
+	
+	GIVEN("One of the code points in the range U+FDD0..U+FDEF") {
+	
+		CodePoint cp=0xFDD0U;
+		
+		THEN("It is found to be invalid") {
+		
+			REQUIRE(!cp.IsValid());
+		
+		}
+	
+	}
+	
+	GIVEN("The code points immediately before and after U+FDD0..U+FDEF") {
+	
+		CodePoint before=0xFDD0U-1;
+		CodePoint after=0xFDEFU+1;
+		
+		THEN("They are found to be valid") {
+		
+			CHECK(before.IsValid());
+			REQUIRE(after.IsValid());
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Code points may be tested to see if they are white space or not","[codepoint]") {
+
+	GIVEN("A code point that is in ASCII and is not white space") {
+	
+		CodePoint cp='a';
+		
+		THEN("It is not identified as white space") {
+		
+			REQUIRE(!cp.IsWhiteSpace());
+		
+		}
+	
+	}
+	
+	GIVEN("A code point that is not ASCII and is not white space") {
+	
+		//	GREEK CAPITAL LETTER SIGMA (U+03A3)
+		CodePoint cp=0x03A3U;
+		
+		THEN("It is not identified as white space") {
+		
+			REQUIRE(!cp.IsWhiteSpace());
+		
+		}
+	
+	}
+	
+	GIVEN("A code point that is in ASCII and is white space") {
+	
+		CodePoint cp=' ';
+		
+		THEN("It is identified as white space") {
+		
+			REQUIRE(cp.IsWhiteSpace());
+		
+		}
+	
+	}
+	
+	GIVEN("A code point that is not ASCII and is white space") {
+	
+		//	PARAGRAPH SEPARATOR (U+2029)
+		CodePoint cp=0x2029U;
+		
+		THEN("It is identified as white space") {
+		
+			REQUIRE(cp.IsWhiteSpace());
+		
+		}
+	
+	}
+	
+	GIVEN("A code point for which information is not available") {
+	
+		//	Outside Unicode, therefore by definition no information
+		//	available
+		CodePoint cp=CodePoint::Max+1;
+		
+		THEN("It is not identified as white space") {
+		
+			REQUIRE(!cp.IsWhiteSpace());
+		
+		}
+	
+	}
+
+}
+
+
+//
 //	COMPARER
 //
 
