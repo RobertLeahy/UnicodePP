@@ -264,6 +264,9 @@ namespace Unicode {
 		public:
 		
 		
+			ByteOrderMark () = default;
+		
+		
 			/**
 			 *	Creates a ByteOrderMark from an array.
 			 *
