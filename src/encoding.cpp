@@ -26,10 +26,47 @@ namespace Unicode {
 	}
 
 
-	std::optional<CodePoint> Encoding::check (CodePoint cp) const {
+	std::optional<CodePoint> Encoding::check (const CodePoint & cp) const {
 	
-		//	TODO: Implement
-		return cp;
+		CodePoint retr=cp;
+		const void * loc=&cp;
+		
+		//	Is this code point valid Unicode?  If not, are
+		//	Unicode strict errors being ignored?
+		if (!(retr.IsValid() || UnicodeStrict.Ignored())) {
+		
+			auto repl=UnicodeStrict.Execute(loc);
+			
+			if (!repl) return std::nullopt;
+			
+			retr=*repl;
+		
+		}
+		
+		//	Can the encoder represent this code point?
+		if (!CanRepresent(retr)) {
+		
+			//	NO
+			
+			//	Are lossy errors being ignored?  If so just
+			//	delete this code point from the stream
+			if (Lossy.Ignored()) return std::nullopt;
+			
+			//	Lossy errors not ignored -- handle it
+			
+			auto repl=Lossy.Execute(loc);
+			
+			if (!repl) return std::nullopt;
+			
+			//	Can the replacement be represented?
+			//	If not, WE MUST THROW
+			if (!CanRepresent(*repl)) Lossy.Throw(loc);
+			
+			retr=*repl;
+		
+		}
+		
+		return retr;
 	
 	}
 	

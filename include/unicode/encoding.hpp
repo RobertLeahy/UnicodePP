@@ -360,7 +360,7 @@ namespace Unicode {
 		
 		
 			const EncodingAction & get (EncodingErrorType) const noexcept;
-			std::optional<CodePoint> check (CodePoint) const;
+			std::optional<CodePoint> check (const CodePoint &) const;
 			std::optional<CodePoint> handle (EncodingErrorType, const void *) const;
 	
 	
