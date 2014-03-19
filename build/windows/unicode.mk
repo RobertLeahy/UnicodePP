@@ -6,6 +6,7 @@ unicode: bin/unicode.dll
 
 
 bin/unicode.dll: \
+obj/ascii.o \
 obj/boundaries.o \
 obj/byteordermark.o \
 obj/caseconverter.o \

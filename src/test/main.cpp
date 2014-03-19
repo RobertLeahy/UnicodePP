@@ -1,3 +1,4 @@
+#include <unicode/ascii.hpp>
 #include <unicode/binarysearch.hpp>
 #include <unicode/caseconverter.hpp>
 #include <unicode/codepoint.hpp>
@@ -222,6 +223,270 @@ std::string Get (const T & t) {
 	ss << t;
 	
 	return ss.str();
+
+}
+
+
+//
+//	ASCII
+//
+
+
+SCENARIO("ASCII characters are the correct width","[ascii]") {
+
+	GIVEN("ASCII::CodeUnit") {
+	
+		THEN("It is one byte wide") {
+		
+			REQUIRE(sizeof(ASCII::CodeUnit)==1);
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("The ASCII BOM is empty") {
+
+	GIVEN("An ASCII encoder/decoder") {
+	
+		ASCII encoder;
+		
+		THEN("Its BOM is empty") {
+		
+			std::vector<unsigned char> bom;
+			encoder.BOM().Get(bom);
+			REQUIRE(bom.size()==0);
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Information about the representation of code points in ASCII is determined properly","[ascii]") {
+
+	GIVEN("An ASCII encoder/decoder") {
+	
+		ASCII encoder;
+		
+		GIVEN("A code point representable in ASCII") {
+		
+			CodePoint cp='a';
+			
+			THEN("It is identified as being representable in ASCII") {
+			
+				REQUIRE(encoder.CanRepresent(cp));
+			
+			}
+			
+			THEN("It requires one ASCII character to represent") {
+			
+				REQUIRE(encoder.Count(cp)==1);
+			
+			}
+		
+		}
+		
+		GIVEN("A code point unrepresentable in ASCII") {
+		
+			CodePoint cp=127U+1;
+			
+			THEN("It is identified as being unrepresentable in ASCII") {
+			
+				CHECK(!encoder.CanRepresent(cp));
+				REQUIRE(encoder.Count(cp)==0);
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("ASCII strings may be decoded","[ascii]") {
+
+	GIVEN("An ASCII encoder/decoder") {
+	
+		ASCII encoder;
+		
+		THEN("Decoding an empty buffer represented as two null iterators results in the empty string") {
+		
+			REQUIRE(encoder.Decode(nullptr,nullptr).size()==0);
+		
+		}
+		
+		GIVEN("An empty buffer of bytes") {
+		
+			std::vector<unsigned char> buffer;
+			
+			THEN("Attempting to decode the buffer results in the empty string") {
+			
+				REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+			
+			}
+		
+		}
+		
+		GIVEN("An ASCII string") {
+		
+			const char * begin="Hello world";
+			auto end=begin+StringLength(begin);
+			
+			THEN("Decoding it recovers the ASCII string") {
+			
+				REQUIRE(IsEqual(encoder.Decode(begin,end),begin));
+			
+			}
+			
+		}
+		
+		GIVEN("A buffer containing a Latin-1 character") {
+		
+			std::vector<unsigned char> buffer={0xFF};
+			
+			THEN("Attempting to decode it raises an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+			
+			}
+			
+			GIVEN("Strict errors are being ignored") {
+			
+				encoder.Strict.Ignore();
+				
+				THEN("Attempting to decode the buffer recovers the character") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==0xFF);
+				
+				}
+			
+			}
+			
+			GIVEN("Strict errors result in a replacement") {
+			
+				CodePoint replacement='?';
+				encoder.Strict.Replace(replacement);
+			
+				THEN("Attempting to decode the buffer results in the replacement") {
+			
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==replacement);
+					
+				}
+			
+			}
+			
+			GIVEN("Strict errors result in no action") {
+			
+				encoder.Strict.Nothing();
+				
+				THEN("Attempting to decode the buffer results in the empty string") {
+				
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+				
+				}
+			
+			}
+			
+		}
+	
+	}
+
+}
+
+
+SCENARIO("ASCII strings may be encoded","[ascii]") {
+
+	GIVEN("An ASCII encoder/decoder") {
+	
+		ASCII encoder;
+		
+		GIVEN("A string containing only ASCII") {
+		
+			String s("Hello world");
+			
+			THEN("It may be encoded") {
+			
+				REQUIRE(IsEqual(encoder.Encode(s.begin(),s.end()),s));
+			
+			}
+		
+		}
+		
+		GIVEN("A string containing Unicode") {
+		
+			String s("м");
+			
+			THEN("Encoding the string results in an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Encode(s.begin(),s.end()),EncodingError);
+			
+			}
+			
+			GIVEN("Lossy errors are being ignored") {
+			
+				encoder.Lossy.Ignore();
+				
+				THEN("Encoding the string results in an empty buffer") {
+				
+					REQUIRE(encoder.Encode(s.begin(),s.end()).size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Lossy errors result in no action") {
+			
+				encoder.Lossy.Nothing();
+				
+				THEN("Encoding the string results in an empty buffer") {
+				
+					REQUIRE(encoder.Encode(s.begin(),s.end()).size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Lossy errors result in a replacement representable in ASCII") {
+			
+				CodePoint replacement='?';
+				encoder.Lossy.Replace(replacement);
+				
+				THEN("Encoding the string results in the replacement") {
+				
+					auto encoded=encoder.Encode(s.begin(),s.end());
+					REQUIRE(encoded.size()==1);
+					REQUIRE(encoded[0]==replacement);
+				
+				}
+			
+			}
+			
+			GIVEN("Lossy errors result in a replacement not representable in ASCII") {
+			
+				//	REPLACEMENT CHARACTER (U+FFFD)
+				CodePoint replacement=0xFFFDU;
+				encoder.Lossy.Replace(replacement);
+				
+				THEN("Encoding the string results in an exception") {
+				
+					REQUIRE_THROWS_AS(encoder.Encode(s.begin(),s.end()),EncodingError);
+				
+				}
+			
+			}
+		
+		}
+	
+	}
 
 }
 
