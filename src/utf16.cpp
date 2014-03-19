@@ -92,7 +92,12 @@ namespace Unicode {
 			
 			//	If the trail surrogate isn't actually a trail
 			//	surrogate, we die
-			if (!is_trail(*trail)) return EncodingErrorType::Strict;
+			if (!is_trail(*trail)) {
+			
+				--begin;
+				return EncodingErrorType::Strict;
+				
+			}
 			
 			//	Join the surrogates
 			auto c=static_cast<CodePoint::Type>(*lead-0xD800);
