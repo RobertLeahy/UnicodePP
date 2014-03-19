@@ -141,16 +141,36 @@ namespace Unicode {
 			//	Handle error if applicable
 			if (error) {
 			
+				//	If the error is unexpected end, we do not want
+				//	to continue processing
+				bool ue=*error==EncodingErrorType::UnexpectedEnd;
+			
 				auto repl=handle(*error,b);
 				
-				if (repl) cp=*repl;
-				else continue;
-			
-			}
+				if (repl) {
+				
+					if (ue) {
+					
+						retr.push_back(*repl);
+						break;
+					
+					}
+					
+					cp=*repl;
+				
+				} else if (ue) {
+				
+					break;
+					
+				} else {
+				
+					continue;
+				
+				}
 			
 			//	Check code point for validity, if code point is
 			//	invalid, handle a Unicode strict error
-			if (!(cp.IsValid() || UnicodeStrict.Ignored())) {
+			} else if (!(cp.IsValid() || UnicodeStrict.Ignored())) {
 			
 				auto repl=handle(EncodingErrorType::UnicodeStrict,b);
 				
