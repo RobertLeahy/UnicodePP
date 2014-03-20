@@ -73,6 +73,9 @@ namespace Unicode {
 	
 	std::optional<CodePoint> Encoding::handle (EncodingErrorType type, const void * where) const {
 	
+		//	Endianness errors are irrecoverable
+		if (type==EncodingErrorType::Endianness) Endianness.Throw(where);
+	
 		auto & action=get(type);
 		
 		if (action.Ignored()) return std::nullopt;
