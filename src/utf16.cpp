@@ -131,7 +131,17 @@ namespace Unicode {
 	}
 	
 	
+	static bool is_surrogate (CodePoint cp) noexcept {
+	
+		return (cp>=0xD800U) && (cp<=0xDFFFU);
+	
+	}
+	
+	
 	bool UTF16::CanRepresent (CodePoint cp) const noexcept {
+	
+		//	UTF-16 can't represent surrogates
+		if (is_surrogate(cp)) return false;
 	
 		return cp<=CodePoint::Max;
 	
@@ -139,6 +149,9 @@ namespace Unicode {
 	
 	
 	std::size_t UTF16::Count (CodePoint cp) const noexcept {
+	
+		//	UTF-16 can't represent surrogates
+		if (is_surrogate(cp)) return 0;
 	
 		if (cp<=0xFFFF) return 1;
 		if (cp<=CodePoint::Max) return 2;
