@@ -415,7 +415,7 @@ SCENARIO("ASCII strings may be encoded","[ascii]") {
 			
 			THEN("It may be encoded") {
 			
-				REQUIRE(IsEqual(encoder.Encode(s.begin(),s.end()),s));
+				REQUIRE(IsEqual(encoder.Encode(s),s));
 			
 			}
 		
@@ -423,11 +423,11 @@ SCENARIO("ASCII strings may be encoded","[ascii]") {
 		
 		GIVEN("A string containing Unicode") {
 		
-			String s("м");
+			String s(u8"м");
 			
 			THEN("Encoding the string results in an exception") {
 			
-				REQUIRE_THROWS_AS(encoder.Encode(s.begin(),s.end()),EncodingError);
+				REQUIRE_THROWS_AS(encoder.Encode(s),EncodingError);
 			
 			}
 			
@@ -437,7 +437,7 @@ SCENARIO("ASCII strings may be encoded","[ascii]") {
 				
 				THEN("Encoding the string results in an empty buffer") {
 				
-					REQUIRE(encoder.Encode(s.begin(),s.end()).size()==0);
+					REQUIRE(encoder.Encode(s).size()==0);
 				
 				}
 			
@@ -449,7 +449,7 @@ SCENARIO("ASCII strings may be encoded","[ascii]") {
 				
 				THEN("Encoding the string results in an empty buffer") {
 				
-					REQUIRE(encoder.Encode(s.begin(),s.end()).size()==0);
+					REQUIRE(encoder.Encode(s).size()==0);
 				
 				}
 			
@@ -462,7 +462,7 @@ SCENARIO("ASCII strings may be encoded","[ascii]") {
 				
 				THEN("Encoding the string results in the replacement") {
 				
-					auto encoded=encoder.Encode(s.begin(),s.end());
+					auto encoded=encoder.Encode(s);
 					REQUIRE(encoded.size()==1);
 					REQUIRE(encoded[0]==replacement);
 				
@@ -478,7 +478,7 @@ SCENARIO("ASCII strings may be encoded","[ascii]") {
 				
 				THEN("Encoding the string results in an exception") {
 				
-					REQUIRE_THROWS_AS(encoder.Encode(s.begin(),s.end()),EncodingError);
+					REQUIRE_THROWS_AS(encoder.Encode(s),EncodingError);
 				
 				}
 			
