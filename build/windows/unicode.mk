@@ -23,6 +23,7 @@ obj/encodingaction.o \
 obj/encodingerror.o \
 obj/endianencoding.o \
 obj/error.o \
+obj/latin1.o \
 obj/locale.o \
 obj/normalizer.o \
 obj/string.o \

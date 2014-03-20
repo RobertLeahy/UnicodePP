@@ -5,6 +5,7 @@
 #include <unicode/comparer.hpp>
 #include <unicode/converter.hpp>
 #include <unicode/iostream.hpp>
+#include <unicode/latin1.hpp>
 #include <unicode/locale.hpp>
 #include <unicode/normalizer.hpp>
 #include <unicode/string.hpp>
@@ -1592,6 +1593,293 @@ SCENARIO("Strings may be converted to integers","[converter]") {
 		THEN("Attempting to convert using a base of 0 results in an exception") {
 		
 			REQUIRE_THROWS_AS(c(nullptr,nullptr,0),ConversionError);
+		
+		}
+	
+	}
+
+}
+
+
+//
+//	LATIN-1
+//
+
+
+SCENARIO("Latin-1 characters are the correct width","[latin1]") {
+
+	GIVEN("Latin1::CodeUnit") {
+	
+		THEN("It is one byte wide") {
+		
+			REQUIRE(sizeof(Latin1::CodeUnit)==1);
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Latin-1 characters are unsigned","[latin1]") {
+
+	GIVEN("Latin1::CodeUnit") {
+	
+		THEN("It is unsigned") {
+		
+			REQUIRE(std::is_unsigned<Latin1::CodeUnit>::value);
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("The Latin-1 BOM is empty","[latin1]") {
+
+	GIVEN("A Latin-1 encoder/decoder") {
+	
+		Latin1 encoder;
+		
+		THEN("Its BOM is empty") {
+		
+			std::vector<unsigned char> bom;
+			encoder.BOM().Get(bom);
+			REQUIRE(bom.size()==0);
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Information about the representation of code points in Latin-1 is determined properly","[latin1]") {
+
+	GIVEN("A Latin-1 encoder/decoder") {
+	
+		Latin1 encoder;
+		
+		GIVEN("A code point representable in ASCII") {
+		
+			CodePoint cp='a';
+			
+			THEN("It is identified as being representable in Latin-1") {
+			
+				REQUIRE(encoder.CanRepresent(cp));
+			
+			}
+			
+			THEN("It requires one Latin-1 character to represent") {
+			
+				REQUIRE(encoder.Count(cp)==1);
+			
+			}
+		
+		}
+		
+		GIVEN("A code point representable in Latin-1 but not ASCII") {
+		
+			CodePoint cp=128U;
+			
+			THEN("It is identified as being representable in Latin-1") {
+			
+				REQUIRE(encoder.CanRepresent(cp));
+			
+			}
+			
+			THEN("It requires one Latin-1 character to represent") {
+			
+				REQUIRE(encoder.Count(cp)==1);
+			
+			}
+		
+		}
+		
+		GIVEN("A code point unrepresentable in Latin-1") {
+		
+			CodePoint cp=256U;
+			
+			THEN("It is identified as being unrepresentable in Latin-1") {
+			
+				CHECK(!encoder.CanRepresent(cp));
+				REQUIRE(encoder.Count(cp)==0);
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Latin-1 strings may be decoded","[latin1]") {
+
+	GIVEN("A Latin-1 encoder/decoder") {
+	
+		Latin1 encoder;
+		
+		THEN("Decoding an empty buffer represented as two null iterators results in the empty string") {
+		
+			REQUIRE(encoder.Decode(nullptr,nullptr).size()==0);
+		
+		}
+		
+		GIVEN("An empty buffer of bytes") {
+		
+			std::vector<unsigned char> buffer;
+			
+			THEN("Attempting to decode the buffer results in the empty string") {
+			
+				REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+			
+			}
+		
+		}
+		
+		GIVEN("An ASCII string") {
+		
+			const char * begin="Hello world";
+			auto end=begin+StringLength(begin);
+			
+			THEN("Decoding it recovers the ASCII string") {
+			
+				REQUIRE(IsEqual(encoder.Decode(begin,end),begin));
+			
+			}
+		
+		}
+		
+		GIVEN("A Latin-1 string") {
+		
+			std::vector<unsigned char> str={0xFF};
+			
+			THEN("Decoding it recovers the Latin-1 string") {
+			
+				REQUIRE(IsEqual(encoder.Decode(Begin(str),End(str)),str));
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Strings may be encoded to Latin-1","[latin1]") {
+
+	GIVEN("A Latin-1 encoder/decoder") {
+	
+		Latin1 encoder;
+		
+		GIVEN("A string containing only ASCII") {
+		
+			String s("Hello world");
+			
+			THEN("It may be encoded") {
+			
+				REQUIRE(IsEqual(encoder.Encode(s),s));
+			
+			}
+		
+		}
+		
+		GIVEN("A string containing ASCII and Latin-1 characters") {
+		
+			String s(u8"façade");
+			
+			THEN("It may be encoded") {
+			
+				REQUIRE(IsEqual(encoder.Encode(s),s));
+			
+			}
+		
+		}
+		
+		GIVEN("A Latin-1 encoder/decoder which will output the BOM") {
+		
+			Latin1 encoder2;
+			encoder2.OutputBOM=true;
+			
+			GIVEN("A string representable in Latin-1") {
+			
+				String s("Hello world");
+				
+				THEN("Both encoders generate identical representations") {
+			
+					REQUIRE(IsEqual(encoder.Encode(s),encoder2.Encode(s)));
+			
+				}
+				
+			}
+		
+		}
+		
+		GIVEN("A string containing Unicode") {
+		
+			String s(u8"м");
+			
+			THEN("Encoding the string results in an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Encode(s),EncodingError);
+			
+			}
+			
+			GIVEN("Lossy errors are being ignored") {
+			
+				encoder.Lossy.Ignore();
+				
+				THEN("Encoding the string results in an empty buffer") {
+				
+					REQUIRE(encoder.Encode(s).size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Lossy errors result in no action") {
+			
+				encoder.Lossy.Nothing();
+				
+				THEN("Encoding the string results in an empty buffer") {
+				
+					REQUIRE(encoder.Encode(s).size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Lossy errors result in a replacement representable in Latin-1") {
+			
+				CodePoint replacement='?';
+				encoder.Lossy.Replace(replacement);
+				
+				THEN("Encoding the string results in the replacement") {
+				
+					auto encoded=encoder.Encode(s);
+					REQUIRE(encoded.size()==1);
+					REQUIRE(encoded[0]==replacement);
+				
+				}
+			
+			}
+			
+			GIVEN("Lossy errors result in a replacement not representable in Latin-1") {
+			
+				//	REPLACEMENT CHARACTER (U+FFFD)
+				CodePoint replacement=0xFFFDU;
+				encoder.Lossy.Replace(replacement);
+				
+				THEN("Encoding the string results in an exception") {
+				
+					REQUIRE_THROWS_AS(encoder.Encode(s),EncodingError);
+				
+				}
+			
+			}
 		
 		}
 	
