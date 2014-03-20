@@ -2842,6 +2842,283 @@ SCENARIO("Strings may be hashed","[string]") {
 //
 
 
+SCENARIO("UTF-8 code units are the correct width","[utf8]") {
+
+	GIVEN("UTF8::CodeUnit") {
+	
+		THEN("It is one byte wide") {
+		
+			REQUIRE(sizeof(UTF8::CodeUnit)==1);
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("The UTF-8 BOM may be obtained from a UTF-8 encoder/decoder","[utf8]") {
+
+	GIVEN("A UTF-8 encoder/decoder") {
+	
+		UTF8 encoder;
+		
+		THEN("Its BOM is correct") {
+		
+			std::vector<unsigned char> bom;
+			encoder.BOM().Get(bom);
+			REQUIRE(bom.size()==3);
+			CHECK(bom[0]==0xEF);
+			CHECK(bom[1]==0xBB);
+			REQUIRE(bom[2]==0xBF);
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Information about the representation of code points in UTF-8 is determined properly","[utf8]") {
+
+	GIVEN("A UTF-8 encoder/decoder") {
+	
+		UTF8 encoder;
+		
+		GIVEN("U+0000") {
+		
+			CodePoint cp=0U;
+			
+			THEN("It can be represented") {
+			
+				REQUIRE(encoder.CanRepresent(cp));
+			
+			}
+			
+			THEN("It requires one byte to represent") {
+			
+				REQUIRE(encoder.Count(cp)==1);
+			
+			}
+		
+		}
+		
+		GIVEN("U+007F") {
+		
+			CodePoint cp=0x7FU;
+			
+			THEN("It can be represented") {
+			
+				REQUIRE(encoder.CanRepresent(cp));
+			
+			}
+			
+			THEN("It requires one byte to represent") {
+			
+				REQUIRE(encoder.Count(cp)==1);
+			
+			}
+		
+		}
+		
+		GIVEN("U+0080") {
+		
+			CodePoint cp=0x80U;
+			
+			THEN("It can be represented") {
+			
+				REQUIRE(encoder.CanRepresent(cp));
+			
+			}
+			
+			THEN("It requires two bytes to represent") {
+			
+				REQUIRE(encoder.Count(cp)==2);
+			
+			}
+		
+		}
+		
+		GIVEN("U+07FF") {
+		
+			CodePoint cp=0x7FFU;
+			
+			THEN("It can be represented") {
+			
+				REQUIRE(encoder.CanRepresent(cp));
+			
+			}
+			
+			THEN("It requires two bytes to represent") {
+			
+				REQUIRE(encoder.Count(cp)==2);
+			
+			}
+		
+		}
+		
+		GIVEN("U+0800") {
+		
+			CodePoint cp=0x800U;
+			
+			THEN("It can be represented") {
+			
+				REQUIRE(encoder.CanRepresent(cp));
+			
+			}
+			
+			THEN("It requires three bytes to represent") {
+			
+				REQUIRE(encoder.Count(cp)==3);
+			
+			}
+		
+		}
+		
+		GIVEN("U+FFFF") {
+		
+			CodePoint cp=0xFFFFU;
+			
+			THEN("It can be represented") {
+			
+				REQUIRE(encoder.CanRepresent(cp));
+			
+			}
+			
+			THEN("It requires three bytes to represent") {
+			
+				REQUIRE(encoder.Count(cp)==3);
+			
+			}
+		
+		}
+		
+		GIVEN("U+10000") {
+		
+			CodePoint cp=0x10000U;
+			
+			THEN("It can be represented") {
+			
+				REQUIRE(encoder.CanRepresent(cp));
+			
+			}
+			
+			THEN("It requires four bytes to represent") {
+			
+				REQUIRE(encoder.Count(cp)==4);
+			
+			}
+		
+		}
+		
+		GIVEN("U+1FFFFF") {
+		
+			CodePoint cp=0x1FFFFFU;
+			
+			THEN("It can be represented") {
+			
+				REQUIRE(encoder.CanRepresent(cp));
+			
+			}
+			
+			THEN("It requires four bytes to represent") {
+			
+				REQUIRE(encoder.Count(cp)==4);
+			
+			}
+		
+		}
+		
+		GIVEN("U+200000") {
+		
+			CodePoint cp=0x200000U;
+			
+			THEN("It can be represented") {
+			
+				REQUIRE(encoder.CanRepresent(cp));
+			
+			}
+			
+			THEN("It requires five bytes to represent") {
+			
+				REQUIRE(encoder.Count(cp)==5);
+			
+			}
+		
+		}
+		
+		GIVEN("U+3FFFFFF") {
+		
+			CodePoint cp=0x3FFFFFFU;
+			
+			THEN("It can be represented") {
+			
+				REQUIRE(encoder.CanRepresent(cp));
+			
+			}
+			
+			THEN("It requires five bytes to represent") {
+			
+				REQUIRE(encoder.Count(cp)==5);
+			
+			}
+		
+		}
+		
+		GIVEN("U+4000000") {
+		
+			CodePoint cp=0x4000000U;
+			
+			THEN("It can be represented") {
+			
+				REQUIRE(encoder.CanRepresent(cp));
+			
+			}
+			
+			THEN("It requires six bytes to represent") {
+			
+				REQUIRE(encoder.Count(cp)==6);
+			
+			}
+		
+		}
+		
+		GIVEN("U+7FFFFFFF") {
+		
+			CodePoint cp=0x7FFFFFFFU;
+			
+			THEN("It can be represented") {
+			
+				REQUIRE(encoder.CanRepresent(cp));
+			
+			}
+			
+			THEN("It requires six bytes to represent") {
+			
+				REQUIRE(encoder.Count(cp)==6);
+			
+			}
+		
+		}
+		
+		GIVEN("A code point unrepresentable by UTF-8") {
+		
+			CodePoint cp=0x7FFFFFFFU+1;
+			
+			THEN("It cannot be represented") {
+			
+				CHECK(!encoder.CanRepresent(cp));
+				REQUIRE(encoder.Count(cp)==0);
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
 SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 
 	GIVEN("A UTF-8 encoder/decoder") {
@@ -3563,6 +3840,239 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 		
 		}
 	
+		GIVEN("A buffer of bytes beginning with the BOM") {
+		
+			std::vector<unsigned char> buffer={0xEF,0xBB,0xBF,'a'};
+			
+			THEN("Decoding the buffer recovers the BOM as one of the code points") {
+			
+				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+				REQUIRE(decoded.size()==2);
+				CHECK(decoded[0]==0xFEFF);
+				REQUIRE(decoded[1]=='a');
+			
+			}
+			
+			GIVEN("The decoder should attempt to detect the BOM") {
+			
+				encoder.DetectBOM=true;
+				
+				THEN("Decoding the buffer does not recover the BOM") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]=='a');
+				
+				}
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("UTF-8 strings may be encoded","[utf8]") {
+
+	GIVEN("A UTF-8 encoder/decoder") {
+	
+		UTF8 encoder;
+		
+		GIVEN("A string containing only code points which may be represented with one code unit") {
+		
+			String s("Hello world");
+			
+			THEN("It may be encoded") {
+			
+				REQUIRE(IsEqual(encoder.Encode(s),s));
+			
+			}
+		
+		}
+		
+		GIVEN("A string containing code points which require multiple code units to represent") {
+		
+			String s(u8"м");
+			
+			THEN("It may be encoded") {
+			
+				auto encoded=encoder.Encode(s);
+				REQUIRE(encoded.size()==2);
+				CHECK(encoded[0]==0xD0);
+				REQUIRE(encoded[1]==0xBC);
+			
+			}
+		
+		}
+	
+		GIVEN("A string containing illegal Unicode") {
+		
+			String s;
+			s << CodePoint(0x110000U);
+			
+			THEN("Attempting to encode it results in an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Encode(s),EncodingError);
+			
+			}
+			
+			GIVEN("Unicode strict errors are ignored") {
+			
+				encoder.UnicodeStrict.Ignore();
+				
+				THEN("Attempting to encode it succeeds") {
+				
+					REQUIRE(IsEqual(encoder.Encode(s),std::vector<unsigned char>({0xF4,0x90,0x80,0x80})));
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in no action") {
+			
+				encoder.UnicodeStrict.Nothing();
+				
+				THEN("Attempting to encode it results in the empty string") {
+				
+					REQUIRE(encoder.Encode(s).size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in a replacement") {
+			
+				GIVEN("The replacement is representable in UTF-8") {
+				
+					CodePoint replacement='?';
+					encoder.UnicodeStrict.Replace(replacement);
+					
+					THEN("Attempting to encode the string results in the replacement") {
+					
+						auto encoded=encoder.Encode(s);
+						REQUIRE(encoded.size()==1);
+						REQUIRE(encoded[0]==replacement);
+					
+					}
+				
+				}
+				
+				GIVEN("The replacement is not representable in UTF-8") {
+				
+					CodePoint replacement=std::numeric_limits<CodePoint::Type>::max();
+					encoder.UnicodeStrict.Replace(replacement);
+					
+					THEN("Attempting to encode the string results in an exception") {
+					
+						REQUIRE_THROWS_AS(encoder.Encode(s),EncodingError);
+					
+					}
+				
+				}
+			
+			}
+		
+		}
+	
+		GIVEN("A string containing code points which UTF-8 cannot represent") {
+		
+			String s;
+			s << CodePoint(std::numeric_limits<CodePoint::Type>::max());
+			
+			GIVEN("Unicode strict errors are ignored") {
+			
+				encoder.UnicodeStrict.Ignore();
+			
+				THEN("Attempting to encode it results in an exception") {
+				
+					REQUIRE_THROWS_AS(encoder.Encode(s),EncodingError);
+				
+				}
+				
+				GIVEN("Lossy errors are ignored") {
+				
+					encoder.Lossy.Ignore();
+					
+					THEN("Attempting to encode the string results in an empty buffer") {
+					
+						REQUIRE(encoder.Encode(s).size()==0);
+					
+					}
+				
+				}
+				
+				GIVEN("Lossy errors result in a replacement") {
+				
+					GIVEN("The replacement is representable in UTF-8") {
+					
+						CodePoint replacement='?';
+						encoder.Lossy.Replace(replacement);
+						
+						THEN("Attempting to encode the string results in the replacement") {
+						
+							auto encoded=encoder.Encode(s);
+							REQUIRE(encoded.size()==1);
+							REQUIRE(encoded[0]==replacement);
+						
+						}
+					
+					}
+					
+					GIVEN("The replacement is not representable in UTF-8") {
+					
+						CodePoint replacement=std::numeric_limits<CodePoint::Type>::max();
+						encoder.Lossy.Replace(replacement);
+						
+						THEN("Attempting to encode the string results in an exception") {
+						
+							REQUIRE_THROWS_AS(encoder.Encode(s),EncodingError);
+						
+						}
+					
+					}
+				
+				}
+				
+				GIVEN("Lossy errors result in no action") {
+				
+					encoder.Lossy.Nothing();
+					
+					THEN("Attempting to encode the string results in an empty buffer") {
+					
+						REQUIRE(encoder.Encode(s).size()==0);
+					
+					}
+				
+				}
+			
+			}
+			
+			GIVEN("A string representable in UTF-8") {
+			
+				String s("Hello world");
+				
+				GIVEN("The encoder/decoder is set to output the BOM") {
+				
+					encoder.OutputBOM=true;
+					
+					THEN("Encoding the string outputs the BOM") {
+					
+						auto encoded=encoder.Encode(s);
+						REQUIRE(encoded.size()==(s.Size()+3));
+						CHECK(encoded[0]==0xEF);
+						CHECK(encoded[1]==0xBB);
+						REQUIRE(encoded[2]==0xBF);
+					
+					}
+				
+				}
+			
+			}
+			
+		}
+		
 	}
 
 }
