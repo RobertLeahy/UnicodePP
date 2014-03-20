@@ -436,6 +436,25 @@ SCENARIO("ASCII strings may be encoded","[ascii]") {
 		
 		}
 		
+		GIVEN("An ASCII encoder which will output the BOM") {
+		
+			ASCII encoder2;
+			encoder2.OutputBOM=true;
+			
+			GIVEN("A string representable in ASCII") {
+			
+				String s("Hello world");
+				
+				THEN("Both encoders generate identical representations") {
+				
+					REQUIRE(IsEqual(encoder.Encode(s),encoder2.Encode(s)));
+				
+				}
+			
+			}
+		
+		}
+		
 		GIVEN("A string containing Unicode") {
 		
 			String s(u8"м");
