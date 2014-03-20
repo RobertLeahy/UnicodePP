@@ -419,7 +419,7 @@ SCENARIO("ASCII strings may be decoded","[ascii]") {
 }
 
 
-SCENARIO("ASCII strings may be encoded","[ascii]") {
+SCENARIO("Strings may be encoded to ASCII","[ascii]") {
 
 	GIVEN("An ASCII encoder/decoder") {
 	
@@ -4211,7 +4211,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 }
 
 
-SCENARIO("UTF-8 strings may be encoded","[utf8]") {
+SCENARIO("Strings may be encoded to UTF-8","[utf8]") {
 
 	GIVEN("A UTF-8 encoder/decoder") {
 	
