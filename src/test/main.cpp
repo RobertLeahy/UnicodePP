@@ -247,6 +247,21 @@ SCENARIO("ASCII characters are the correct width","[ascii]") {
 }
 
 
+SCENARIO("ASCII characters are unsigned","[ascii]") {
+
+	GIVEN("ASCII::CodeUnit") {
+	
+		THEN("It is unsigned") {
+		
+			REQUIRE(std::is_unsigned<ASCII::CodeUnit>::value);
+		
+		}
+	
+	}
+
+}
+
+
 SCENARIO("The ASCII BOM is empty") {
 
 	GIVEN("An ASCII encoder/decoder") {
@@ -2849,6 +2864,21 @@ SCENARIO("UTF-8 code units are the correct width","[utf8]") {
 		THEN("It is one byte wide") {
 		
 			REQUIRE(sizeof(UTF8::CodeUnit)==1);
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("UTF-8 code units are unsigned","[utf8]") {
+
+	GIVEN("UTF8::CodeUnit") {
+	
+		THEN("It is unsigned") {
+		
+			REQUIRE(std::is_unsigned<UTF8::CodeUnit>::value);
 		
 		}
 	
