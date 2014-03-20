@@ -3402,7 +3402,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 		
 		}
 		
-		GIVEN("A buffer containing a seven byte sequence") {
+		GIVEN("A buffer containing an eight byte sequence") {
 		
 			std::vector<unsigned char> buffer={0xFF,0xBF,0xBF,0xBF,0xBF,0xBF,0xBF,0xBF};
 			
