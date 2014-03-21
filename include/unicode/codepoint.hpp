@@ -42,7 +42,7 @@ namespace Unicode {
 			 *	An integer type which may represent
 			 *	all Unicode code points.
 			 */
-			typedef std::uint32_t Type;
+			typedef char32_t Type;
 	
 	
 		private:
@@ -77,22 +77,22 @@ namespace Unicode {
 			/**
 			 *	Creates a code point from an integer.
 			 *
+			 *	\tparam T
+			 *		The type of integer.
+			 *
 			 *	\param [in] cp
 			 *		An integer.
 			 */
-			constexpr CodePoint (Type cp) noexcept : cp(cp) {	}
-			/**
-			 *	Creates a code point from a character.
-			 *
-			 *	\param [in] c
-			 *		A character.
-			 */
-			constexpr CodePoint (char c) noexcept : cp(static_cast<Type>(c)) {	}
+			template <typename T, typename=typename std::enable_if<std::is_integral<T>::value>::type>
+			constexpr CodePoint (T cp) noexcept : cp(static_cast<Type>(cp)) {	}
 			
 			
 			/**
 			 *	Assigns to this code point from an
 			 *	integer.
+			 *
+			 *	\tparam T
+			 *		The type of integer.
 			 *
 			 *	\param [in] cp
 			 *		An integer.
@@ -100,9 +100,10 @@ namespace Unicode {
 			 *	\return
 			 *		A reference to this code point.
 			 */
-			CodePoint & operator = (Type cp) noexcept {
+			template <typename T>
+			typename std::enable_if<std::is_integral<T>::value,CodePoint &>::type operator = (T cp) noexcept {
 			
-				this->cp=cp;
+				this->cp=static_cast<Type>(cp);
 				
 				return *this;
 			
