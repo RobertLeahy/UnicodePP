@@ -4413,3 +4413,893 @@ SCENARIO("Strings may be encoded to UTF-8","[utf8]") {
 	}
 
 }
+
+
+//
+//	UTF-16
+//
+
+
+SCENARIO("UTF-16 code units are the correct width","[utf16]") {
+
+	GIVEN("UTF16::CodeUnit") {
+	
+		THEN("It is two bytes wide") {
+		
+			REQUIRE(sizeof(UTF16::CodeUnit)==2);
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("UTF-16 code units are unsigned","[utf16]") {
+
+	GIVEN("UTF16::CodeUnit") {
+	
+		THEN("It is unsigned") {
+		
+			REQUIRE(std::is_unsigned<UTF16::CodeUnit>::value);
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("The UTF-16 BOM may be obtained from a UTF-16 encoder/decoder","[utf16]") {
+
+	GIVEN("A UTF-16 encoder/decoder") {
+	
+		UTF16 encoder;
+		
+		THEN("Its big-endian BOM is correct") {
+		
+			std::vector<unsigned char> bom;
+			encoder.BOM().Get(bom,Endianness::Big);
+			REQUIRE(bom.size()==2);
+			CHECK(bom[0]==0xFE);
+			REQUIRE(bom[1]==0xFF);
+		
+		}
+		
+		THEN("Its little-endian BOM is correct") {
+		
+			std::vector<unsigned char> bom;
+			encoder.BOM().Get(bom,Endianness::Little);
+			REQUIRE(bom.size()==2);
+			CHECK(bom[0]==0xFF);
+			REQUIRE(bom[1]==0xFE);
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Information about the representation of code points in UTF-16 is determined properly","[utf16]") {
+
+	GIVEN("A UTF-16 encoder/decoder") {
+	
+		UTF16 encoder;
+		
+		GIVEN("U+0000") {
+		
+			CodePoint cp=0U;
+			
+			THEN("It can be represented") {
+			
+				REQUIRE(encoder.CanRepresent(cp));
+			
+			}
+			
+			THEN("It requires one code unit to represent") {
+			
+				REQUIRE(encoder.Count(cp)==1);
+			
+			}
+		
+		}
+		
+		GIVEN("U+FFFF") {
+		
+			CodePoint cp=0xFFFFU;
+			
+			THEN("It can be represented") {
+			
+				REQUIRE(encoder.CanRepresent(cp));
+			
+			}
+			
+			THEN("It requires one code unit to represent") {
+			
+				REQUIRE(encoder.Count(cp)==1);
+			
+			}
+		
+		}
+		
+		GIVEN("U+10000") {
+		
+			CodePoint cp=0x10000U;
+			
+			THEN("It can be represented") {
+			
+				REQUIRE(encoder.CanRepresent(cp));
+			
+			}
+			
+			THEN("It requires two code units to represent") {
+			
+				REQUIRE(encoder.Count(cp)==2);
+			
+			}
+		
+		}
+		
+		GIVEN("U+10FFFF") {
+		
+			CodePoint cp=CodePoint::Max;
+			
+			THEN("It can be represented") {
+			
+				REQUIRE(encoder.CanRepresent(cp));
+			
+			}
+			
+			THEN("It requires two code units to represent") {
+			
+				REQUIRE(encoder.Count(cp)==2);
+			
+			}
+		
+		}
+		
+		GIVEN("U+200000") {
+		
+			CodePoint cp=0x200000U;
+			
+			THEN("It cannot be represented") {
+			
+				CHECK(!encoder.CanRepresent(cp));
+				REQUIRE(encoder.Count(cp)==0);
+			
+			}
+		
+		}
+		
+		GIVEN("A surrogate") {
+		
+			CodePoint cp=0xD800U;
+			
+			THEN("It cannot be represented") {
+			
+				CHECK(!encoder.CanRepresent(cp));
+				REQUIRE(encoder.Count(cp)==0);
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("UTF-16 strings may be decoded","[utf16]") {
+
+	GIVEN("A UTF-16 encoder/decoder") {
+	
+		UTF16 encoder;
+		
+		GIVEN("A buffer containing UTF-16BE") {
+		
+			std::vector<unsigned char> buffer={0,'a'};
+			
+			THEN("It may be decoded") {
+			
+				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded[0]=='a');
+			
+			}
+			
+			GIVEN("The encoder/decoder's input endianness is unset") {
+			
+				encoder.InputOrder=std::nullopt;
+				
+				THEN("Attempting to decode the buffer results in an exception") {
+				
+					REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+				
+				}
+				
+				GIVEN("Endianness errors are ignored") {
+				
+					encoder.Endianness.Ignore();
+					
+					THEN("This has no effect, since endianness errors are irrecoverable") {
+					
+						REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+					
+					}
+				
+				}
+			
+			}
+		
+		}
+		
+		GIVEN("A buffer containing UTF-16LE") {
+		
+			std::vector<unsigned char> buffer={'a',0};
+			
+			THEN("It may be decoded, but the endianness is incorrect") {
+			
+				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded[0]!='a');
+			
+			}
+			
+			GIVEN("The encoder/decoder is set for little endian input") {
+			
+				encoder.InputOrder=Endianness::Little;
+				
+				THEN("The buffer may be decoded") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]=='a');
+				
+				}
+			
+			}
+		
+		}
+		
+		GIVEN("A buffer containing UTF-16LE preceded by the little endian BOM") {
+		
+			std::vector<unsigned char> buffer={0xFF,0xFE,'a',0};
+			
+			THEN("It may be decoded") {
+			
+				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded[0]=='a');
+			
+			}
+		
+		}
+		
+		GIVEN("A buffer containing UTF-16BE preceded by the big endian BOM") {
+		
+			std::vector<unsigned char> buffer={0xFE,0xFF,0,'a'};
+			
+			THEN("It may be decoded") {
+			
+				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded[0]=='a');
+			
+			}
+			
+			GIVEN("The input endianness of the encoder/decoder is not set") {
+			
+				encoder.InputOrder=std::nullopt;
+				
+				THEN("It may be decoded") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]=='a');
+				
+				}
+			
+			}
+			
+			GIVEN("The encoder/decoder is set not to detect the BOM") {
+			
+				encoder.DetectBOM=false;
+				
+				THEN("It may be decoded, recoving the BOM") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==2);
+					CHECK(decoded[0]==0xFEFF);
+					REQUIRE(decoded[1]=='a');
+				
+				}
+			
+			}
+		
+		}
+	
+		GIVEN("A buffer containing a UTF-16BE representation of invalid Unicode") {
+		
+			//	U+FFFF is not valid Unicode
+			std::vector<unsigned char> buffer={0xFF,0xFF};
+			
+			THEN("Attempting to decode it results in an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+			
+			}
+			
+			GIVEN("Unicode strict errors are ignored") {
+			
+				encoder.UnicodeStrict.Ignore();
+				
+				THEN("Attempting to decode the buffer recovers the code point") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==0xFFFF);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in no action") {
+			
+				encoder.UnicodeStrict.Nothing();
+				
+				THEN("Attempting to decode the buffer results in the empty string") {
+				
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in a replacement") {
+			
+				CodePoint replacement='?';
+				encoder.UnicodeStrict.Replace(replacement);
+				
+				THEN("Attempting to decode the buffer results in the replacement") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==replacement);
+				
+				}
+			
+			}
+		
+		}
+	
+		GIVEN("A UTF-16BE surrogate pair") {
+		
+			//	MUSICAL SYMBOL G CLEF
+			std::vector<unsigned char> buffer={0xD8,0x34,0xDD,0x1E};
+			
+			THEN("Decoding it recovers the code point") {
+			
+				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded[0]==0x1D11E);
+			
+			}
+		
+		}
+		
+		GIVEN("A UTF-16LE surrogate pair") {
+		
+			//	MUSICAL SYMBOL G CLEF
+			std::vector<unsigned char> buffer={0x34,0xD8,0x1E,0xDD};
+			
+			GIVEN("The encoder/decoder's input endianness is little") {
+			
+				encoder.InputOrder=Endianness::Little;
+				
+				THEN("Decoding it recovers the code point") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==0x1D11E);
+				
+				}
+			
+			}
+		
+		}
+	
+		GIVEN("A UTF-16BE lead surrogate with no trail surrogate") {
+		
+			std::vector<unsigned char> buffer={0xD8,0x34};
+			
+			THEN("Attempting to decode it results in an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+			
+			}
+			
+			GIVEN("Unexpected end errors are ignored") {
+			
+				encoder.UnexpectedEnd.Ignore();
+				
+				THEN("Attempting to decode the buffer results in the empty string") {
+				
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Unexpected end errors result in no action") {
+			
+				encoder.UnexpectedEnd.Nothing();
+				
+				THEN("Attempting to decode the buffer results in the empty string") {
+				
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Unexpected end errors result in a replacement") {
+				
+				CodePoint replacement='?';
+				encoder.UnexpectedEnd.Replace(replacement);
+				
+				THEN("Attempting to decode the buffer results in the replacement") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==replacement);
+				
+				}
+			
+			}
+		
+		}
+		
+		GIVEN("A UTF-16BE lead surrogate followed by the encoding of another code point") {
+		
+			std::vector<unsigned char> buffer={0xD8,0x34,0,'a'};
+			
+			THEN("Attempting to decode it results in an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+			
+			}
+			
+			GIVEN("Strict errors are ignored") {
+			
+				encoder.Strict.Ignore();
+				
+				THEN("Attempting to decode the buffer recovers the code point") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]=='a');
+				
+				}
+			
+			}
+			
+			GIVEN("Strict errors result in no action") {
+			
+				encoder.Strict.Nothing();
+				
+				THEN("Attempting to decode the buffer recovers the code point") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]=='a');
+				
+				}
+			
+			}
+			
+			GIVEN("Strict errors result in a replacement") {
+				
+				CodePoint replacement='?';
+				encoder.Strict.Replace(replacement);
+				
+				THEN("Attempting to decode the buffer results in the replacement") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==2);
+					CHECK(decoded[0]==replacement);
+					REQUIRE(decoded[1]=='a');
+				
+				}
+			
+			}
+		
+		}
+	
+		GIVEN("A UTF-16BE trail surrogate with no lead surrogate") {
+		
+			std::vector<unsigned char> buffer={0xDD,0x1E};
+			
+			THEN("Attempting to decode it results in an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+			
+			}
+			
+			GIVEN("Strict errors are ignored") {
+			
+				encoder.Strict.Ignore();
+				
+				THEN("Attempting to decode the buffer results in the empty string") {
+				
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Strict errors result in no action") {
+			
+				encoder.Strict.Nothing();
+				
+				THEN("Attempting to decode the buffer results in the empty string") {
+				
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Strict errors result in a replacement") {
+				
+				CodePoint replacement='?';
+				encoder.Strict.Replace(replacement);
+				
+				THEN("Attempting to decode the buffer results in the replacement") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==replacement);
+				
+				}
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Strings may be encoded to UTF-16","[utf16]") {
+
+	GIVEN("A UTF-16 encoder/decoder") {
+	
+		UTF16 encoder;
+		
+		GIVEN("A string containing only code points which may be represented with one code unit") {
+		
+			String s("Hello world");
+			
+			GIVEN("The UTF-16BE representation of that string") {
+			
+				std::vector<unsigned char> buffer={
+					//	Hello
+					0,'H',0,'e',0,'l',0,'l',0,'o',
+					//	SPACE
+					0,' ',
+					//	world
+					0,'w',0,'o',0,'r',0,'l',0,'d'
+				};
+				
+				GIVEN("The UTF-16BE representation is prefixed with the BOM") {
+				
+					std::vector<unsigned char> bom_buffer;
+					encoder.BOM().Get(bom_buffer);
+					bom_buffer.insert(bom_buffer.end(),buffer.begin(),buffer.end());
+					
+					THEN("Encoding the string results in the representation") {
+					
+						REQUIRE(IsEqual(encoder.Encode(s),bom_buffer));
+					
+					}
+				
+				}
+				
+				GIVEN("The encoder/decoder does not output the BOM") {
+				
+					encoder.OutputBOM=false;
+					
+					THEN("Encoding the string results in the representation") {
+					
+						REQUIRE(IsEqual(encoder.Encode(s),buffer));
+					
+					}
+				
+				}
+			
+			}
+			
+			GIVEN("The UTF-16LE representation of that string") {
+			
+				std::vector<unsigned char> buffer={
+					//	Hello
+					'H',0,'e',0,'l',0,'l',0,'o',0,
+					//	SPACE
+					' ',0,
+					//	world
+					'w',0,'o',0,'r',0,'l',0,'d',0
+				};
+				
+				GIVEN("The encoder/decoder's output byte order is little endian") {
+				
+					encoder.OutputOrder=Endianness::Little;
+				
+					GIVEN("The UTF-16LE representation is prefixed with the BOM") {
+					
+						std::vector<unsigned char> bom_buffer;
+						encoder.BOM().Get(bom_buffer,Endianness::Little);
+						bom_buffer.insert(bom_buffer.end(),buffer.begin(),buffer.end());
+						
+						THEN("Encoding the string results in the representation") {
+						
+							REQUIRE(IsEqual(encoder.Encode(s),bom_buffer));
+						
+						}
+					
+					}
+					
+					GIVEN("The encoder/decoder does not output the BOM") {
+					
+						encoder.OutputBOM=false;
+						
+						THEN("Encoding the string results in the representation") {
+						
+							REQUIRE(IsEqual(encoder.Encode(s),buffer));
+						
+						}
+					
+					}
+					
+				}
+			
+			}
+		
+		}
+	
+		GIVEN("A string containing code points which require surrogates to represent") {
+		
+			String s(U"\U00010000\U0001D11E\U0010FFFD");
+			
+			GIVEN("The UTF-16BE representation of that string") {
+			
+				std::vector<unsigned char> buffer={0xD8,0,0xDC,0,0xD8,0x34,0xDD,0x1E,0xDB,0xFF,0xDF,0xFD};
+				
+				GIVEN("The UTF-16BE representation is prefixed with the BOM") {
+				
+					std::vector<unsigned char> bom_buffer;
+					encoder.BOM().Get(bom_buffer);
+					bom_buffer.insert(bom_buffer.end(),buffer.begin(),buffer.end());
+					
+					THEN("Encoding the string results in the representation") {
+					
+						REQUIRE(IsEqual(encoder.Encode(s),bom_buffer));
+					
+					}
+				
+				}
+				
+				GIVEN("The encoder/decoder does not output the BOM") {
+				
+					encoder.OutputBOM=false;
+					
+					THEN("Encoding the string results in the representation") {
+					
+						REQUIRE(IsEqual(encoder.Encode(s),buffer));
+					
+					}
+				
+				}
+			
+			}
+
+			GIVEN("The UTF-16LE representation of that string") {
+			
+				std::vector<unsigned char> buffer={0,0xD8,0,0xDC,0x34,0xD8,0x1E,0xDD,0xFF,0xDB,0xFD,0xDF};
+				
+				GIVEN("The encoder/decoder's output byte order is little endian") {
+				
+					encoder.OutputOrder=Endianness::Little;
+				
+					GIVEN("The UTF-16LE representation is prefixed with the BOM") {
+					
+						std::vector<unsigned char> bom_buffer;
+						encoder.BOM().Get(bom_buffer,Endianness::Little);
+						bom_buffer.insert(bom_buffer.end(),buffer.begin(),buffer.end());
+						
+						THEN("Encoding the string results in the representation") {
+						
+							REQUIRE(IsEqual(encoder.Encode(s),bom_buffer));
+						
+						}
+					
+					}
+					
+					GIVEN("The encoder/decoder does not output the BOM") {
+					
+						encoder.OutputBOM=false;
+						
+						THEN("Encoding the string results in the representation") {
+						
+							REQUIRE(IsEqual(encoder.Encode(s),buffer));
+						
+						}
+					
+					}
+					
+				}
+			
+			}
+		
+		}
+	
+		GIVEN("A string containing invalid Unicode") {
+		
+			String s(U"\U0010FFFF");
+			
+			//	We're not interested in the BOM
+			encoder.OutputBOM=false;
+			
+			THEN("Attempting to encode it results in an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Encode(s),EncodingError);
+			
+			}
+			
+			GIVEN("Unicode strict errors are ignored") {
+			
+				encoder.UnicodeStrict.Ignore();
+				
+				THEN("Attempting to encode the string retrieves the associated code unit(s)") {
+				
+					auto encoded=encoder.Encode(s);
+					REQUIRE(encoded.size()==4);
+					CHECK(encoded[0]==0xDB);
+					CHECK(encoded[1]==0xFF);
+					CHECK(encoded[2]==0xDF);
+					REQUIRE(encoded[3]==0xFF);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in no action") {
+			
+				encoder.UnicodeStrict.Nothing();
+				
+				THEN("Attempting to encode the string results in an empty buffer") {
+				
+					REQUIRE(encoder.Encode(s).size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in a replacement") {
+			
+				GIVEN("The replacement is representable by UTF-16") {
+			
+					CodePoint replacement='?';
+					encoder.UnicodeStrict.Replace(replacement);
+					
+					THEN("Attempting to encode the string results in the code unit(s) for the replacement") {
+					
+						auto encoded=encoder.Encode(s);
+						REQUIRE(encoded.size()==2);
+						CHECK(encoded[0]==0);
+						REQUIRE(encoded[1]=='?');
+					
+					}
+					
+				}
+				
+				GIVEN("The replacement is not representable by UTF-16") {
+				
+					//	A surrogate which UTF-16 cannot represent
+					CodePoint replacement=0xD800U;
+					encoder.UnicodeStrict.Replace(replacement);
+					
+					THEN("Attempting to encode the string results in an exception") {
+					
+						REQUIRE_THROWS_AS(encoder.Encode(s),EncodingError);
+					
+					}
+				
+				}
+			
+			}
+		
+		}
+	
+		GIVEN("A string containing code points which UTF-16 cannot represent") {
+		
+			String s;
+			//	UTF-16 cannot represent a surrogate
+			s << CodePoint(0xD800U);
+			//	A surrogate is illegal Unicode, but we'll ignore
+			//	that
+			encoder.UnicodeStrict.Ignore();
+			
+			//	We're not interested in the BOM
+			encoder.OutputBOM=false;
+			
+			THEN("Attempting to encode it results in an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Encode(s),EncodingError);
+			
+			}
+			
+			GIVEN("Lossy errors are ignored") {
+			
+				encoder.Lossy.Ignore();
+				
+				THEN("Attempting to encode the string results in an empty buffer") {
+				
+					REQUIRE(encoder.Encode(s).size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Lossy errors result in no action") {
+			
+				encoder.Lossy.Nothing();
+				
+				THEN("Attempting to encode the string results in an empty buffer") {
+				
+					REQUIRE(encoder.Encode(s).size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Lossy errors result in a replacement") {
+			
+				GIVEN("The replacement is representable by UTF-16") {
+			
+					CodePoint replacement='?';
+					encoder.Lossy.Replace(replacement);
+					
+					THEN("Attempting to encode the string results in the code unit(s) for the replacement") {
+					
+						auto encoded=encoder.Encode(s);
+						REQUIRE(encoded.size()==2);
+						CHECK(encoded[0]==0);
+						REQUIRE(encoded[1]=='?');
+					
+					}
+					
+				}
+				
+				GIVEN("The replacement is not representable by UTF-16") {
+				
+					//	A surrogate which UTF-16 cannot represent
+					CodePoint replacement=0xD800U;
+					encoder.Lossy.Replace(replacement);
+					
+					THEN("Attempting to encode the string results in an exception") {
+					
+						REQUIRE_THROWS_AS(encoder.Encode(s),EncodingError);
+					
+					}
+				
+				}
+			
+			}
+		
+		}
+	
+	}
+
+}
