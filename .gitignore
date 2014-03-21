@@ -14,3 +14,5 @@ UCD.zip
 UCA
 src/data/collation.cpp
 include/catch.hpp
+*.komodoproject
+.komodotools/

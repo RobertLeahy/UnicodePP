@@ -2,9 +2,9 @@ SUFFIXES+=.mk
 
 
 #OPTIMIZATION=-O3
-OPTIMIZATION:=-O0 -g -fno-inline -fno-elide-constructors -DDEBUG -fno-omit-frame-pointer
-OPTS_SHARED:=-Wall -Wpedantic -Werror -fno-rtti -std=gnu++11 -I include -fPIC
-GPP:=g++-4.8 $(OPTS_SHARED) $(OPTIMIZATION)
+OPTIMIZATION:=-O0 -g -fno-inline -fno-omit-frame-pointer
+OPTS_SHARED:=-Wall -Wpedantic -Werror -fno-rtti -std=c++11 -I include -fPIC
+GPP:=clang++ $(OPTS_SHARED) $(OPTIMIZATION)
 comma:=,
 LINK=-Wl,-rpath,'$$ORIGIN' -Wl,-rpath-link,bin -Wl,-rpath-link,bin/mods $(if $(1),-Wl$(comma)-soname$(comma)$(notdir $(1)))
 MKDIR=mkdir -p $(dir $(1))
@@ -18,7 +18,6 @@ all:
 .PHONY: clean
 clean: cleandeps
 	-@rm -r -f obj
-	-@rm -r -f UCD
 
 .PHONY: cleanall
 cleanall: clean
@@ -53,5 +52,6 @@ obj/%.o:
 	
 	
 include data.mk
+include test.mk
 include unicode.mk
 include unicodedata.mk
