@@ -897,6 +897,21 @@ SCENARIO("Strings may be converted to uppercase","[caseconverter]") {
 //
 
 
+SCENARIO("Code points are unsigned","[codepoint]") {
+
+	GIVEN("CodePoint::Type") {
+	
+		THEN("It is unsigned") {
+		
+			REQUIRE(std::is_unsigned<CodePoint::Type>::value);
+		
+		}
+	
+	}
+
+}
+
+
 SCENARIO("Code points may be checked for validity","[codepoint]") {
 
 	GIVEN("A valid code point") {
