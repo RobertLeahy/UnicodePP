@@ -44,7 +44,6 @@ namespace Unicode {
 			ASCII () noexcept;
 			
 			
-			virtual ByteOrderMark BOM () const noexcept override;
 			virtual bool CanRepresent (CodePoint) const noexcept override;
 			virtual std::size_t Count (CodePoint) const noexcept override;
 	

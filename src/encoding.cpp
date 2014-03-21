@@ -226,6 +226,13 @@ namespace Unicode {
 		return retr;
 	
 	}
+	
+	
+	ByteOrderMark Encoding::BOM () const noexcept {
+	
+		return ByteOrderMark{};
+	
+	}
 
 
 }

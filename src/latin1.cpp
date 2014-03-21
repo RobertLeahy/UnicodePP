@@ -24,13 +24,6 @@ namespace Unicode {
 	Latin1::Latin1 () noexcept : Encoding(false,false) {	}
 	
 	
-	ByteOrderMark Latin1::BOM () const noexcept {
-	
-		return ByteOrderMark{};
-	
-	}
-	
-	
 	bool Latin1::CanRepresent (CodePoint cp) const noexcept {
 	
 		return cp<=std::numeric_limits<unsigned char>::max();
