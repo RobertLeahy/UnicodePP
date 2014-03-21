@@ -33,14 +33,14 @@ namespace Unicode {
 			 *		An Endianness enumeration value representing
 			 *		the endianness of this machine.
 			 */
-			static constexpr Endianness Detect () noexcept {
+			static constexpr Unicode::Endianness Detect () noexcept {
 			
 				#ifdef __BYTE_ORDER__
 				
 				#if __BYTE_ORDER__==__ORDER_BIG_ENDIAN__
-				return Endianness::Big;
+				return Unicode::Endianness::Big;
 				#elif __BYTE_ORDER__==__ORDER_LITTLE_ENDIAN__
-				return Endianness::Little;
+				return Unicode::Endianness::Little;
 				#else
 				#error "Unknown endianness"
 				#endif
@@ -101,7 +101,7 @@ namespace Unicode {
 			 *		\em in with its endianness changed if necessary.
 			 */
 			template <typename T>
-			static T Correct (const T & in, Endianness order) noexcept {
+			static T Correct (const T & in, Unicode::Endianness order) noexcept {
 			
 				return (order==Detect()) ? in : Correct(in);
 			
@@ -111,7 +111,7 @@ namespace Unicode {
 			/**
 			 *	The endianness this encoder shall output.
 			 */
-			Endianness OutputOrder;
+			Unicode::Endianness OutputOrder;
 			/**
 			 *	The endianness this encoder shall accept as input
 			 *	unless the byte order is detected from a BOM.
@@ -119,7 +119,7 @@ namespace Unicode {
 			 *	If this is disengaged, and no byte order is
 			 *	detected, an endianness error will occur.
 			 */
-			std::optional<Endianness> InputOrder;
+			std::optional<Unicode::Endianness> InputOrder;
 			
 			
 		protected:
@@ -140,7 +140,7 @@ namespace Unicode {
 			
 			
 			template <typename T>
-			static std::optional<T> Get (const unsigned char * & begin, const unsigned char * end, Endianness order) noexcept {
+			static std::optional<T> Get (const unsigned char * & begin, const unsigned char * end, Unicode::Endianness order) noexcept {
 			
 				if (static_cast<std::size_t>(end-begin)<sizeof(T)) return std::optional<T>{};
 				
@@ -170,7 +170,9 @@ namespace Unicode {
 			 *	\param [in] input_order
 			 *		The initial value of InputOrder.
 			 */
-			EndianEncoding (Endianness output_order=Endianness::Big, std::optional<Endianness> input_order=Endianness::Big) noexcept;
+			EndianEncoding (
+				Unicode::Endianness output_order=Unicode::Endianness::Big,
+				std::optional<Unicode::Endianness> input_order=Unicode::Endianness::Big) noexcept;
 	
 	
 	};

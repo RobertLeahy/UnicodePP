@@ -70,10 +70,11 @@ namespace Unicode {
 			) const;
 			
 			
-			bool normalization_check (CodePoint) const noexcept;
+			bool folding_normalization_check (CodePoint) const noexcept;
 			
 			
-			bool requires_normalization (const CodePoint *, const CodePoint *) const noexcept;
+			bool folding_requires_normalization (const CodePoint *, const CodePoint *) const noexcept;
+			bool uppercasing_requires_normalization (const CodePoint *, const CodePoint *) const noexcept;
 			
 			
 		public:

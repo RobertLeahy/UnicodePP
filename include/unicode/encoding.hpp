@@ -121,7 +121,7 @@ namespace Unicode {
 			
 			
 			[[noreturn]]
-			void raise (const void *);
+			void raise (const void *) const;
 			
 			
 		public:
@@ -132,36 +132,16 @@ namespace Unicode {
 			 *
 			 *	\param [in] type
 			 *		The type of error.
-			 *	\param [in] throws
-			 *		\em true if this action should throw, \em false
-			 *		otherwise.  Defaults to \em true.
-			 *	\param [in] ignore
-			 *		\em true if this error type is ignorable, \em false
-			 *		otherwise.  Defaults to \em false.
 			 */
-			explicit constexpr EncodingAction (EncodingErrorType type, bool throws=true, bool ignore=false) noexcept
-				:	ignore(ignore),
-					action(throws ? Action::Throw : Action::Nothing),
+			explicit constexpr EncodingAction (EncodingErrorType type) noexcept
+				:	ignore(false),
+					action(Action::Throw),
 					type(type)
 			{	}
-			/**
-			 *	Creates a new EncodingAction.
-			 *
-			 *	\param [in] type
-			 *		The type of error.
-			 *	\param [in] cp
-			 *		The code point that shall be substituted in case
-			 *		of an error.
-			 *	\param [in] ignore
-			 *		\em true if this error type is ignorable, \em false
-			 *		otherwise.  Defaults to \em false.
-			 */
-			constexpr EncodingAction (EncodingErrorType type, CodePoint cp, bool ignore=false) noexcept
-				:	ignore(ignore),
-					action(Action::Replace),
-					type(type),
-					cp(cp)
-			{	}
+			
+			
+			EncodingAction & operator = (const EncodingAction &) = delete;
+			EncodingAction & operator = (EncodingAction &&) = delete;
 			
 			
 			/**
@@ -176,7 +156,7 @@ namespace Unicode {
 			 *		code point if a replacement is to be made.  This
 			 *		method does not return if the action is to throw.
 			 */
-			std::optional<CodePoint> Execute (const void * where);
+			std::optional<CodePoint> Execute (const void * where) const;
 			/**
 			 *	Throws.
 			 *
@@ -184,18 +164,64 @@ namespace Unicode {
 			 *		The location at which the error occurred.
 			 */
 			[[noreturn]]
-			void Throw (const void * where);
+			void Throw (const void * where) const;
 			/**
 			 *	Determines whether errors of this type may be
 			 *	ignored.
 			 *
 			 *	\return
-			 *		\em true if errors of this type are ignorable,
+			 *		\em true if errors of this type are ignored,
 			 *		\em false otherwise.
 			 */
 			constexpr bool Ignored () const noexcept {
 			
 				return ignore;
+			
+			}
+			
+			
+			/**
+			 *	Sets whether or not errors of this type are
+			 *	ignored.
+			 *
+			 *	\param [in] ignore
+			 *		\em true if errors of this type should be
+			 *		ignored, \em false otherwise.  Defaults to
+			 *		\em true.
+			 */
+			void Ignore (bool ignore=true) noexcept {
+			
+				this->ignore=ignore;
+			
+			}
+			/**
+			 *	Specifies that the action for this error shall
+			 *	be throwing an exception.
+			 */
+			void Throw () noexcept {
+			
+				action=Action::Throw;
+			
+			}
+			/**
+			 *	Specifies that the action for this error shall be
+			 *	making a replacement.
+			 *
+			 *	\param [in] cp
+			 *		The code point to replace on error.
+			 */
+			void Replace (CodePoint cp) noexcept {
+			
+				action=Action::Replace;
+				this->cp=cp;
+			
+			}
+			/**
+			 *	Specifies that on error nothing shall occur.
+			 */
+			void Nothing () noexcept {
+			
+				action=Action::Nothing;
 			
 			}
 	
@@ -236,6 +262,9 @@ namespace Unicode {
 			
 			
 		public:
+		
+		
+			ByteOrderMark () = default;
 		
 		
 			/**
@@ -333,7 +362,9 @@ namespace Unicode {
 		private:
 		
 		
-			std::optional<CodePoint> check (CodePoint cp) const;
+			const EncodingAction & get (EncodingErrorType) const noexcept;
+			std::optional<CodePoint> check (const CodePoint &) const;
+			std::optional<CodePoint> handle (EncodingErrorType, const void *) const;
 	
 	
 		protected:
@@ -345,15 +376,15 @@ namespace Unicode {
 			) const = 0;
 			
 			virtual std::optional<EncodingErrorType> Decoder (
-				std::vector<CodePoint> & cps,
+				CodePoint & cp,
 				const unsigned char * & begin,
 				const unsigned char * end,
-				std::optional<Endianness> order
+				std::optional<Unicode::Endianness> order
 			) const = 0;
 			
 			virtual void GetBOM (std::vector<unsigned char> & buffer) const;
 			
-			virtual std::optional<Endianness> GetBOM (
+			virtual std::optional<Unicode::Endianness> GetBOM (
 				const unsigned char * & begin,
 				const unsigned char * end
 			) const;
@@ -384,6 +415,11 @@ namespace Unicode {
 			 *	stream is unexpectedly encountered.
 			 */
 			EncodingAction UnexpectedEnd;
+			/**
+			 *	The action that shall be taken when an endianness
+			 *	error is encountered.
+			 */
+			EncodingAction Endianness;
 			/**
 			 *	\em true if all output should begin with the
 			 *	underlying encoding's BOM.  \em false otherwise.

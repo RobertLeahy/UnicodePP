@@ -7,10 +7,13 @@
 
 
 #include <unicode/codepoint.hpp>
+#include <unicode/converter.hpp>
 #include <unicode/locale.hpp>
 #include <unicode/vector.hpp>
 #include <cstddef>
 #include <functional>
+#include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -19,8 +22,10 @@ namespace Unicode {
 
 
 	/**
-	 *	Encapsulates a C-style string.
+	 *	Encapsulates and manages memory for a C-style
+	 *	string.
 	 */
+	template <typename T>
 	class CString {
 	
 	
@@ -30,17 +35,36 @@ namespace Unicode {
 			std::vector<unsigned char> vec;
 			
 			
+			//	Gets a pointer to the beginning of this
+			//	string as the appropriate type
+			const T * get () const noexcept {
+			
+				return reinterpret_cast<const T *>(vec.data());
+			
+			}
+			
+			
+			//	Gets the length in bytes, excluding the
+			//	null terminater
+			std::size_t size () const noexcept {
+			
+				return vec.size()-sizeof(T);
+			
+			}
+			
+			
 		public:
 		
 		
 			/**
 			 *	\cond
 			 */
-			 
-			 
+		
+		
 			CString (std::vector<unsigned char> vec) : vec(std::move(vec)) {
 			
-				vec.push_back(0);
+				//	Null terminate
+				for (std::size_t i=0;i<sizeof(T);++i) this->vec.push_back(0);
 			
 			}
 			
@@ -56,25 +80,53 @@ namespace Unicode {
 			 *	\return
 			 *		A pointer to a null-terminated string.
 			 */
-			operator const char * () const noexcept {
+			operator const T * () const noexcept {
 			
-				return reinterpret_cast<const char *>(vec.data());
+				return get();
 			
 			}
 			
 			
 			/**
-			 *	Determines the size of the string in bytes.
+			 *	Determines the size of the string in characters.
 			 *
 			 *	Unlike calling std::strlen on an actual C-style
 			 *	string, this operation is O(1).
 			 *
 			 *	\return
-			 *		The size of the string in bytes.
+			 *		The size of the string in characters.
 			 */
 			std::size_t Size () const noexcept {
 			
-				return vec.size()-1;
+				return size()/sizeof(T);
+			
+			}
+			
+			
+			/** 
+			 *	Gets a begin iterator for this string.
+			 *
+			 *	\return
+			 *		A pointer typed begin iterator for this
+			 *		string.
+			 */
+			const T * begin () const noexcept {
+			
+				return get();
+			
+			}
+			
+			
+			/**
+			 *	Gets an end iterator for this string.
+			 *
+			 *	\return
+			 *		A pointer typed end iterator for this
+			 *		string.
+			 */
+			const T * end () const noexcept {
+			
+				return get()+Size();
 			
 			}
 	
@@ -95,6 +147,9 @@ namespace Unicode {
 			const Locale * locale;
 			
 			
+			std::vector<unsigned char> to_c_string (std::size_t) const;
+			
+			
 			void trim_front (const Locale &) noexcept;
 			void trim_rear (const Locale &) noexcept;
 			void trim (const Locale &) noexcept;
@@ -109,6 +164,21 @@ namespace Unicode {
 			bool is_nfc (const Locale &) const noexcept;
 			std::vector<CodePoint> to_nfd (const Locale &) const;
 			std::vector<CodePoint> to_nfc (const Locale &) const;
+			
+			
+			//	The type of character used by the operating
+			//	system
+			typedef
+			#ifdef _WIN32
+			wchar_t
+			#else
+			char
+			#endif
+			os_type;
+			
+			
+			template <typename T>
+			using decay=typename std::decay<T>::type;
 			
 			
 		public:
@@ -198,6 +268,138 @@ namespace Unicode {
 			 *		A reference to this string.
 			 */
 			String & operator = (const char * str);
+			/**
+			 *	Creates a string from a wide C string.
+			 *
+			 *	The encoding used to decode the string varies
+			 *	depending on the width of wchar_t on this platform:
+			 *
+			 *	-	If the width of wchar_t is 8 bits, UTF-8
+			 *		will be used.
+			 *	-	If the width of wchar_t is 16 bits, UTF-16
+			 *		will be used.
+			 *	-	If the width of wchar_t is 32 bits, the string
+			 *		will be copied directly.
+			 *
+			 *	Otherwise an exception will be thrown.
+			 *
+			 *	\param [in] str
+			 *		A pointer to a null-terminated sequence of
+			 *		wide characters.
+			 */
+			String (const wchar_t * str);
+			/**
+			 *	Overwrites this string with a wide C string.
+			 *
+			 *	The encoding used to decode the string varies
+			 *	depending on the width of wchar_t on this platform:
+			 *
+			 *	-	If the width of wchar_t is 8 bits, UTF-8
+			 *		will be used.
+			 *	-	If the width of wchar_t is 16 bits, UTF-16
+			 *		will be used.
+			 *	-	If the width of wchar_t is 32 bits, the string
+			 *		will be copied directly.
+			 *
+			 *	Otherwise an exception will be thrown.
+			 *
+			 *	\param [in] str
+			 *		A pointer to a null-terminated sequence of
+			 *		wide characters.
+			 */
+			String & operator = (const wchar_t * str);
+			/**
+			 *	Creates a string from a UTF-16 string.
+			 *
+			 *	\param [in] str
+			 *		A pointer to a null-terminated sequence of
+			 *		UTF-16 characters.
+			 */
+			String (const char16_t * str);
+			/**
+			 *	Overwrites this string with a UTF-16 string.
+			 *
+			 *	\param [in] str
+			 *		A pointer to a null-terminated sequence of
+			 *		UTF-16 characters.
+			 *
+			 *	\return
+			 *		A reference to this string.
+			 */
+			String & operator = (const char16_t * str);
+			/**
+			 *	Creates a string from a UTF-32 string.
+			 *
+			 *	\param [in] str
+			 *		A pointer to a null-terminated sequence of
+			 *		UTF-32 characters.
+			 */
+			String (const char32_t * str);
+			/**
+			 *	Overwrites this string with a UTF-32 string.
+			 *
+			 *	\param [in] str
+			 *		A pointer to a null-terminated sequence of
+			 *		UTF-32 characters.
+			 *
+			 *	\return
+			 *		A reference to this string.
+			 */
+			String & operator = (const char32_t * str);
+			
+			
+			/**
+			 *	Creates a string by converting some object to a
+			 *	string.
+			 *
+			 *	\tparam T
+			 *		The type of the object to convert.
+			 *
+			 *	\param [in] obj
+			 *		The object to convert.
+			 */
+			template <typename T, typename=typename std::enable_if<IsConvertible<T>::Value>::type>
+			String (const T & obj) : cps(Converter<T>{}(obj)), locale(nullptr) {	}
+			/**
+			 *	Creates a string by converting some object to a string
+			 *	according to the rules of some locale, which then becomes
+			 *	the locale of the newly-created string.
+			 *
+			 *	\tparam T
+			 *		The type of the object to convert.
+			 *
+			 *	\param [in] obj
+			 *		The object to convert.
+			 *	\param [in] locale
+			 *		The locale.
+			 */
+			template <typename T, typename=typename std::enable_if<IsConvertible<T>::Value>::type>
+			String (const T & obj, const Locale & locale)
+				:	cps(Converter<T>(locale)(obj)),
+					locale(&locale)
+			{	}
+			/**
+			 *	Overwrites this string with the result of converting
+			 *	some object to a string.
+			 *
+			 *	\tparam T
+			 *		The type of object to convert.
+			 *
+			 *	\param [in] obj
+			 *		The object to convert.
+			 *
+			 *	\return
+			 *		A reference to this string.
+			 */
+			template <typename T>
+			typename std::enable_if<IsConvertible<T>::Value,String &>::type operator = (const T & obj) {
+			
+				locale=nullptr;
+				cps=Converter<T>{}(obj);
+				
+				return *this;
+			
+			}
 			
 			
 			/**
@@ -242,6 +444,19 @@ namespace Unicode {
 			CodePoint * end () noexcept {
 			
 				return End(cps);
+			
+			}
+			
+			
+			/**
+			 *	Determines how many code points are in this string.
+			 *
+			 *	\return
+			 *		The number of code points in this string.
+			 */
+			std::size_t Size () const noexcept {
+			
+				return cps.size();
 			
 			}
 			
@@ -300,20 +515,90 @@ namespace Unicode {
 			
 			
 			/**
-			 *	Converts this string to a C string.
+			 *	Swaps this string with another string.
 			 *
-			 *	\param [in] utf8
-			 *		If \em true the UTF-8 encoding will be used,
-			 *		otherwise the string will be converted to
-			 *		Latin-1.  Defaults to \em true.
+			 *	\param [in] other
+			 *		The string to swap with this string.
+			 */
+			void swap (String & other) noexcept {
+			
+				std::swap(cps,other.cps);
+				std::swap(locale,other.locale);
+			
+			}
+			
+			
+			/**
+			 *	Converts this string to a C-style string.
+			 *
+			 *	\tparam T
+			 *		The type of character that shall be used
+			 *		for the C string.  An encoding appropriate
+			 *		to the character size will be chosen.  If one
+			 *		cannot be found, an exception will be thrown.
+			 *		Defaults to char if not specified.
 			 *
 			 *	\return
 			 *		An object which is implicitly convertible to
-			 *		const char *, but which manages the necessary
+			 *		const T *, but which manages the necessary
 			 *		dynamically-allocated memory using the RAII
 			 *		idiom.
 			 */
-			CString ToCString (bool utf8=true) const;
+			template <typename T=char>
+			CString<decay<T>> ToCString () const {
+			
+				typedef decay<T> type;
+				
+				return CString<type>(to_c_string(sizeof(type)));
+			
+			}
+			
+			
+			/**
+			 *	Converts this string to a C-style string for consumption
+			 *	by the underlying operating system's APIs.
+			 *
+			 *	For Windows this results in a UTF-16LE encoded C-style
+			 *	string with a character type of wchar_t, for all other
+			 *	systems this results in a UTF-8 encoded C-style string
+			 *	with a character type of char.
+			 *
+			 *	\return
+			 *		An object which is implicitly convertible to the
+			 *		underlying operating systems' string type, but which
+			 *		manages the necessary dynamically-allocated memory
+			 *		using the RAII idiom.
+			 */
+			CString<os_type> ToOSString () const;
+			
+			
+			/**
+			 *	Converts this string to a C++-style string.
+			 *
+			 *	\tparam T
+			 *		The type of character that shall be used
+			 *		for the C++ string.  An encoding appropriate
+			 *		to the character size will be chosen.  If one
+			 *		cannot be found, an exception will be thrown.
+			 *		Defaults to char (resulting in a return type
+			 *		of std::string) if not specified.
+			 *	
+			 *	\return
+			 *		A C++-style string.
+			 */
+			template <typename T=char>
+			std::basic_string<decay<T>> ToString () const {
+			
+				typedef decay<T> type;
+			
+				auto vec=to_c_string(sizeof(type));
+				
+				return std::basic_string<type>(
+					reinterpret_cast<const type *>(Begin(vec)),
+					reinterpret_cast<const type *>(End(vec))
+				);
+			
+			}
 			
 			
 			/**
@@ -607,6 +892,29 @@ namespace Unicode {
 			 *		after \em other.
 			 */
 			int Compare (const String & other) const;
+			
+			
+			/**
+			 *	Appends another string to the end of this string.
+			 *
+			 *	\param [in] str
+			 *		The string to append to the end of this string.
+			 *
+			 *	\return
+			 *		A reference to this string.
+			 */
+			String & operator << (const String & str) &;
+			/**
+			 *	Appends a code point to the end of this string.
+			 *
+			 *	\param [in] cp
+			 *		The code point to append to the end of this
+			 *		string.
+			 *
+			 *	\return
+			 *		A reference to this string.
+			 */
+			String & operator << (CodePoint cp) &;
 	
 	
 	};
@@ -682,6 +990,24 @@ namespace Unicode {
 	}
 	
 	
+	inline String operator + (String a, const String & b) {
+	
+		a << b;
+		
+		return a;
+	
+	}
+	
+	
+	inline String operator + (String a, CodePoint b) {
+	
+		a << b;
+		
+		return a;
+	
+	}
+	
+	
 }
 
 
@@ -727,6 +1053,13 @@ namespace std {
 	
 	
 	};
+	
+	
+	inline void swap (Unicode::String & a, Unicode::String & b) noexcept {
+	
+		a.swap(b);
+	
+	}
 
 
 }

@@ -179,7 +179,7 @@ namespace Unicode {
 	
 	std::vector<CodePoint> Normalizer::compose (std::vector<CodePoint> vec) const {
 	
-		//	In many (most?) instances the decomposes string will
+		//	In many (most?) instances the decomposed string will
 		//	also be the composed string, in this case we don't
 		//	need to maintain a second vector, therefore this is
 		//	kept disengaged until it's actually needed
@@ -227,8 +227,11 @@ namespace Unicode {
 			
 				//	See if this code point composes with the last
 				//	starter, if it doesn't do maintenance and continue
-				//	to next iteration			
-				auto repl=compose(vec[*vec_starter],*begin);
+				//	to next iteration
+				auto repl=compose(
+					retr ? (*retr)[*retr_starter] : vec[*vec_starter],
+					*begin
+				);
 				if (!repl) {
 				
 					//	If this code point combines with the
@@ -243,12 +246,7 @@ namespace Unicode {
 				}
 				
 				//	Copy input array if necessary
-				if (!retr) {
-				
-					retr.emplace(vec.begin(),begin);
-					retr_starter=vec_starter;
-					
-				}
+				if (!retr) retr.emplace(vec.begin(),begin);
 				
 				(*retr)[*retr_starter]=*repl;
 				

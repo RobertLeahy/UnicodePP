@@ -6,17 +6,17 @@
 #pragma once
 
 
-#include <unicode/endianencoding.hpp>
-#include <cstdint>
+#include <unicode/encoding.hpp>
 
 
 namespace Unicode {
 
 
 	/**
-	 *	The UTF-16 encoding.
+	 *	An encoder/decoder which transforms Unicode text
+	 *	as best as possible between Unicode and ASCII.
 	 */
-	class UTF16 : public EndianEncoding {
+	class ASCII : public Encoding {
 	
 	
 		protected:
@@ -33,20 +33,15 @@ namespace Unicode {
 				const unsigned char * end,
 				std::optional<Unicode::Endianness> order
 			) const override;
-	
-	
+			
+			
 		public:
 		
 		
-			/**
-			 *	The type of code unit used by this
-			 *	encoding.  Unsigned integer exactly
-			 *	16 bits wide.
-			 */
-			typedef std::uint16_t CodeUnit;
-		
-		
-			using EndianEncoding::EndianEncoding;
+			typedef unsigned char CodeUnit;
+			
+			
+			ASCII () noexcept;
 			
 			
 			virtual ByteOrderMark BOM () const noexcept override;

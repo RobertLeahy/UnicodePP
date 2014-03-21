@@ -5,10 +5,82 @@
 namespace Unicode {
 
 
-	std::optional<CodePoint> Encoding::check (CodePoint cp) const {
+	const EncodingAction & Encoding::get (EncodingErrorType type) const noexcept {
 	
-		//	TODO: Implement
-		return cp;
+		switch (type) {
+		
+			case EncodingErrorType::UnicodeStrict:
+				return UnicodeStrict;
+			case EncodingErrorType::Strict:
+			default:
+				return Strict;
+			case EncodingErrorType::Lossy:
+				return Lossy;
+			case EncodingErrorType::UnexpectedEnd:
+				return UnexpectedEnd;
+			case EncodingErrorType::Endianness:
+				return Endianness;
+		
+		}
+	
+	}
+
+
+	std::optional<CodePoint> Encoding::check (const CodePoint & cp) const {
+	
+		CodePoint retr=cp;
+		const void * loc=&cp;
+		
+		//	Is this code point valid Unicode?  If not, are
+		//	Unicode strict errors being ignored?
+		if (!(retr.IsValid() || UnicodeStrict.Ignored())) {
+		
+			auto repl=UnicodeStrict.Execute(loc);
+			
+			if (!repl) return std::nullopt;
+			
+			retr=*repl;
+		
+		}
+		
+		//	Can the encoder represent this code point?
+		if (!CanRepresent(retr)) {
+		
+			//	NO
+			
+			//	Are lossy errors being ignored?  If so just
+			//	delete this code point from the stream
+			if (Lossy.Ignored()) return std::nullopt;
+			
+			//	Lossy errors not ignored -- handle it
+			
+			auto repl=Lossy.Execute(loc);
+			
+			if (!repl) return std::nullopt;
+			
+			//	Can the replacement be represented?
+			//	If not, WE MUST THROW
+			if (!CanRepresent(*repl)) Lossy.Throw(loc);
+			
+			retr=*repl;
+		
+		}
+		
+		return retr;
+	
+	}
+	
+	
+	std::optional<CodePoint> Encoding::handle (EncodingErrorType type, const void * where) const {
+	
+		//	Endianness errors are irrecoverable
+		if (type==EncodingErrorType::Endianness) Endianness.Throw(where);
+	
+		auto & action=get(type);
+		
+		if (action.Ignored()) return std::nullopt;
+		
+		return action.Execute(where);
 	
 	}
 
@@ -36,6 +108,7 @@ namespace Unicode {
 			Strict(EncodingErrorType::Strict),
 			Lossy(EncodingErrorType::Lossy),
 			UnexpectedEnd(EncodingErrorType::UnexpectedEnd),
+			Endianness(EncodingErrorType::Endianness),
 			OutputBOM(output_bom),
 			DetectBOM(detect_bom)
 	{	}
@@ -83,16 +156,70 @@ namespace Unicode {
 		auto b=reinterpret_cast<const unsigned char *>(begin);
 		auto e=reinterpret_cast<const unsigned char *>(end);
 	
-		std::optional<Endianness> order;
+		std::optional<Unicode::Endianness> order;
 		if (DetectBOM) order=GetBOM(b,e);
 		
 		std::vector<CodePoint> retr;
 		while (b!=e) {
 		
-			auto error=Decoder(retr,b,e,order);
+			//	Track the start position, so if the decoder
+			//	fails to advance the iterator we can do it
+			//
+			//	This reduces the complexity of decoder
+			//	implementations and also insures than a
+			//	neglectfully implemented decoder will not cause
+			//	an infinite loop
+			auto start=b;
 			
-			//	TODO: Implement
-			if (error) continue;
+			//	Decode
+			CodePoint cp;
+			auto error=Decoder(cp,b,e,order);
+			
+			//	Advance iterator if it was not advanced
+			if (b==start) ++b;
+			
+			//	Handle error if applicable
+			if (error) {
+			
+				//	If the error is unexpected end, we do not want
+				//	to continue processing
+				bool ue=*error==EncodingErrorType::UnexpectedEnd;
+			
+				auto repl=handle(*error,b);
+				
+				if (repl) {
+				
+					if (ue) {
+					
+						retr.push_back(*repl);
+						break;
+					
+					}
+					
+					cp=*repl;
+				
+				} else if (ue) {
+				
+					break;
+					
+				} else {
+				
+					continue;
+				
+				}
+			
+			//	Check code point for validity, if code point is
+			//	invalid, handle a Unicode strict error
+			} else if (!(cp.IsValid() || UnicodeStrict.Ignored())) {
+			
+				auto repl=handle(EncodingErrorType::UnicodeStrict,b);
+				
+				if (repl) cp=*repl;
+				else continue;
+			
+			}
+			
+			retr.push_back(cp);
 		
 		}
 		

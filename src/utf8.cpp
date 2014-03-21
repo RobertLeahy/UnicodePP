@@ -81,7 +81,7 @@ namespace Unicode {
 		
 		//	Sift out bad return values
 		//
-		//	UTF-8 can't by more than 6 bytes long,
+		//	UTF-8 can't be more than 6 bytes long,
 		//	and 1 byte at this point wouldn't make
 		//	sense, that would indicate a continuation
 		//	byte where one shouldn't be
@@ -118,7 +118,7 @@ namespace Unicode {
 		//	Check to make sure the high bit is
 		//	set and the second highest bit is
 		//	not set
-		if ((b&static_cast<unsigned char>(192))!=128) return std::optional<CodePoint::Type>{};
+		if ((b&static_cast<unsigned char>(192))!=128) return std::nullopt;
 		
 		curr<<=6;
 		curr|=static_cast<CodePoint::Type>(static_cast<unsigned char>(63)&b);
@@ -128,7 +128,7 @@ namespace Unicode {
 	}
 	
 	
-	std::optional<EncodingErrorType> UTF8::Decoder (std::vector<CodePoint> & cps, const unsigned char * & begin, const unsigned char * end, std::optional<Endianness>) const {
+	std::optional<EncodingErrorType> UTF8::Decoder (CodePoint & cp, const unsigned char * & begin, const unsigned char * end, std::optional<Unicode::Endianness>) const {
 	
 		//	Determine the number of bytes in this sequence
 		auto len=count(*begin);
@@ -139,27 +139,35 @@ namespace Unicode {
 		//	Trivial
 		if (len==1) {
 		
-			cps.push_back(static_cast<CodePoint::Type>(*(begin++)));
+			cp=static_cast<CodePoint::Type>(*(begin++));
 			
-			return std::optional<EncodingErrorType>{};
+			return std::nullopt;
 		
 		}
 		
 		//	Perform length check
 		if (static_cast<std::size_t>(end-begin)<len) return EncodingErrorType::UnexpectedEnd;
 		
-		CodePoint::Type cp=get_leading_byte(len,*(begin++));
+		cp=get_leading_byte(len,*(begin++));
 		for (std::size_t i=0;i<(len-1);++i) {
 		
-			auto cp_o=get_continuation_byte(cp,*(begin++));
-			if (!cp_o) return EncodingErrorType::Strict;
-			cp=*cp_o;
+			auto c_o=get_continuation_byte(cp,*(begin++));
+			if (!c_o) {
+			
+				//	Not a continuation byte at all, rewind
+				//	and return error
+				--begin;
+				return EncodingErrorType::Strict;
+				
+			}
+			cp=*c_o;
 		
 		}
 		
-		cps.push_back(cp);
+		//	Check for overlong sequence
+		if (!((Count(cp)==len) || Strict.Ignored())) return EncodingErrorType::Strict;
 	
-		return std::optional<EncodingErrorType>{};
+		return std::nullopt;
 	
 	}
 	

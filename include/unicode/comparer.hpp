@@ -56,7 +56,7 @@ namespace Unicode {
 			 *		are normalized before comparing them, \em false
 			 *		otherwise.  Defaults to \em true.
 			 */
-			Comparer (const Locale & locale=Locale::Get(), bool case_sensitive=true, bool normalize=true) noexcept
+			explicit Comparer (const Locale & locale=Locale::Get(), bool case_sensitive=true, bool normalize=true) noexcept
 				:	locale(locale),
 					case_sensitive(case_sensitive),
 					full_mappings(true),
@@ -75,7 +75,7 @@ namespace Unicode {
 			 *		are normalized before comparing them, \em false
 			 *		otherwise.
 			 */
-			Comparer (bool case_sensitive, bool normalize=true) noexcept
+			explicit Comparer (bool case_sensitive, bool normalize=true) noexcept
 				:	locale(Locale::Get()),
 					case_sensitive(case_sensitive),
 					full_mappings(true),

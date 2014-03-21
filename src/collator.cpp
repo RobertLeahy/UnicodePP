@@ -696,11 +696,8 @@ namespace Unicode {
 	}
 	
 	
-	int Collator::Compare (const CodePoint * begin_a, const CodePoint * end_a, const CodePoint * begin_b, const CodePoint * end_b) const {
+	int Collator::Compare (const std::vector<CodePoint::Type> & a, const std::vector<CodePoint::Type> & b) noexcept {
 	
-		auto a=GetSortKey(begin_a,end_a);
-		auto b=GetSortKey(begin_b,end_b);
-		
 		auto a_b=a.begin();
 		auto a_e=a.end();
 		auto b_b=b.begin();
@@ -721,6 +718,16 @@ namespace Unicode {
 		}
 		
 		return 1;
+	
+	}
+	
+	
+	int Collator::Compare (const CodePoint * begin_a, const CodePoint * end_a, const CodePoint * begin_b, const CodePoint * end_b) const {
+	
+		auto a=GetSortKey(begin_a,end_a);
+		auto b=GetSortKey(begin_b,end_b);
+		
+		return Compare(a,b);
 	
 	}
 

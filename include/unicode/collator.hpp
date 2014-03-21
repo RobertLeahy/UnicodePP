@@ -140,6 +140,23 @@ namespace Unicode {
 			std::vector<CodePoint::Type> GetSortKey (const CodePoint * begin, const CodePoint * end) const;
 			
 			
+			/**
+			 *	Compares two sort keys.
+			 *
+			 *	\param [in] a
+			 *		The first sort key.
+			 *	\param [in] b
+			 *		The second sort key.
+			 *
+			 *	\return
+			 *		A negative value if \em a should be ordered
+			 *		before \em b.  Zero if \em a and \em b should
+			 *		be ordered the same.  A positive value
+			 *		otherwise.
+			 */
+			static int Compare (const std::vector<CodePoint::Type> & a, const std::vector<CodePoint::Type> & b) noexcept;
+			
+			
 			/** 
 			 *	Compares two strings of Unicode characters.
 			 *
