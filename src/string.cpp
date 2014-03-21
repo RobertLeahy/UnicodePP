@@ -48,6 +48,98 @@ namespace Unicode {
 		}
 	
 	}
+	
+	
+	template <typename T>
+	typename std::enable_if<
+		sizeof(T)==1,
+		std::vector<CodePoint>
+	>::type decode (const T * begin, const T * end) {
+	
+		return UTF8{}.Decode(begin,end);
+	
+	}
+	
+	
+	template <typename T>
+	typename std::enable_if<
+		sizeof(T)==2,
+		std::vector<CodePoint>
+	>::type decode (const T * begin, const T * end) {
+	
+		auto order=EndianEncoding::Detect();
+		return UTF16(order,order).Decode(begin,end);
+	
+	}
+	
+	
+	template <typename T>
+	typename std::enable_if<
+		sizeof(T)==4,
+		std::vector<CodePoint>
+	>::type decode (const T * begin, const T * end) {
+	
+		return std::vector<CodePoint>(begin,end);
+	
+	}
+	
+	
+	template <typename T>
+	[[noreturn]]
+	typename std::enable_if<
+		!((sizeof(T)==1) || (sizeof(T)==2) || (sizeof(T)==4)),
+		std::vector<CodePoint>
+	>::type decode (const T *, const T *) {
+	
+		no_encoding();
+	
+	}
+	
+	
+	template <typename T>
+	std::size_t strlen (const T * str) {
+	
+		if (str==nullptr) return 0;
+	
+		std::size_t retr=0;
+		for (;*str!=0;++str,++retr);
+		
+		return retr;
+	
+	}
+	
+	
+	template <typename T>
+	std::vector<CodePoint> decode (const T * str) {
+	
+		return decode(str,str+strlen(str));
+	
+	}
+	
+	
+	void String::from_c_string (const void * ptr, std::size_t cu_size) {
+	
+		switch (cu_size) {
+		
+			//	UTF-8
+			case 1:
+				cps=decode(reinterpret_cast<const UTF8::CodeUnit *>(ptr));
+				break;
+			//	UTF-16
+			case 2:
+				cps=decode(reinterpret_cast<const UTF16::CodeUnit *>(ptr));
+				break;
+			//	UTF-32
+			case 4:
+				cps=decode(reinterpret_cast<const UTF32::CodeUnit *>(ptr));
+				break;
+			//	No known encoding
+			default:
+				no_encoding();
+		
+		}
+	
+	}
 
 
 	template <typename T>
@@ -137,73 +229,6 @@ namespace Unicode {
 	std::vector<CodePoint> String::to_nfc (const Locale & locale) const {
 	
 		return Normalizer(locale).ToNFC(begin(),end());
-	
-	}
-	
-	
-	template <typename T>
-	std::size_t strlen (const T * str) {
-	
-		if (str==nullptr) return 0;
-	
-		std::size_t retr=0;
-		for (;*str!=0;++str,++retr);
-		
-		return retr;
-	
-	}
-	
-	
-	template <typename T>
-	typename std::enable_if<
-		sizeof(T)==1,
-		std::vector<CodePoint>
-	>::type decode (const T * begin, const T * end) {
-	
-		return UTF8{}.Decode(begin,end);
-	
-	}
-	
-	
-	template <typename T>
-	typename std::enable_if<
-		sizeof(T)==2,
-		std::vector<CodePoint>
-	>::type decode (const T * begin, const T * end) {
-	
-		auto order=EndianEncoding::Detect();
-		return UTF16(order,order).Decode(begin,end);
-	
-	}
-	
-	
-	template <typename T>
-	typename std::enable_if<
-		sizeof(T)==4,
-		std::vector<CodePoint>
-	>::type decode (const T * begin, const T * end) {
-	
-		return std::vector<CodePoint>(begin,end);
-	
-	}
-	
-	
-	template <typename T>
-	[[noreturn]]
-	typename std::enable_if<
-		!((sizeof(T)==1) || (sizeof(T)==2) || (sizeof(T)==4)),
-		std::vector<CodePoint>
-	>::type decode (const T *, const T *) {
-	
-		no_encoding();
-	
-	}
-	
-	
-	template <typename T>
-	std::vector<CodePoint> decode (const T * str) {
-	
-		return decode(str,str+strlen(str));
 	
 	}
 	

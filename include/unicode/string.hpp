@@ -148,6 +148,7 @@ namespace Unicode {
 			
 			
 			std::vector<unsigned char> to_c_string (std::size_t) const;
+			void from_c_string (const void *, std::size_t);
 			
 			
 			void trim_front (const Locale &) noexcept;
@@ -346,6 +347,60 @@ namespace Unicode {
 			 *		A reference to this string.
 			 */
 			String & operator = (const char32_t * str);
+			/**
+			 *	Creates a string from a C++-style string.
+			 *
+			 *	The encoding that is used to decode the string is
+			 *	chosen based on the width of the string's characters
+			 *	(i.e. \em T).
+			 *
+			 *	-	If \c sizeof(T)==1 UTF-8 is used
+			 *	-	If \c sizeof(T)==2 UTF-16 is used
+			 *	-	If \c sizeof(T)==4 UTF-32 is used
+			 *
+			 *	If the width of \em T does not match any of the
+			 *	criteria above, an exception is thrown.
+			 *
+			 *	\tparam T
+			 *		The type of the characters of the string.
+			 *
+			 *	\param [in] str
+			 *		The string.
+			 */
+			template <typename T>
+			String (const std::basic_string<T> & str) : String(str.c_str()) {	}
+			/**
+			 *	Overwrites this string with a a C++-style string.
+			 *
+			 *	The encoding that is used to decode the string is
+			 *	chosen based on the width of the string's characters
+			 *	(i.e. \em T).
+			 *
+			 *	-	If \c sizeof(T)==1 UTF-8 is used
+			 *	-	If \c sizeof(T)==2 UTF-16 is used
+			 *	-	If \c sizeof(T)==4 UTF-32 is used
+			 *
+			 *	If the width of \em T does not match any of the
+			 *	criteria above, an exception is thrown.
+			 *
+			 *	\tparam T
+			 *		The type of the characters of the string.
+			 *
+			 *	\param [in] str
+			 *		The string.
+			 *
+			 *	\return
+			 *		A reference to this string.
+			 */
+			template <typename T>
+			String & operator = (const std::basic_string<T> & str) {
+			
+				locale=nullptr;
+				from_c_string(str.c_str(),sizeof(T));
+				
+				return *this;
+			
+			}
 			
 			
 			/**

@@ -25,13 +25,6 @@ namespace Unicode {
 	ASCII::ASCII () noexcept : Encoding(false,false) {	}
 	
 	
-	ByteOrderMark ASCII::BOM () const noexcept {
-	
-		return ByteOrderMark{};
-	
-	}
-	
-	
 	bool ASCII::CanRepresent (CodePoint cp) const noexcept {
 	
 		return cp<128;

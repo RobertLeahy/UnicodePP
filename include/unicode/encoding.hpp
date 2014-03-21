@@ -513,7 +513,7 @@ namespace Unicode {
 			 *	\return
 			 *		The byte order mark.
 			 */
-			virtual ByteOrderMark BOM () const noexcept = 0;
+			virtual ByteOrderMark BOM () const noexcept;
 			/**
 			 *	Determines whether this encoding may losslessly
 			 *	represent a certain code point.

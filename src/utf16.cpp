@@ -94,7 +94,7 @@ namespace Unicode {
 			//	surrogate, we die
 			if (!is_trail(*trail)) {
 			
-				--begin;
+				begin-=sizeof(CodeUnit);
 				return EncodingErrorType::Strict;
 				
 			}

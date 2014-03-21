@@ -7,7 +7,6 @@
 
 
 #include <unicode/endianencoding.hpp>
-#include <cstdint>
 
 
 namespace Unicode {
@@ -43,7 +42,7 @@ namespace Unicode {
 			 *	encoding.  Unsigned integer exactly
 			 *	16 bits wide.
 			 */
-			typedef std::uint16_t CodeUnit;
+			typedef char16_t CodeUnit;
 		
 		
 			using EndianEncoding::EndianEncoding;

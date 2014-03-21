@@ -27,6 +27,7 @@ obj/latin1.o \
 obj/locale.o \
 obj/normalizer.o \
 obj/string.o \
+obj/ucs2.o \
 obj/utf8.o \
 obj/utf16.o \
 obj/utf32.o | \
