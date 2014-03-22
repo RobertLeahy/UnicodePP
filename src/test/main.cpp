@@ -17,6 +17,7 @@
 #include <cstdint>
 #include <cstring>
 #include <functional>
+#include <iomanip>
 #include <iterator>
 #include <limits>
 #include <sstream>
@@ -38,6 +39,22 @@ namespace Catch {
 		
 		return ss.str();
 
+	}
+	
+	
+	//	Formats Unicode code points for output by Catch
+	std::string toString (Unicode::CodePoint cp) {
+	
+		std::ostringstream ss;
+		ss	<<	"U+"
+			<<	std::hex
+			<<	std::setfill('0')
+			<<	std::setw(4)
+			<<	std::uppercase
+			<<	static_cast<Unicode::CodePoint::Type>(cp);
+		
+		return ss.str();
+	
 	}
 	
 	
@@ -2505,6 +2522,80 @@ SCENARIO("Unicode strings may be output to C++ streams","[iostream]") {
 			THEN("Outputting that string to the stream results in an exception") {
 			
 				REQUIRE_THROWS_AS(ss << s,std::logic_error);
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Unicode code points may be output to C++ streams","[iostream]") {
+
+	GIVEN("A code point") {
+	
+		CodePoint cp=U'\U0001D11E';
+		
+		GIVEN("An 8-bit character output stream") {
+		
+			std::stringstream ss;
+			
+			THEN("The code point may be output to that stream") {
+			
+				ss << cp;
+				CodePoint c;
+				ss >> c;
+				CHECK(c==cp);
+				ss >> c;
+				REQUIRE(ss.eof());
+			
+			}
+		
+		}
+		
+		GIVEN("An 16-bit character output stream") {
+		
+			std::basic_stringstream<char16_t> ss;
+			
+			THEN("The code point may be output to that stream") {
+			
+				ss << cp;
+				CodePoint c;
+				ss >> c;
+				CHECK(c==cp);
+				ss >> c;
+				REQUIRE(ss.eof());
+			
+			}
+		
+		}
+		
+		GIVEN("A 32-bit character output stream") {
+		
+			std::basic_stringstream<char32_t> ss;
+			
+			THEN("The code point may be output to that stream") {
+			
+				ss << cp;
+				CodePoint c;
+				ss >> c;
+				CHECK(c==cp);
+				ss >> c;
+				REQUIRE(ss.eof());
+			
+			}
+		
+		}
+		
+		GIVEN("A 64-bit character output stream") {
+		
+			std::basic_stringstream<std::uint64_t> ss;
+			
+			THEN("Attempting to output a code point to the stream results in an exception") {
+			
+				REQUIRE_THROWS_AS(ss << cp,std::logic_error);
 			
 			}
 		

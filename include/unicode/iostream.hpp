@@ -42,6 +42,29 @@ namespace Unicode {
 	
 	
 	/**
+	 *	Outputs a Unicode code point to an output stream.
+	 *
+	 *	\param [in] os
+	 *		The output stream.
+	 *	\param [in] cp
+	 *		The code point.
+	 *
+	 *	\return
+	 *		\em os.
+	 */
+	template <typename CharT, typename Traits>
+	std::basic_ostream<CharT,Traits> & operator << (std::basic_ostream<CharT,Traits> & os, CodePoint cp) {
+	
+		String s;
+		s << cp;
+		os << s;
+		
+		return os;
+	
+	}
+	
+	
+	/**
 	 *	\cond
 	 */
 	 
