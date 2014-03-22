@@ -578,6 +578,14 @@ namespace Unicode {
 			 *		represent \em cp;
 			 */
 			virtual std::size_t Count (CodePoint cp) const noexcept = 0;
+			/**
+			 *	Determines the number of bytes per code unit.
+			 *
+			 *	\return
+			 *		The number of bytes per code unit for the underlying
+			 *		encoding.
+			 */
+			virtual std::size_t Size () const noexcept = 0;
 	
 	
 	};

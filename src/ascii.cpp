@@ -37,6 +37,13 @@ namespace Unicode {
 		return CanRepresent(cp) ? 1 : 0;
 	
 	}
+	
+	
+	std::size_t ASCII::Size () const noexcept {
+	
+		return sizeof(CodeUnit);
+	
+	}
 
 
 }

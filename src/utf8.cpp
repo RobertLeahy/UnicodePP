@@ -198,6 +198,13 @@ namespace Unicode {
 		return 0;
 	
 	}
+	
+	
+	std::size_t UTF8::Size () const noexcept {
+	
+		return sizeof(CodeUnit);
+	
+	}
 
 
 }

@@ -259,6 +259,18 @@ SCENARIO("ASCII characters are unsigned","[ascii]") {
 		}
 	
 	}
+	
+	GIVEN("An ASCII encoder/decoder") {
+	
+		ASCII encoder;
+		
+		THEN("It reports that its characters are one byte wide") {
+		
+			REQUIRE(encoder.Size()==1);
+		
+		}
+	
+	}
 
 }
 
@@ -1628,6 +1640,18 @@ SCENARIO("Latin-1 characters are the correct width","[latin1]") {
 		THEN("It is one byte wide") {
 		
 			REQUIRE(sizeof(Latin1::CodeUnit)==1);
+		
+		}
+	
+	}
+	
+	GIVEN("A Latin-1 encoder/decoder") {
+	
+		Latin1 encoder;
+		
+		THEN("It reports that its characters are one byte wide") {
+		
+			REQUIRE(encoder.Size()==1);
 		
 		}
 	
@@ -3190,6 +3214,18 @@ SCENARIO("UTF-8 code units are the correct width","[utf8]") {
 		}
 	
 	}
+	
+	GIVEN("A UTF-8 encoder/decoder") {
+	
+		UTF8 encoder;
+		
+		THEN("It reports that its code unit is one byte wide") {
+		
+			REQUIRE(encoder.Size()==1);
+		
+		}
+	
+	}
 
 }
 
@@ -4457,6 +4493,18 @@ SCENARIO("UTF-16 code units are unsigned","[utf16]") {
 		THEN("It is unsigned") {
 		
 			REQUIRE(std::is_unsigned<UTF16::CodeUnit>::value);
+		
+		}
+	
+	}
+	
+	GIVEN("A UTF-16 encoder/decoder") {
+	
+		UTF16 encoder;
+		
+		THEN("It reports that its code unit is two bytes wide") {
+		
+			REQUIRE(encoder.Size()==2);
 		
 		}
 	

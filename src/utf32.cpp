@@ -62,6 +62,13 @@ namespace Unicode {
 		return 1;
 	
 	}
+	
+	
+	std::size_t UTF32::Size () const noexcept {
+	
+		return sizeof(CodeUnit);
+	
+	}
 
 
 }
