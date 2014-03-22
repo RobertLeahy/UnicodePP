@@ -1400,6 +1400,247 @@ SCENARIO("Strings may be compared case insensitively","[comparer]") {
 
 
 //
+//	INPUT STREAMS
+//
+
+
+SCENARIO("Unicode strings may be extracted from C++ streams","[iostream]") {
+
+	GIVEN("An 8-bit character input/output stream") {
+	
+		std::stringstream ss;
+		
+		GIVEN("Multiple lines have been placed in the stream") {
+		
+			String in1("hello");
+			String in2("good-bye");
+			String in3(u8"Ὀδυσσεύς");
+			
+			ss << in1 << String("\r\n") << in2 << String(u8"\u0085") << in3;
+			
+			THEN("Each line may be extracted") {
+			
+				String out1;
+				String out2;
+				String out3;
+				ss >> out1 >> out2 >> out3;
+				
+				CHECK(IsEqual(in1,out1));
+				CHECK(IsEqual(in2,out2));
+				CHECK(IsEqual(in3,out3));
+				REQUIRE(ss.eof());
+			
+			}
+		
+		}
+	
+	}
+	
+	GIVEN("A 16-bit character input/output stream") {
+	
+		std::basic_stringstream<char16_t> ss;
+		
+		GIVEN("Multiple lines have been placed in the stream") {
+		
+			String in1("hello");
+			String in2("good-bye");
+			String in3(u8"Ὀδυσσεύς");
+			
+			ss << in1 << String("\r\n") << in2 << String(u8"\u0085") << in3;
+			
+			THEN("Each line may be extracted") {
+			
+				String out1;
+				String out2;
+				String out3;
+				ss >> out1 >> out2 >> out3;
+				
+				CHECK(IsEqual(in1,out1));
+				CHECK(IsEqual(in2,out2));
+				CHECK(IsEqual(in3,out3));
+				REQUIRE(ss.eof());
+			
+			}
+		
+		}
+	
+	}
+	
+	GIVEN("A 32-bit character input/output stream") {
+	
+		std::basic_stringstream<char32_t> ss;
+		
+		GIVEN("Multiple lines have been placed in the stream") {
+		
+			String in1("hello");
+			String in2("good-bye");
+			String in3(u8"Ὀδυσσεύς");
+			
+			ss << in1 << String("\r\n") << in2 << String(u8"\u0085") << in3;
+			
+			THEN("Each line may be extracted") {
+			
+				String out1;
+				String out2;
+				String out3;
+				ss >> out1 >> out2 >> out3;
+				
+				CHECK(IsEqual(in1,out1));
+				CHECK(IsEqual(in2,out2));
+				CHECK(IsEqual(in3,out3));
+				REQUIRE(ss.eof());
+			
+			}
+		
+		}
+	
+	}
+	
+	GIVEN("A 64-bit character input/output stream") {
+	
+		std::basic_stringstream<std::uint64_t> ss;
+		
+		THEN("Attempting to extract a line results in an exception") {
+		
+			String s;
+			REQUIRE_THROWS_AS(ss >> s,std::logic_error);
+		
+		}
+	
+	}
+	
+	GIVEN("A character input/output stream") {
+	
+		std::stringstream ss;
+		
+		GIVEN("It contains no characters") {
+		
+			THEN("Attempting to extract a line results in the empty string") {
+		
+				String s;
+				ss >> s;
+				
+				CHECK(s.Size()==0);
+				REQUIRE(ss.eof());
+		
+			}
+			
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Unicode code points may be extracted from C++ streams","[iostream]") {
+
+	GIVEN("An 8-bit character input/output stream") {
+	
+		std::stringstream ss;
+		
+		GIVEN("A line has been placed in the stream") {
+		
+			String s(u8"ς\n");
+			ss << s;
+			
+			THEN("Each code point may be extracted") {
+			
+				CodePoint out1;
+				CodePoint out2;
+				ss >> out1 >> out2;
+				
+				CHECK(out1==U'ς');
+				CHECK(out2=='\n');
+				
+				CodePoint out3;
+				ss >> out3;
+				
+				CHECK(out3=='\0');
+				REQUIRE(ss.eof());
+			
+			}
+		
+		}
+	
+	}
+	
+	GIVEN("A 16-bit character input/output stream") {
+	
+		std::basic_stringstream<char16_t> ss;
+		
+		GIVEN("A line has been placed in the stream") {
+		
+			String s(u8"ς\n");
+			ss << s;
+			
+			THEN("Each code point may be extracted") {
+			
+				CodePoint out1;
+				CodePoint out2;
+				ss >> out1 >> out2;
+				
+				CHECK(out1==U'ς');
+				CHECK(out2=='\n');
+				
+				CodePoint out3;
+				ss >> out3;
+				
+				CHECK(out3=='\0');
+				REQUIRE(ss.eof());
+			
+			}
+		
+		}
+	
+	}
+	
+	GIVEN("A 32-bit character input/output stream") {
+	
+		std::basic_stringstream<char32_t> ss;
+		
+		GIVEN("A line has been placed in the stream") {
+		
+			String s(u8"ς\n");
+			ss << s;
+			
+			THEN("Each code point may be extracted") {
+			
+				CodePoint out1;
+				CodePoint out2;
+				ss >> out1 >> out2;
+				
+				CHECK(out1==U'ς');
+				CHECK(out2=='\n');
+				
+				CodePoint out3;
+				ss >> out3;
+				
+				CHECK(out3=='\0');
+				REQUIRE(ss.eof());
+			
+			}
+		
+		}
+	
+	}
+
+	GIVEN("A 64-bit character input/output stream") {
+	
+		std::basic_stringstream<std::uint64_t> ss;
+		
+		THEN("Attempting to extract a code point results in an exception") {
+		
+			CodePoint cp;
+			REQUIRE_THROWS_AS(ss >> cp,std::logic_error);
+		
+		}
+	
+	}
+	
+}
+
+
+//
 //	INTEGER CONVERSION
 //
 
