@@ -9,8 +9,10 @@
 #include <unicode/locale.hpp>
 #include <unicode/normalizer.hpp>
 #include <unicode/string.hpp>
+#include <unicode/ucs4.hpp>
 #include <unicode/utf8.hpp>
 #include <unicode/utf16.hpp>
+#include <unicode/utf32.hpp>
 #include <unicode/vector.hpp>
 #include <algorithm>
 #include <cstddef>
@@ -3521,6 +3523,28 @@ SCENARIO("Strings may be hashed","[string]") {
 				REQUIRE(std::hash<String>{}(s)!=std::hash<String>{}(s2));
 			
 			}
+		
+		}
+	
+	}
+
+}
+
+
+//
+//	UCS-4
+//
+
+
+SCENARIO("The UCS-4 encoding is identical to the UTF-32 encoding","[ucs4]") {
+
+	GIVEN("UCS4") {
+	
+		THEN("It is defined to be the same type as UTF32") {
+		
+			//	Workaround to commas and macros
+			auto value=std::is_same<UCS4,UTF32>::value;
+			REQUIRE(value);
 		
 		}
 	
