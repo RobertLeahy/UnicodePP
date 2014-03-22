@@ -153,77 +153,140 @@ namespace Unicode {
 	
 	std::vector<CodePoint> Encoding::Decode (const void * begin, const void * end) const {
 	
+		//	Detect order (if applicable)
+		std::optional<Unicode::Endianness> order;
+		auto b=reinterpret_cast<const unsigned char *>(begin);
+		if (DetectBOM) order=GetBOM(
+			b,
+			reinterpret_cast<const unsigned char *>(end)
+		);
+		begin=b;
+		
+		//	Decode
+		std::vector<CodePoint> retr;
+		Stream(retr,begin,end,order);
+		
+		//	Handle unexpected end
+		if (begin!=end) {
+		
+			auto repl=handle(EncodingErrorType::UnexpectedEnd,begin);
+			
+			if (repl) retr.push_back(*repl);
+		
+		}
+		
+		return retr;
+	
+	}
+	
+	
+	std::optional<CodePoint> Encoding::Stream (const void * & begin, const void * end, std::optional<Unicode::Endianness> order) const {
+	
+		//	Convert iterators as appropriate
 		auto b=reinterpret_cast<const unsigned char *>(begin);
 		auto e=reinterpret_cast<const unsigned char *>(end);
 	
-		std::optional<Unicode::Endianness> order;
-		if (DetectBOM) order=GetBOM(b,e);
-		
-		std::vector<CodePoint> retr;
 		while (b!=e) {
 		
-			//	Track the start position, so if the decoder
-			//	fails to advance the iterator we can do it
-			//
-			//	This reduces the complexity of decoder
-			//	implementations and also insures than a
-			//	neglectfully implemented decoder will not cause
-			//	an infinite loop
+			//	Cache start location
 			auto start=b;
 			
 			//	Decode
 			CodePoint cp;
 			auto error=Decoder(cp,b,e,order);
 			
-			//	Advance iterator if it was not advanced
+			//	If the decoder didn't advance the iterator, do so to
+			//	avoid a potential infinite loop
 			if (b==start) ++b;
 			
-			//	Handle error if applicable
+			//	Handle error (if any)
 			if (error) {
 			
-				//	If the error is unexpected end, we do not want
-				//	to continue processing
-				bool ue=*error==EncodingErrorType::UnexpectedEnd;
+				//	If an unexpected end is encountered, that's fine.
+				//
+				//	This is a stream, which means there's liable to be
+				//	more data to come, so unexpected end isn't an issue,
+				//	it just means that we can't extract data right now.
+				//
+				//	However, we don't want to advance the iterator past
+				//	the spot where we just tried to extract a character,
+				//	so we set begin to where it was before we last tried
+				//	to decode, and then return a disengaged optional
+				if (*error==EncodingErrorType::UnexpectedEnd) {
+				
+					begin=start;
+					
+					return std::nullopt;
+				
+				}
+				
+				//	Handle this error
+				auto repl=handle(*error,start);
+				
+				//	If there's a replacement to be made, make it
+				if (repl) {
+				
+					begin=b;
+					
+					return *repl;
+				
+				}
+				
+				//	Otherwise there's no code point, so just loop
+				//	again
+				continue;
 			
-				auto repl=handle(*error,b);
+			//	If there's no error, the code point could still be invalid
+			//	Unicode, check this unless Unicode strict errors are being
+			//	ignored
+			} else if (!(UnicodeStrict.Ignored() || cp.IsValid())) {
+			
+				auto repl=handle(EncodingErrorType::UnicodeStrict,start);
 				
 				if (repl) {
 				
-					if (ue) {
+					begin=b;
 					
-						retr.push_back(*repl);
-						break;
-					
-					}
-					
-					cp=*repl;
-				
-				} else if (ue) {
-				
-					break;
-					
-				} else {
-				
-					continue;
+					return *repl;
 				
 				}
-			
-			//	Check code point for validity, if code point is
-			//	invalid, handle a Unicode strict error
-			} else if (!(cp.IsValid() || UnicodeStrict.Ignored())) {
-			
-				auto repl=handle(EncodingErrorType::UnicodeStrict,b);
 				
-				if (repl) cp=*repl;
-				else continue;
+				continue;
 			
 			}
 			
-			retr.push_back(cp);
-		
+			//	Return the recovered code point and advance
+			//	the iterator
+			
+			begin=b;
+			
+			return cp;
+			
 		}
 		
-		return retr;
+		//	Falling through to here means the end of the
+		//	buffer was reached gracefully, meaning there's
+		//	no character to return, but the begin iterator
+		//	should be fast forwarded all the way to the end
+		
+		begin=end;
+		
+		return std::nullopt;
+	
+	}
+	
+	
+	void Encoding::Stream (std::vector<CodePoint> & cps, const void * & begin, const void * end, std::optional<Unicode::Endianness> order) const {
+	
+		for (;;) {
+		
+			auto cp=Stream(begin,end,order);
+			
+			if (!cp) return;
+			
+			cps.push_back(*cp);
+		
+		}
 	
 	}
 	

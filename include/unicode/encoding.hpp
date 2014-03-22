@@ -507,6 +507,46 @@ namespace Unicode {
 			
 			
 			/**
+			 *	Decodes from a stream.
+			 *
+			 *	\param [in,out] begin
+			 *		An iterator to the beginning of the buffer.
+			 *		Will be updated as code units are consumed.
+			 *	\param [in] end
+			 *		An iterator to the end of the buffer.
+			 *	\param [in] order
+			 *		Optional.  The byte order of the stream.
+			 *		Defaults to a disengaged std::optional in
+			 *		which case the order the underlying encoding
+			 *		specifies is used.
+			 *
+			 *	\return
+			 *		An engaged std::optional containing a code
+			 *		point if one could be extracted from the buffer,
+			 *		a disengaged std::optional otherwise.
+			 */
+			std::optional<CodePoint> Stream (const void * & begin, const void * end, std::optional<Unicode::Endianness> order=std::nullopt) const;
+			/**
+			 *	Decodes from a stream.
+			 *
+			 *	\param [in,out] cps
+			 *		A vector of code points to which decoded
+			 *		code points will be appended.
+			 *	\param [in,out] begin
+			 *		An iterator to the beginning of the buffer.
+			 *		Will be updated as code units are consumed.
+			 *	\param [in] end
+			 *		An iterator to the end of the buffer.
+			 *	\param [in] order
+			 *		Optional.  The byte order of the stream.
+			 *		Defaults to a disengaged std::optional in
+			 *		which case the order the underlying encoding
+			 *		specifies is used.
+			 */
+			void Stream (std::vector<CodePoint> & cps, const void * & begin, const void * end, std::optional<Unicode::Endianness> order=std::nullopt) const;
+			
+			
+			/**
 			 *	Retrieves the byte order mark for this
 			 *	encoding.
 			 *
