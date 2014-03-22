@@ -2485,7 +2485,6 @@ SCENARIO("Unicode strings may be output to C++ streams","[iostream]") {
 	
 	}
 	
-	
 	GIVEN("A 32-bit character output stream") {
 	
 		std::basic_ostringstream<char32_t> ss;
