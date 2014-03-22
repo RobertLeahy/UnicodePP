@@ -30,7 +30,6 @@ cleandeps:
 
 bin:
 	@mkdir_nofail.bat bin
-	@mkdir_nofail.bat bin\mods
 	
 	
 NODEPS:=clean cleanall cleandeps
