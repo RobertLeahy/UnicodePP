@@ -62,6 +62,30 @@ namespace Unicode {
 	 *		\em false otherwise.
 	 */
 	bool IsWordBoundary (const CodePoint * loc, const CodePoint * begin, const CodePoint * end, const Locale & locale=Locale::Get()) noexcept;
+	
+	
+	/**
+	 *	Determines if a mandatory line break occurs
+	 *	immediately before a certain code point.
+	 *
+	 *	Uses the rules specified in Unicode Standard
+	 *	Annex #14 (Unicode Line Breaking Algorithm).
+	 *
+	 *	\param [in] loc
+	 *		The current location within the string.
+	 *	\param [in] begin
+	 *		An iterator to the beginning of the string.
+	 *	\param [in] end
+	 *		An iterator to the end of the string.
+	 *	\param [in] locale
+	 *		The locale to use.  Optional.  Defaults to
+	 *		the current locale.
+	 *
+	 *	\return
+	 *		\em true if a line break occurs immediately
+	 *		before \em loc, \em false otherwise.
+	 */
+	bool IsLineBreak (const CodePoint * loc, const CodePoint * begin, const CodePoint * end, const Locale & locale=Locale::Get()) noexcept;
 
 
 }
