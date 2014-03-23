@@ -342,14 +342,6 @@ namespace Unicode {
 	}
 	
 	
-	[[noreturn]]
-	inline void FloatOutOfRange () {
-	
-		throw std::overflow_error("Floating point value out of range");
-	
-	}
-	
-	
 	template <typename T>
 	T FloatParser (const char *) {
 	
@@ -366,8 +358,6 @@ namespace Unicode {
 		
 		if (last==str) NotFloat();
 		
-		if (retr==HUGE_VALF) FloatOutOfRange();
-		
 		return retr;
 	
 	}
@@ -381,8 +371,6 @@ namespace Unicode {
 		
 		if (last==str) NotFloat();
 		
-		if (retr==HUGE_VAL) FloatOutOfRange();
-		
 		return retr;
 	
 	}
@@ -395,8 +383,6 @@ namespace Unicode {
 		auto retr=std::strtold(str,&last);
 		
 		if (last==str) NotFloat();
-		
-		if (retr==HUGE_VALL) FloatOutOfRange();
 		
 		return retr;
 	
