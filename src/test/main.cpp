@@ -5721,3 +5721,519 @@ SCENARIO("Strings may be encoded to UTF-16","[utf16]") {
 	}
 
 }
+
+
+//
+//	UTF-32
+//
+
+
+SCENARIO("UTF-32 code units are the correct width","[utf32]") {
+
+	GIVEN("UTF32::CodeUnit") {
+	
+		THEN("It is four bytes") {
+		
+			REQUIRE(sizeof(UTF32::CodeUnit)==4);
+		
+		}
+	
+	}
+	
+	GIVEN("A UTF-32 encoder/decoder") {
+	
+		UTF32 encoder;
+		
+		THEN("It reports that its code unit is four bytes wide") {
+		
+			REQUIRE(encoder.Size()==4);
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("UTF-32 code units are unsigned","[utf32]") {
+
+	GIVEN("UTF32::CodeUnit") {
+	
+		THEN("It is unsigned") {
+		
+			REQUIRE(std::is_unsigned<UTF32::CodeUnit>::value);
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("The UTF-32 BOM may be obtained from a UTF-32 encoder/decoder","[utf32]") {
+
+	GIVEN("A UTF-32 encoder/decoder") {
+	
+		UTF32 encoder;
+		
+		THEN("Its big-endian BOM is correct") {
+		
+			std::vector<unsigned char> bom;
+			encoder.BOM().Get(bom,Endianness::Big);
+			REQUIRE(bom.size()==4);
+			CHECK(bom[0]==0);
+			CHECK(bom[1]==0);
+			CHECK(bom[2]==0xFE);
+			CHECK(bom[3]==0xFF);
+		
+		}
+		
+		THEN("Its little-endian BOM is correct") {
+		
+			std::vector<unsigned char> bom;
+			encoder.BOM().Get(bom,Endianness::Little);
+			REQUIRE(bom.size()==4);
+			CHECK(bom[0]==0xFF);
+			CHECK(bom[1]==0xFE);
+			CHECK(bom[2]==0);
+			REQUIRE(bom[3]==0);
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Information about the representation of code points in UTF-32 is determined properly","[utf32]") {
+
+	GIVEN("A UTF-32 encoder/decoder") {
+	
+		UTF32 encoder;
+		
+		GIVEN("U+0000") {
+		
+			CodePoint cp=0;
+			
+			THEN("It can be represented") {
+			
+				REQUIRE(encoder.CanRepresent(cp));
+			
+			}
+			
+			THEN("It requires one code unit to represent") {
+			
+				REQUIRE(encoder.Count(cp)==1);
+			
+			}
+		
+		}
+		
+		GIVEN("U+10FFFF") {
+		
+			CodePoint cp=0x10FFFFU;
+			
+			THEN("It can be represented") {
+			
+				REQUIRE(encoder.CanRepresent(cp));
+			
+			}
+			
+			THEN("It requires one code unit to represent") {
+			
+				REQUIRE(encoder.Count(cp)==1);
+			
+			}
+		
+		}
+		
+		GIVEN("U+7FFFFFFF") {
+		
+			CodePoint cp=0x7FFFFFFFU;
+			
+			THEN("It can be represented") {
+			
+				REQUIRE(encoder.CanRepresent(cp));
+			
+			}
+			
+			THEN("It requires one code unit to represent") {
+			
+				REQUIRE(encoder.Count(cp)==1);
+			
+			}
+		
+		}
+		
+		GIVEN("U+FFFFFFFF") {
+		
+			CodePoint cp=0xFFFFFFFFU;
+			
+			THEN("It can be represented") {
+			
+				REQUIRE(encoder.CanRepresent(cp));
+			
+			}
+			
+			THEN("It requires one code unit to represent") {
+			
+				REQUIRE(encoder.Count(cp)==1);
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("UTF-32 strings may be decoded","[utf32]") {
+
+	GIVEN("A UTF-32 encoder/decoder") {
+	
+		UTF32 encoder;
+		
+		GIVEN("A buffer containing UTF-32BE") {
+		
+			std::vector<unsigned char> buffer={0,0,0,'a'};
+			
+			THEN("It may be decoded") {
+			
+				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded[0]=='a');
+			
+			}
+			
+			GIVEN("The encoder/decoder's input endianness is unset") {
+			
+				encoder.InputOrder=std::nullopt;
+				
+				THEN("Attempting to decode the buffer results in an exception") {
+				
+					REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+				
+				}
+				
+				GIVEN("Endianness errors are ignored") {
+				
+					encoder.Endianness.Ignore();
+					
+					THEN("This has no effect, since endianness errors are irrecoverable") {
+					
+						REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+					
+					}
+				
+				}
+			
+			}
+		
+		}
+	
+		GIVEN("A buffer containing UTF-32LE") {
+		
+			std::vector<unsigned char> buffer={'a',0,0,0};
+			
+			THEN("It may be decoded, but the endianness is incorrect") {
+			
+				//	Decoding the buffer will result in an extremely
+				//	high code point, so we make sure that Unicode
+				//	strict errors are simply ignored
+				encoder.UnicodeStrict.Ignore();
+				
+				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded[0]!='a');
+			
+			}
+			
+			GIVEN("The encoder/decoder is set for little endian input") {
+			
+				encoder.InputOrder=Endianness::Little;
+				
+				THEN("The buffer may be decoded") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]=='a');
+				
+				}
+			
+			}
+		
+		}
+	
+		GIVEN("A buffer containing a UTF-32BE representation of invalid Unicode") {
+		
+			//	U+FFFF is not valid Unicode
+			std::vector<unsigned char> buffer={0,0,0xFF,0xFF};
+			
+			THEN("Attempting to decode it results in an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+			
+			}
+			
+			GIVEN("Unicode strict errors are ignored") {
+			
+				encoder.UnicodeStrict.Ignore();
+				
+				THEN("Attempting to decode the buffer recovers the code point") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==0xFFFF);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in no action") {
+			
+				encoder.UnicodeStrict.Nothing();
+				
+				THEN("Attempting to decode the buffer results in the empty string") {
+				
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in a replacement") {
+			
+				CodePoint replacement='?';
+				encoder.UnicodeStrict.Replace(replacement);
+				
+				THEN("Attempting to decode the buffer results in the replacement") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==replacement);
+				
+				}
+			
+			}
+		
+		}
+	
+		GIVEN("A buffer which ends unexpectedly") {
+		
+			//	Missing one byte
+			std::vector<unsigned char> buffer={0,0,0};
+			
+			THEN("Attempting to decode the buffer results in an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+			
+			}
+			
+			GIVEN("Unexpected end errors are ignored") {
+			
+				encoder.UnexpectedEnd.Ignore();
+				
+				THEN("Attempting to decode the buffer results in the empty string") {
+				
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Unexpected end errors result in no action") {
+			
+				encoder.UnexpectedEnd.Nothing();
+				
+				THEN("Attempting to decode the buffer results in the empty string") {
+				
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Unexpected end errors result in a replacement") {
+			
+				CodePoint replacement='?';
+				encoder.UnexpectedEnd.Replace(replacement);
+				
+				THEN("Attempting to decode the buffer results in the replacement") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==replacement);
+				
+				}
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Strings may be encoded to UTF-32","[utf32]") {
+
+	GIVEN("A UTF-32 encoder/decoder") {
+	
+		UTF32 encoder;
+		
+		GIVEN("A string") {
+		
+			String s("Hello world");
+			
+			GIVEN("The UTF-32BE representation of that string") {
+			
+				std::vector<unsigned char> buffer={
+					//	Hello
+					0,0,0,'H',0,0,0,'e',0,0,0,'l',0,0,0,'l',0,0,0,'o',
+					//	SPACE
+					0,0,0,' ',
+					//	world
+					0,0,0,'w',0,0,0,'o',0,0,0,'r',0,0,0,'l',0,0,0,'d'
+				};
+			
+				GIVEN("The UTF-32BE representation is prefixed with the BOM") {
+				
+					std::vector<unsigned char> bom_buffer;
+					encoder.BOM().Get(bom_buffer);
+					bom_buffer.insert(bom_buffer.end(),buffer.begin(),buffer.end());
+					
+					THEN("Encoding the string results in the representation") {
+					
+						REQUIRE(IsEqual(encoder.Encode(s),bom_buffer));
+					
+					}
+				
+				}
+			
+				GIVEN("The encoder/decoder does not output the BOM") {
+				
+					encoder.OutputBOM=false;
+					
+					THEN("Encoding the string results in the representation") {
+					
+						REQUIRE(IsEqual(encoder.Encode(s),buffer));
+					
+					}
+				
+				}
+			
+			}
+			
+			GIVEN("The UTF-16LE representation of that string") {
+			
+				std::vector<unsigned char> buffer={
+					//	Hello
+					'H',0,0,0,'e',0,0,0,'l',0,0,0,'l',0,0,0,'o',0,0,0,
+					//	SPACE
+					' ',0,0,0,
+					//	world
+					'w',0,0,0,'o',0,0,0,'r',0,0,0,'l',0,0,0,'d',0,0,0
+				};
+				
+				GIVEN("The encoder/decoder's output byte order is little endian") {
+				
+					encoder.OutputOrder=Endianness::Little;
+				
+					GIVEN("The UTF-32LE representation is prefixed with the BOM") {
+					
+						std::vector<unsigned char> bom_buffer;
+						encoder.BOM().Get(bom_buffer,Endianness::Little);
+						bom_buffer.insert(bom_buffer.end(),buffer.begin(),buffer.end());
+						
+						THEN("Encoding the string results in the representation") {
+						
+							REQUIRE(IsEqual(encoder.Encode(s),bom_buffer));
+						
+						}
+					
+					}
+				
+					GIVEN("The encoder/decoder does not output the BOM") {
+					
+						encoder.OutputBOM=false;
+						
+						THEN("Encoding the string results in the representation") {
+						
+							REQUIRE(IsEqual(encoder.Encode(s),buffer));
+						
+						}
+					
+					}
+					
+				}
+			
+			}
+		
+		}
+	
+		GIVEN("A string containing invalid Unicode") {
+		
+			String s(U"\U0010FFFF");
+			
+			//	We're not interested in the BOM
+			encoder.OutputBOM=false;
+			
+			THEN("Attempting to encode it results in an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Encode(s),EncodingError);
+			
+			}
+			
+			GIVEN("Unicode strict errors are ignored") {
+			
+				encoder.UnicodeStrict.Ignore();
+				
+				THEN("Attempting to encode the string retrieves the associated code unit") {
+				
+					auto encoded=encoder.Encode(s);
+					REQUIRE(encoded.size()==4);
+					CHECK(encoded[0]==0);
+					CHECK(encoded[1]==0x10);
+					CHECK(encoded[2]==0xFF);
+					REQUIRE(encoded[3]==0xFF);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in no action") {
+			
+				encoder.UnicodeStrict.Nothing();
+				
+				THEN("Attempting to encode the string results in an empty buffer") {
+				
+					REQUIRE(encoder.Encode(s).size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in a replacement") {
+			
+				CodePoint replacement='?';
+				encoder.UnicodeStrict.Replace(replacement);
+				
+				THEN("Attempting to encode the string results in the code unit for the replacement") {
+				
+					auto encoded=encoder.Encode(s);
+					REQUIRE(encoded.size()==4);
+					CHECK(encoded[0]==0);
+					CHECK(encoded[1]==0);
+					CHECK(encoded[2]==0);
+					REQUIRE(encoded[3]=='?');
+				
+				}
+			
+			}
+		
+		}
+	
+	}
+
+}
