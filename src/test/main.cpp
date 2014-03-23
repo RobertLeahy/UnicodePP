@@ -15,6 +15,7 @@
 #include <unicode/utf32.hpp>
 #include <unicode/vector.hpp>
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -184,7 +185,13 @@ CodePoint remove_signed (CodePoint cp) noexcept {
 
 
 template <typename T1, typename T2>
-bool IsEqual (const T1 & a, const T2 & b) {
+typename std::enable_if<
+	!(
+		std::is_floating_point<T1>::value ||
+		std::is_floating_point<T2>::value
+	),
+	bool
+>::type IsEqual (const T1 & a, const T2 & b) {
 
 	auto n_a=normalize(a);
 	auto n_b=normalize(b);
@@ -209,6 +216,31 @@ bool IsEqual (const T1 & a, const T2 & b) {
 		
 		}
 	);
+
+}
+
+
+template <typename T>
+typename std::enable_if<
+	std::is_floating_point<
+		typename std::decay<T>::type
+	>::value,
+	bool
+>::type IsEqual (T a, T b) noexcept {
+
+	if (a==b) return true;
+	
+	typedef std::numeric_limits<T> limits;
+
+	auto diff=std::abs(a-b);
+	
+	if (
+		(a==0) ||
+		(b==0) ||
+		(diff<limits::denorm_min())
+	) return diff<limits::denorm_min();
+	
+	return (diff/(std::abs(a)+std::abs(b)))<limits::epsilon();
 
 }
 
@@ -1408,6 +1440,261 @@ SCENARIO("Strings may be compared case insensitively","[comparer]") {
 					REQUIRE(!c.Compare(s.begin(),s.end(),s2.begin(),s2.end()));
 				
 				}
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+//
+//	FLOATING POINT CONVERSION
+//
+
+
+SCENARIO("Floating point values may be converted to strings","[converter]") {
+
+	GIVEN("A float converter") {
+	
+		Converter<float> c;
+		
+		GIVEN("The largest float value") {
+		
+			auto f=std::numeric_limits<float>::max();
+			
+			GIVEN("A string containing this value") {
+			
+				auto s=Get(f);
+				
+				THEN("Converting the former to a Unicode string results in the latter") {
+				
+					REQUIRE(IsEqual(c(f),s));
+				
+				}
+			
+			}
+		
+		}
+		
+		GIVEN("The smallest float value") {
+		
+			auto f=std::numeric_limits<float>::min();
+			
+			GIVEN("A string containing this value") {
+			
+				auto s=Get(f);
+				
+				THEN("Converting the former to a Unicode string results in the latter") {
+				
+					REQUIRE(IsEqual(c(f),s));
+				
+				}
+			
+			}
+		
+		}
+		
+		GIVEN("The epsilon value") {
+		
+			auto f=std::numeric_limits<float>::epsilon();
+			
+			GIVEN("A string containing this value") {
+			
+				auto s=Get(f);
+				
+				THEN("Converting the former to a Unicode string results in the latter") {
+				
+					REQUIRE(IsEqual(c(f),s));
+				
+				}
+			
+			}
+		
+		}
+		
+		GIVEN("The infinity value") {
+		
+			auto f=std::numeric_limits<float>::infinity();
+			
+			GIVEN("A string containing this value") {
+			
+				auto s=Get(f);
+				
+				THEN("Converting the former to a Unicode string results in the latter") {
+				
+					REQUIRE(IsEqual(c(f),s));
+				
+				}
+			
+			}
+		
+		}
+		
+		GIVEN("The NaN value") {
+		
+			auto f=std::numeric_limits<float>::quiet_NaN();
+		
+			GIVEN("A string containing this value") {
+			
+				auto s=Get(f);
+				
+				THEN("Converting the former to a Unicode string results in the latter") {
+				
+					REQUIRE(IsEqual(c(f),s));
+				
+				}
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Strings may be converted to floating point values","[converter]") {
+
+	GIVEN("A float converter") {
+	
+		Converter<float> c;
+		
+		THEN("The empty string represented as two null pointers is not found to represent an integer") {
+		
+			REQUIRE_THROWS_AS(c(nullptr,nullptr),ConversionError);
+		
+		}
+		
+		GIVEN("The empty string") {
+		
+			String s;
+			
+			THEN("It is not found to represent a floating point value") {
+			
+				REQUIRE_THROWS_AS(c(s.begin(),s.end()),ConversionError);
+			
+			}
+		
+		}
+		
+		GIVEN("A string containing the largest float value") {
+		
+			String s(std::numeric_limits<float>::max());
+			
+			THEN("It is found to contain the largest float value") {
+			
+				REQUIRE(IsEqual(c(s.begin(),s.end()),std::numeric_limits<float>::max()));
+			
+			}
+		
+		}
+		
+		GIVEN("A string containing the smallest float value") {
+		
+			String s(std::numeric_limits<float>::lowest());
+			
+			THEN("It is found to contain the smallest float value") {
+			
+				REQUIRE(IsEqual(c(s.begin(),s.end()),std::numeric_limits<float>::lowest()));
+			
+			}
+		
+		}
+		
+		GIVEN("A string containing an integer") {
+		
+			String s(4);
+			
+			THEN("It is found to contain that integer") {
+			
+				REQUIRE(c(s.begin(),s.end())==4);
+			
+			}
+		
+		}
+		
+		GIVEN("A string containing a floating point value") {
+		
+			String s(4.5);
+			
+			THEN("It is found to contain that floating point value") {
+			
+				REQUIRE(c(s.begin(),s.end())==4.5);
+			
+			}
+		
+		}
+		
+		GIVEN("A string containing a number too large to be represented as a float") {
+		
+			String s(std::numeric_limits<double>::max());
+			
+			THEN("Attempting to convert the string to a float results in positive infinity") {
+			
+				REQUIRE(c(s.begin(),s.end())==std::numeric_limits<float>::infinity());
+			
+			}
+		
+		}
+		
+		GIVEN("A string containing a number too small to be represented as a float") {
+		
+			String s(std::numeric_limits<double>::lowest());
+			
+			THEN("Attempting to convert the string to a float results in negative infinity") {
+			
+				REQUIRE(c(s.begin(),s.end())==-std::numeric_limits<float>::infinity());
+			
+			}
+		
+		}
+		
+		GIVEN("A string which is partially numeric") {
+		
+			String s("hello123");
+			
+			THEN("It is not found to contain a floating point value") {
+			
+				REQUIRE_THROWS_AS(c(s.begin(),s.end()),ConversionError);
+			
+			}
+		
+		}
+		
+		GIVEN("A string which is not numeric") {
+		
+			String s("hello world");
+			
+			THEN("It is not found to contain a floating point value") {
+			
+				REQUIRE_THROWS_AS(c(s.begin(),s.end()),ConversionError);
+			
+			}
+		
+		}
+	
+		GIVEN("A string which is not numeric and is prefixed by white space") {
+		
+			String s("    hello world");
+			
+			THEN("It is not found to contain a floating point value") {
+			
+				REQUIRE_THROWS_AS(c(s.begin(),s.end()),ConversionError);
+			
+			}
+		
+		}
+		
+		GIVEN("A string which represents a floating point value and is prefixed by white space") {
+			
+			String s("    1.5");
+			
+			THEN("It is found to contain a floating point value") {
+			
+				REQUIRE(c(s.begin(),s.end())==1.5);
 			
 			}
 		
