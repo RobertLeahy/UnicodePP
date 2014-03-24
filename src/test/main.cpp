@@ -9,6 +9,7 @@
 #include <unicode/locale.hpp>
 #include <unicode/normalizer.hpp>
 #include <unicode/string.hpp>
+#include <unicode/ucs2.hpp>
 #include <unicode/ucs4.hpp>
 #include <unicode/utf8.hpp>
 #include <unicode/utf16.hpp>
@@ -3810,6 +3811,705 @@ SCENARIO("Strings may be hashed","[string]") {
 				REQUIRE(std::hash<String>{}(s)!=std::hash<String>{}(s2));
 			
 			}
+		
+		}
+	
+	}
+
+}
+
+
+//
+//	UCS-2
+//
+
+
+SCENARIO("UCS-2 code units are the correct width","[ucs2]") {
+
+	GIVEN("UCS2::CodeUnit") {
+	
+		THEN("It is two bytes wide") {
+		
+			REQUIRE(sizeof(UCS2::CodeUnit)==2);
+		
+		}
+	
+	}
+	
+	GIVEN("A UCS-2 encoder/decoder") {
+	
+		UCS2 encoder;
+		
+		THEN("It reports that its code unit is two bytes wide") {
+		
+			REQUIRE(encoder.Size()==2);
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("UCS-2 code units are unsigned","[ucs2]") {
+
+	GIVEN("UCS2::CodeUnit") {
+	
+		THEN("It is unsigned") {
+		
+			REQUIRE(std::is_unsigned<UCS2::CodeUnit>::value);
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("The UCS-2 BOM may be obtained from a UCS-2 encoder/decoder","[ucs2]") {
+
+	GIVEN("A UCS-2 encoder/decoder") {
+	
+		UCS2 encoder;
+		
+		THEN("Its big-endian BOM is correct") {
+		
+			std::vector<unsigned char> bom;
+			encoder.BOM().Get(bom,Endianness::Big);
+			REQUIRE(bom.size()==2);
+			CHECK(bom[0]==0xFE);
+			REQUIRE(bom[1]==0xFF);
+		
+		}
+		
+		THEN("Its little-endian BOM is correct") {
+		
+			std::vector<unsigned char> bom;
+			encoder.BOM().Get(bom,Endianness::Little);
+			REQUIRE(bom.size()==2);
+			CHECK(bom[0]==0xFF);
+			REQUIRE(bom[1]==0xFE);
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Information about the representation of code point in UCS-2 is determined properly","[ucs2]") {
+
+	GIVEN("A UCS-2 encoder/decoder") {
+	
+		UCS2 encoder;
+		
+		GIVEN("U+0000") {
+		
+			CodePoint cp=0;
+			
+			THEN("It can be represented") {
+			
+				REQUIRE(encoder.CanRepresent(cp));
+			
+			}
+			
+			THEN("It requires one code unit to represent") {
+			
+				REQUIRE(encoder.Count(cp)==1);
+			
+			}
+		
+		}
+		
+		GIVEN("U+FFFF") {
+		
+			CodePoint cp=0xFFFFU;
+			
+			THEN("It can be represented") {
+			
+				REQUIRE(encoder.CanRepresent(cp));
+			
+			}
+			
+			THEN("It requires one code unit to represent") {
+			
+				REQUIRE(encoder.Count(cp)==1);
+			
+			}
+		
+		}
+		
+		GIVEN("A surrogate") {
+		
+			CodePoint cp=0xD800U;
+			
+			THEN("It can be represented") {
+			
+				REQUIRE(encoder.CanRepresent(cp));
+			
+			}
+			
+			THEN("It requires one code unit to represent") {
+			
+				REQUIRE(encoder.Count(cp)==1);
+			
+			}
+		
+		}
+		
+		GIVEN("U+10000") {
+		
+			CodePoint cp=0x10000U;
+			
+			THEN("It cannot be represented") {
+			
+				CHECK(!encoder.CanRepresent(cp));
+				REQUIRE(encoder.Count(cp)==0);
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("UCS-2 strings may be decoded","[ucs2]") {
+
+	GIVEN("A UCS-2 encoder/decoder") {
+	
+		UCS2 encoder;
+		
+		GIVEN("A buffer containing UCS-2BE") {
+		
+			std::vector<unsigned char> buffer={0,'a'};
+			
+			THEN("It may be decoded") {
+			
+				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded[0]=='a');
+			
+			}
+			
+			GIVEN("The encoder/decoder's input endianness is unset") {
+			
+				encoder.InputOrder=std::nullopt;
+				
+				THEN("Attempting to decode the buffer results in an exception") {
+				
+					REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+				
+				}
+				
+				GIVEN("Endianness errors are ignored") {
+				
+					encoder.Endianness.Ignore();
+					
+					THEN("This has no effect, since endianness errors are irrecoverable") {
+					
+						REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+					
+					}
+				
+				}
+			
+			}
+		
+		}
+		
+		GIVEN("A buffer containing UCS-2LE") {
+		
+			std::vector<unsigned char> buffer={'a',0};
+			
+			THEN("It may be decoded, but the endianness is incorrect") {
+			
+				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded[0]!='a');
+			
+			}
+			
+			GIVEN("The encoder/decoder is set for little endian input") {
+			
+				encoder.InputOrder=Endianness::Little;
+				
+				THEN("The buffer may be decoded") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]=='a');
+				
+				}
+			
+			}
+		
+		}
+		
+		GIVEN("A buffer containing UCS-2LE preceded by the little endian BOM") {
+		
+			std::vector<unsigned char> buffer={0xFF,0xFE,'a',0};
+			
+			THEN("It may be decoded") {
+			
+				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded[0]=='a');
+			
+			}
+		
+		}
+		
+		GIVEN("A buffer containing UCS-2BE preceded by the big endian BOM") {
+		
+			std::vector<unsigned char> buffer={0xFE,0xFF,0,'a'};
+			
+			THEN("It may be decoded") {
+			
+				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded[0]=='a');
+			
+			}
+			
+			GIVEN("The input endianness of the encoder/decoder is not set") {
+			
+				encoder.InputOrder=std::nullopt;
+				
+				THEN("It may be decoded") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]=='a');
+				
+				}
+			
+			}
+			
+			GIVEN("The encoder/decoder is set not to detect the BOM") {
+			
+				encoder.DetectBOM=false;
+				
+				THEN("It may be decoded, recoving the BOM") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==2);
+					CHECK(decoded[0]==0xFEFF);
+					REQUIRE(decoded[1]=='a');
+				
+				}
+			
+			}
+		
+		}
+	
+		GIVEN("A buffer containing a UCS-2BE representation of invalid Unicode") {
+		
+			//	U+FFFF is not valid Unicode
+			std::vector<unsigned char> buffer={0xFF,0xFF};
+			
+			THEN("Attempting to decode it results in an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+			
+			}
+			
+			GIVEN("Unicode strict errors are ignored") {
+			
+				encoder.UnicodeStrict.Ignore();
+				
+				THEN("Attempting to decode the buffer recovers the code point") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==0xFFFF);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in no action") {
+			
+				encoder.UnicodeStrict.Nothing();
+				
+				THEN("Attempting to decode the buffer results in the empty string") {
+				
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in a replacement") {
+			
+				CodePoint replacement='?';
+				encoder.UnicodeStrict.Replace(replacement);
+				
+				THEN("Attempting to decode the buffer results in the replacement") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==replacement);
+				
+				}
+			
+			}
+		
+		}
+	
+		GIVEN("A buffer containing a UCS-2BE representation of a surrogate") {
+		
+			std::vector<unsigned char> buffer={0xD8,0x34};
+			
+			THEN("Attempting to decode it results in an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+			
+			}
+			
+			GIVEN("Unicode strict errors are ignored") {
+			
+				encoder.UnicodeStrict.Ignore();
+				
+				THEN("Attempting to decode it recovers the surrogate") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==0xD834);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in no action") {
+			
+				encoder.UnicodeStrict.Nothing();
+				
+				THEN("Attempting to decode it results in the empty string") {
+				
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in a replacement") {
+			
+				CodePoint replacement='?';
+				encoder.UnicodeStrict.Replace(replacement);
+				
+				THEN("Attempting to decode the buffer results in the replacement") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==replacement);
+				
+				}
+			
+			}
+		
+		}
+	
+		GIVEN("A buffer whose length is not evenly divisible by the size of a UCS-2 code unit") {
+		
+			std::vector<unsigned char> buffer={0};
+			
+			THEN("Attempting to decode it results in an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Decode(Begin(buffer),End(buffer)),EncodingError);
+			
+			}
+			
+			GIVEN("Unexpected end errors are ignored") {
+			
+				encoder.UnexpectedEnd.Ignore();
+				
+				THEN("Attempting to decode it results in the empty string") {
+				
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Unexpected end errors result in no action") {
+			
+				encoder.UnexpectedEnd.Nothing();
+				
+				THEN("Attempting to decode it results in the empty string") {
+				
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Unexpected end errors result in a replacement") {
+			
+				CodePoint replacement='?';
+				encoder.UnexpectedEnd.Replace(replacement);
+				
+				THEN("Attempting to decode the buffer results in the replacement") {
+				
+					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
+					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded[0]==replacement);
+				
+				}
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Strings may be encoded to UCS-2","[ucs2]") {
+
+	GIVEN("A UCS-2 encoder/decoder") {
+	
+		UCS2 encoder;
+		
+		GIVEN("A string") {
+		
+			String s("Hello world");
+			
+			GIVEN("The UCS-2BE representation of that string") {
+			
+				std::vector<unsigned char> buffer={
+					//	Hello
+					0,'H',0,'e',0,'l',0,'l',0,'o',
+					//	SPACE
+					0,' ',
+					//	world
+					0,'w',0,'o',0,'r',0,'l',0,'d'
+				};
+				
+				GIVEN("The UCS-2BE representation is prefixed with the BOM") {
+				
+					std::vector<unsigned char> bom_buffer;
+					encoder.BOM().Get(bom_buffer);
+					bom_buffer.insert(bom_buffer.end(),buffer.begin(),buffer.end());
+					
+					THEN("Encoding the string results in the representation") {
+					
+						REQUIRE(IsEqual(encoder.Encode(s),bom_buffer));
+					
+					}
+				
+				}
+				
+				GIVEN("The encoder/decoder does not output the BOM") {
+				
+					encoder.OutputBOM=false;
+					
+					THEN("Encoding the string results in the representation") {
+					
+						REQUIRE(IsEqual(encoder.Encode(s),buffer));
+					
+					}
+				
+				}
+			
+			}
+			
+			GIVEN("The UCS-2LE representation of that string") {
+			
+				std::vector<unsigned char> buffer={
+					//	Hello
+					'H',0,'e',0,'l',0,'l',0,'o',0,
+					//	SPACE
+					' ',0,
+					//	world
+					'w',0,'o',0,'r',0,'l',0,'d',0
+				};
+				
+				GIVEN("The encoder/decoder's output byte order is little endian") {
+				
+					encoder.OutputOrder=Endianness::Little;
+				
+					GIVEN("The UCS-2LE representation is prefixed with the BOM") {
+					
+						std::vector<unsigned char> bom_buffer;
+						encoder.BOM().Get(bom_buffer,Endianness::Little);
+						bom_buffer.insert(bom_buffer.end(),buffer.begin(),buffer.end());
+						
+						THEN("Encoding the string results in the representation") {
+						
+							REQUIRE(IsEqual(encoder.Encode(s),bom_buffer));
+						
+						}
+					
+					}
+					
+					GIVEN("The encoder/decoder does not output the BOM") {
+					
+						encoder.OutputBOM=false;
+						
+						THEN("Encoding the string results in the representation") {
+						
+							REQUIRE(IsEqual(encoder.Encode(s),buffer));
+						
+						}
+					
+					}
+					
+				}
+			
+			}
+			
+		}
+		
+		GIVEN("A string containing invalid Unicode") {
+		
+			String s(U"\uFFFF");
+			
+			//	We're not interested in the BOM
+			encoder.OutputBOM=false;
+			
+			THEN("Attempting to encode it results in an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Encode(s),EncodingError);
+			
+			}
+			
+			GIVEN("Unicode strict errors are ignored") {
+			
+				encoder.UnicodeStrict.Ignore();
+				
+				THEN("Attempting to encode the string retrieves the associated code unit(s)") {
+				
+					auto encoded=encoder.Encode(s);
+					REQUIRE(encoded.size()==2);
+					CHECK(encoded[0]==0xFF);
+					CHECK(encoded[1]==0xFF);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in no action") {
+			
+				encoder.UnicodeStrict.Nothing();
+				
+				THEN("Attempting to encode the string results in an empty buffer") {
+				
+					REQUIRE(encoder.Encode(s).size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Unicode strict errors result in a replacement") {
+			
+				GIVEN("The replacement is representable by UCS-2") {
+			
+					CodePoint replacement='?';
+					encoder.UnicodeStrict.Replace(replacement);
+					
+					THEN("Attempting to encode the string results in the code unit(s) for the replacement") {
+					
+						auto encoded=encoder.Encode(s);
+						REQUIRE(encoded.size()==2);
+						CHECK(encoded[0]==0);
+						REQUIRE(encoded[1]=='?');
+					
+					}
+					
+				}
+				
+				GIVEN("The replacement is not representable by UCS-2") {
+				
+					//	UCS-2 cannot represent anything outside the BMP
+					CodePoint replacement=0x10000U;
+					encoder.UnicodeStrict.Replace(replacement);
+					
+					THEN("Attempting to encode the string results in an exception") {
+					
+						REQUIRE_THROWS_AS(encoder.Encode(s),EncodingError);
+					
+					}
+				
+				}
+			
+			}
+		
+		}
+	
+		GIVEN("A string containing code points which UCS-2 cannot represent") {
+		
+			String s(U"\U0010FFFD");
+			
+			//	We're not interested in the BOM
+			encoder.OutputBOM=false;
+			
+			THEN("Attempting to encode it results in an exception") {
+			
+				REQUIRE_THROWS_AS(encoder.Encode(s),EncodingError);
+			
+			}
+			
+			GIVEN("Lossy errors are ignored") {
+			
+				encoder.Lossy.Ignore();
+				
+				THEN("Attempting to encode the string results in an empty buffer") {
+				
+					REQUIRE(encoder.Encode(s).size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Lossy errors result in no action") {
+			
+				encoder.Lossy.Nothing();
+				
+				THEN("Attempting to encode the string results in an empty buffer") {
+				
+					REQUIRE(encoder.Encode(s).size()==0);
+				
+				}
+			
+			}
+			
+			GIVEN("Lossy errors result in a replacement") {
+			
+				GIVEN("The replacement is representable by UCS-2") {
+			
+					CodePoint replacement='?';
+					encoder.Lossy.Replace(replacement);
+					
+					THEN("Attempting to encode the string results in the code unit(s) for the replacement") {
+					
+						auto encoded=encoder.Encode(s);
+						REQUIRE(encoded.size()==2);
+						CHECK(encoded[0]==0);
+						REQUIRE(encoded[1]=='?');
+					
+					}
+					
+				}
+				
+				GIVEN("The replacement is not representable by UCS-2") {
+				
+					//	UCS-2 cannot represent anything outside the BMP
+					CodePoint replacement=0x10000U;
+					encoder.Lossy.Replace(replacement);
+					
+					THEN("Attempting to encode the string results in an exception") {
+					
+						REQUIRE_THROWS_AS(encoder.Encode(s),EncodingError);
+					
+					}
+				
+				}
+			
+			}
+		
 		
 		}
 	
