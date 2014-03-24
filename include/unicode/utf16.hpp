@@ -7,7 +7,6 @@
 
 
 #include <unicode/endianencoding.hpp>
-#include <cstdint>
 
 
 namespace Unicode {
@@ -28,10 +27,10 @@ namespace Unicode {
 			) const override;
 			
 			virtual std::optional<EncodingErrorType> Decoder (
-				std::vector<CodePoint> & cps,
+				CodePoint & cp,
 				const unsigned char * & begin,
 				const unsigned char * end,
-				std::optional<Endianness> order
+				std::optional<Unicode::Endianness> order
 			) const override;
 	
 	
@@ -43,15 +42,16 @@ namespace Unicode {
 			 *	encoding.  Unsigned integer exactly
 			 *	16 bits wide.
 			 */
-			typedef std::uint16_t CodeUnit;
+			typedef char16_t CodeUnit;
 		
 		
 			using EndianEncoding::EndianEncoding;
 			
 			
 			virtual ByteOrderMark BOM () const noexcept override;
-			virtual bool CanRepresent (CodePoint cp) const noexcept override;
-			virtual std::size_t Count (CodePoint cp) const noexcept override;
+			virtual bool CanRepresent (CodePoint) const noexcept override;
+			virtual std::size_t Count (CodePoint) const noexcept override;
+			virtual std::size_t Size () const noexcept override;
 	
 	
 	};

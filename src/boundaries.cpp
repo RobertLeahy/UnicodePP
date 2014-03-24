@@ -359,6 +359,43 @@ namespace Unicode {
 		return true;
 	
 	}
+	
+	
+	static bool is_lf (CodePoint cp, const Locale & locale) noexcept {
+	
+		auto cpi=cp.GetInfo(locale);
+		if (cpi==nullptr) return false;
+		
+		return cpi->LineBreak==LineBreak::LF;
+	
+	}
+	
+	
+	bool IsLineBreak (const CodePoint * loc, const CodePoint * begin, const CodePoint * end, const Locale & locale) noexcept {
+	
+		//	We want in all cases to examine the preceding character
+		if (begin==loc) return false;
+		
+		//	Look up information about this code point
+		auto cpi=(loc-1)->GetInfo(locale);
+		
+		//	If there's no info, no line break
+		if (cpi==nullptr) return false;
+		
+		switch (cpi->LineBreak) {
+		
+			default:
+				return false;
+			case LineBreak::CR:
+				return (loc==end) || !is_lf(*loc,locale);
+			case LineBreak::BK:
+			case LineBreak::LF:
+			case LineBreak::NL:
+				return true;
+		
+		}
+	
+	}
 
 
 }

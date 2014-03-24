@@ -6,16 +6,16 @@
 #pragma once
 
 
-#include <unicode/encoding.hpp>
+#include <unicode/endianencoding.hpp>
 
 
 namespace Unicode {
 
 
 	/**
-	 *	The UTF-8 multi-byte encoding.
+	 *	The UCS-2 encoding.
 	 */
-	class UTF8 : public Encoding {
+	class UCS2 : public EndianEncoding {
 	
 	
 		protected:
@@ -39,19 +39,13 @@ namespace Unicode {
 		
 			/**
 			 *	The type of code unit used by this
-			 *	encoder.
+			 *	encoding.  Unsigned integer exactly
+			 *	16 bits wide.
 			 */
-			typedef unsigned char CodeUnit;
+			typedef char16_t CodeUnit;
 		
 		
-			/**
-			 *	Creates a new UTF8 encoder/decoder.
-			 *
-			 *	By default UTF8 encoder/decoders do not
-			 *	detect or output a byte order mark, as
-			 *	recommended by the Unicode consortium.
-			 */
-			UTF8 () noexcept;
+			using EndianEncoding::EndianEncoding;
 			
 			
 			virtual ByteOrderMark BOM () const noexcept override;

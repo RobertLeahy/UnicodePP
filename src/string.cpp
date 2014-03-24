@@ -1,14 +1,145 @@
 #include <unicode/caseconverter.hpp>
 #include <unicode/collator.hpp>
 #include <unicode/comparer.hpp>
+#include <unicode/endianencoding.hpp>
 #include <unicode/normalizer.hpp>
 #include <unicode/string.hpp>
 #include <unicode/utf8.hpp>
+#include <unicode/utf16.hpp>
+#include <unicode/utf32.hpp>
 #include <algorithm>
-#include <cstring>
+#include <stdexcept>
 
 
 namespace Unicode {
+
+
+	[[noreturn]]
+	static void no_encoding () {
+	
+		throw std::logic_error("No encoding for code units of that size");
+	
+	}
+
+
+	std::vector<unsigned char> String::to_c_string (std::size_t cu_size) const {
+	
+		switch (cu_size) {
+		
+			//	UTF-8
+			case 1:
+				return UTF8{}.Encode(begin(),end());
+			//	UTF-16
+			case 2:{
+				UTF16 encoder(EndianEncoding::Detect());
+				encoder.OutputBOM=false;
+				return encoder.Encode(begin(),end());
+			}
+			//	UTF-32
+			case 4:{
+				UTF32 encoder(EndianEncoding::Detect());
+				encoder.OutputBOM=false;
+				return encoder.Encode(begin(),end());
+			}
+			//	No known encoding
+			default:
+				no_encoding();
+		
+		}
+	
+	}
+	
+	
+	template <typename T>
+	typename std::enable_if<
+		sizeof(T)==1,
+		std::vector<CodePoint>
+	>::type decode (const T * begin, const T * end) {
+	
+		return UTF8{}.Decode(begin,end);
+	
+	}
+	
+	
+	template <typename T>
+	typename std::enable_if<
+		sizeof(T)==2,
+		std::vector<CodePoint>
+	>::type decode (const T * begin, const T * end) {
+	
+		auto order=EndianEncoding::Detect();
+		return UTF16(order,order).Decode(begin,end);
+	
+	}
+	
+	
+	template <typename T>
+	typename std::enable_if<
+		sizeof(T)==4,
+		std::vector<CodePoint>
+	>::type decode (const T * begin, const T * end) {
+	
+		return std::vector<CodePoint>(begin,end);
+	
+	}
+	
+	
+	template <typename T>
+	[[noreturn]]
+	typename std::enable_if<
+		!((sizeof(T)==1) || (sizeof(T)==2) || (sizeof(T)==4)),
+		std::vector<CodePoint>
+	>::type decode (const T *, const T *) {
+	
+		no_encoding();
+	
+	}
+	
+	
+	template <typename T>
+	std::size_t strlen (const T * str) {
+	
+		if (str==nullptr) return 0;
+	
+		std::size_t retr=0;
+		for (;*str!=0;++str,++retr);
+		
+		return retr;
+	
+	}
+	
+	
+	template <typename T>
+	std::vector<CodePoint> decode (const T * str) {
+	
+		return decode(str,str+strlen(str));
+	
+	}
+	
+	
+	void String::from_c_string (const void * ptr, std::size_t cu_size) {
+	
+		switch (cu_size) {
+		
+			//	UTF-8
+			case 1:
+				cps=decode(reinterpret_cast<const UTF8::CodeUnit *>(ptr));
+				break;
+			//	UTF-16
+			case 2:
+				cps=decode(reinterpret_cast<const UTF16::CodeUnit *>(ptr));
+				break;
+			//	UTF-32
+			case 4:
+				cps=decode(reinterpret_cast<const UTF32::CodeUnit *>(ptr));
+				break;
+			//	No known encoding
+			default:
+				no_encoding();
+		
+		}
+	
+	}
 
 
 	template <typename T>
@@ -102,16 +233,6 @@ namespace Unicode {
 	}
 	
 	
-	static std::vector<CodePoint> decode (const char * str) {
-	
-		return UTF8{}.Decode(
-			str,
-			str+std::strlen(str)
-		);
-	
-	}
-	
-	
 	String::String (const char * str)
 		:	cps(decode(str)),
 			locale(nullptr)
@@ -128,11 +249,57 @@ namespace Unicode {
 	}
 	
 	
-	CString String::ToCString (bool utf8) const {
+	String::String (const wchar_t * str)
+		:	cps(decode(str)),
+			locale(nullptr)
+	{	}
 	
-		//	TODO: ASCII "encoding" for this when
-		//	utf8=false
-		return CString(UTF8{}.Encode(begin(),end()));
+	
+	String & String::operator = (const wchar_t * str) {
+	
+		locale=nullptr;
+		cps=decode(str);
+		
+		return *this;
+	
+	}
+	
+	
+	String::String (const char16_t * str)
+		:	cps(decode(str)),
+			locale(nullptr)
+	{	}
+	
+	
+	String & String::operator = (const char16_t * str) {
+	
+		locale=nullptr;
+		cps=decode(str);
+		
+		return *this;
+	
+	}
+	
+	
+	String::String (const char32_t * str)
+		:	cps(decode(str)),
+			locale(nullptr)
+	{	}
+	
+	
+	String & String::operator = (const char32_t * str) {
+	
+		locale=nullptr;
+		cps=decode(str);
+		
+		return *this;
+	
+	}
+	
+	
+	CString<String::os_type> String::ToOSString () const {
+	
+		return ToCString<os_type>();
 	
 	}
 	
@@ -369,6 +536,28 @@ namespace Unicode {
 	int String::Compare (const String & other) const {
 	
 		return Collator(GetLocale()).Compare(begin(),end(),other.begin(),other.end());
+	
+	}
+	
+	
+	String & String::operator << (const String & str) & {
+	
+		cps.insert(
+			cps.end(),
+			str.cps.begin(),
+			str.cps.end()
+		);
+		
+		return *this;
+	
+	}
+	
+	
+	String & String::operator << (CodePoint cp) & {
+	
+		cps.push_back(cp);
+		
+		return *this;
 	
 	}
 

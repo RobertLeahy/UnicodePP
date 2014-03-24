@@ -13,9 +13,10 @@ namespace Unicode {
 
 
 	/**
-	 *	The UTF-8 multi-byte encoding.
+	 *	An encoder/decoder which transforms Unicode text
+	 *	as best as possible between Unicode and ASCII.
 	 */
-	class UTF8 : public Encoding {
+	class ASCII : public Encoding {
 	
 	
 		protected:
@@ -32,29 +33,17 @@ namespace Unicode {
 				const unsigned char * end,
 				std::optional<Unicode::Endianness> order
 			) const override;
-	
-	
+			
+			
 		public:
 		
 		
-			/**
-			 *	The type of code unit used by this
-			 *	encoder.
-			 */
 			typedef unsigned char CodeUnit;
-		
-		
-			/**
-			 *	Creates a new UTF8 encoder/decoder.
-			 *
-			 *	By default UTF8 encoder/decoders do not
-			 *	detect or output a byte order mark, as
-			 *	recommended by the Unicode consortium.
-			 */
-			UTF8 () noexcept;
 			
 			
-			virtual ByteOrderMark BOM () const noexcept override;
+			ASCII () noexcept;
+			
+			
 			virtual bool CanRepresent (CodePoint) const noexcept override;
 			virtual std::size_t Count (CodePoint) const noexcept override;
 			virtual std::size_t Size () const noexcept;

@@ -55,10 +55,10 @@ namespace Unicode {
 	
 	
 	std::optional<EncodingErrorType> UTF16::Decoder (
-		std::vector<CodePoint> & cps,
+		CodePoint & cp,
 		const unsigned char * & begin,
 		const unsigned char * end,
-		std::optional<Endianness> order
+		std::optional<Unicode::Endianness> order
 	) const {
 	
 		//	If we weren't given a detected byte
@@ -92,14 +92,20 @@ namespace Unicode {
 			
 			//	If the trail surrogate isn't actually a trail
 			//	surrogate, we die
-			if (!is_trail(*trail)) return EncodingErrorType::Strict;
+			if (!is_trail(*trail)) {
+			
+				begin-=sizeof(CodeUnit);
+				return EncodingErrorType::Strict;
+				
+			}
 			
 			//	Join the surrogates
-			auto cp=static_cast<CodePoint::Type>(*lead-0xD800);
-			cp<<=10;
-			cp|=*trail-0xDC00;
+			auto c=static_cast<CodePoint::Type>(*lead-0xD800);
+			c<<=10;
+			c|=*trail-0xDC00;
+			c+=0x10000;
 			
-			cps.push_back(cp);
+			cp=c;
 			
 			return std::nullopt;
 		
@@ -111,7 +117,7 @@ namespace Unicode {
 		if (is_trail(*lead)) return EncodingErrorType::Strict;
 		
 		//	The code unit is literally the code point
-		cps.push_back(static_cast<CodePoint::Type>(*lead));
+		cp=static_cast<CodePoint::Type>(*lead);
 		
 		return std::nullopt;
 	
@@ -125,7 +131,17 @@ namespace Unicode {
 	}
 	
 	
+	static bool is_surrogate (CodePoint cp) noexcept {
+	
+		return (cp>=0xD800U) && (cp<=0xDFFFU);
+	
+	}
+	
+	
 	bool UTF16::CanRepresent (CodePoint cp) const noexcept {
+	
+		//	UTF-16 can't represent surrogates
+		if (is_surrogate(cp)) return false;
 	
 		return cp<=CodePoint::Max;
 	
@@ -134,10 +150,20 @@ namespace Unicode {
 	
 	std::size_t UTF16::Count (CodePoint cp) const noexcept {
 	
+		//	UTF-16 can't represent surrogates
+		if (is_surrogate(cp)) return 0;
+	
 		if (cp<=0xFFFF) return 1;
 		if (cp<=CodePoint::Max) return 2;
 		
 		return 0;
+	
+	}
+	
+	
+	std::size_t UTF16::Size () const noexcept {
+	
+		return sizeof(CodeUnit);
 	
 	}
 

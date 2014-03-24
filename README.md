@@ -22,4 +22,5 @@ Dependencies
 
 Compiler Support
 ----------------
+- Clang 3.4 (perhaps earlier, untested)
 - GCC 4.8.1, 4.8.2, and 4.9 (4.8.0 not supported due to lack of support for `[[noreturn]]` and ref qualifiers)
