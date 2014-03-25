@@ -4,17 +4,23 @@
 
 
 namespace Unicode {
-
-
-	static std::vector<
-		std::pair<
-			std::size_t,
-			const RegexParser *
-		>
-	> parsers;
+	
+	
+	typedef std::vector<std::pair<std::size_t,const RegexParser *>> parsers_type;
+	
+	
+	static parsers_type & get_parsers () {
+	
+		static parsers_type parsers;
+		
+		return parsers;
+	
+	}
 	
 	
 	void RegexCompiler::Add (const RegexParser & parser, std::size_t priority) {
+	
+		auto & parsers=get_parsers();
 	
 		//	Find insertion point
 		auto begin=parsers.begin();
@@ -34,6 +40,7 @@ namespace Unicode {
 	
 		Pattern pattern;
 		const RegexParser * last=nullptr;
+		auto & parsers=get_parsers();
 		
 		//	Loop over each code point in the input string
 		while (begin!=end) {
