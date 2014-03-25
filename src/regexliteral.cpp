@@ -1,6 +1,7 @@
 #include <unicode/codepoint.hpp>
 #include <unicode/regex.hpp>
 #include <unicode/regexcompiler.hpp>
+#include <limits>
 
 
 namespace Unicode {
@@ -77,7 +78,7 @@ namespace Unicode {
 	}
 	
 	
-	static RegexParserInstaller<RegexLiteralParser> installer;
+	static RegexParserInstaller<RegexLiteralParser> installer(std::numeric_limits<std::size_t>::max());
 
 
 }
