@@ -243,7 +243,7 @@ namespace Unicode {
 			String & operator = (std::vector<CodePoint> cps) noexcept {
 			
 				locale=nullptr;
-				cps=std::move(cps);
+				this->cps=std::move(cps);
 				
 				return *this;
 			
