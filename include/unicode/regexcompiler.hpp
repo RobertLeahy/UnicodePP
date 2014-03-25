@@ -181,6 +181,18 @@ namespace Unicode {
 				RegexCompiler::Add(parser);
 			
 			}
+			/**
+			 *	Installs a parser of type \em T with a certain
+			 *	priority.
+			 *
+			 *	\param [in] priority
+			 *		The priority.
+			 */
+			RegexParserInstaller (std::size_t priority) {
+			
+				RegexCompiler::Add(parser,priority);
+			
+			}
 			
 			
 			RegexParserInstaller (const RegexParserInstaller &) = delete;
