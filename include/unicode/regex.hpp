@@ -132,6 +132,14 @@ namespace Unicode {
 			Regex (const CodePoint * begin, const CodePoint * end, RegexOptions options=RegexOptions::None, const Locale & locale=Locale::Get());
 			
 			
+			/**
+			 *	Obtains a vector of RegexToString objects which
+			 *	may be formatted to obtain a string representation
+			 *	of this regular expression.
+			 *
+			 *	\return
+			 *		A vector of RegexToString objects.
+			 */
 			std::vector<RegexToString> ToString () const;
 	
 	
