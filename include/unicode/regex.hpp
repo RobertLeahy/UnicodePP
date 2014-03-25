@@ -130,6 +130,9 @@ namespace Unicode {
 			 *		Defaults to the current locale.
 			 */
 			Regex (const CodePoint * begin, const CodePoint * end, RegexOptions options=RegexOptions::None, const Locale & locale=Locale::Get());
+			
+			
+			std::vector<RegexToString> ToString () const;
 	
 	
 	};

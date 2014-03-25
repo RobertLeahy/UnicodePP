@@ -23,6 +23,16 @@ namespace Unicode {
 				locale
 			))
 	{	}
+	
+	
+	std::vector<RegexToString> Regex::ToString () const {
+	
+		std::vector<RegexToString> retr;
+		for (auto & element : pattern) retr.push_back(element->ToString());
+		
+		return retr;
+	
+	}
 
 
 }
