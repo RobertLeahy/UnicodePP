@@ -27,7 +27,10 @@ namespace Unicode {
 				
 				virtual RegexToString ToString () const override {
 				
-					return RegexToString{};
+					RegexToString retr;
+					retr.Parent << "The literal string: \"" << cps << "\"";
+					
+					return retr;
 				
 				}
 				
