@@ -35,7 +35,7 @@ namespace Unicode {
 			) const noexcept;
 			
 			
-			const Array<CodePoint::Type> * get_best (
+			std::optional<Array<CodePoint>> get_best (
 				const CodePoint *,
 				const CodePoint *,
 				const CodePoint *,
@@ -43,38 +43,24 @@ namespace Unicode {
 			) const noexcept;
 			
 			
-			bool get_full (
-				std::vector<CodePoint> &,
+			Array<CodePoint> get (
 				const CodePoint *,
 				const CodePoint *,
 				const CodePoint *,
-				const Array<CaseMapping> &
-			) const;
-			
-			
-			void impl (
-				std::vector<CodePoint> &,
-				const CodePoint *,
-				const CodePoint *,
-				const CodePoint *,
-				Array<CaseMapping> (CodePointInfo::*),
-				std::optional<CodePoint::Type> (CodePointInfo::*)
-			) const;
+				std::optional<CodePoint::Type> (CodePointInfo::*),
+				Array<CaseMapping> (CodePointInfo::*)
+			) const noexcept;
 			
 			
 			std::vector<CodePoint> impl (
 				const CodePoint *,
 				const CodePoint *,
-				Array<CaseMapping> (CodePointInfo::*),
-				std::optional<CodePoint::Type> (CodePointInfo::*)
+				std::optional<CodePoint::Type> (CodePointInfo::*),
+				Array<CaseMapping> (CodePointInfo::*)
 			) const;
 			
 			
 			bool folding_normalization_check (CodePoint) const noexcept;
-			
-			
-			bool folding_requires_normalization (const CodePoint *, const CodePoint *) const noexcept;
-			bool uppercasing_requires_normalization (const CodePoint *, const CodePoint *) const noexcept;
 			
 			
 		public:
@@ -112,6 +98,150 @@ namespace Unicode {
 			 *		Defaults to \em true.
 			 */
 			explicit CaseConverter (const Locale & locale=Locale::Get(), bool full=true) noexcept : locale(locale), Full(full) {	}
+			
+			
+			/**
+			 *	Strings which contain COMBINING GREEK
+			 *	YPOGEGRAMMENI (U+0345) must be transformed
+			 *	to Normal Form Canonical Composition before
+			 *	being uppercased.
+			 *
+			 *	This method detects this.
+			 *
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the string.
+			 *	\param [in] end
+			 *		An iterator to the end of the string.
+			 *
+			 *	\return
+			 *		\em true if the string bounded by \em begin
+			 *		and \em end must be normalized before uppercasing.
+			 *		\em false otherwise.
+			 */
+			bool UppercasingRequiresNormalization (const CodePoint * begin, const CodePoint * end) const noexcept;
+			/**
+			 *	Strings which contain code points which contain
+			 *	COMBINING GREEK YPOGEGRAMMENI (U+0345), or any
+			 *	code points which contain COMBINING GREEK
+			 *	YPOGEGRAMMENI (U+0345) as part of their canonical
+			 *	decomposition must be transformed to Normal Form
+			 *	Canonical Decomposition before being case folded.
+			 *
+			 *	This method detects this.
+			 *
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the string.
+			 *	\param [in] end
+			 *		An iterator to the end of the string.
+			 *
+			 *	\return
+			 *		\em true if the string bounded by \em begin
+			 *		and \em end must be normalized before case
+			 *		folding.  \em false otherwise.
+			 */
+			bool CaseFoldingRequiresNormalization (const CodePoint * begin, const CodePoint * end) const noexcept;
+			
+			
+			/**
+			 *	Converts a particular character in a particular
+			 *	context to lowercase.
+			 *
+			 *	The returned array may point to \em loc, so it is
+			 *	not safe to persist the returned array when \em loc
+			 *	is no longer valid.
+			 *
+			 *	\param [in] loc
+			 *		The code point in question.
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the string which
+			 *		contains \em loc.
+			 *	\param [in] end
+			 *		An iterator to the end of the string which contains
+			 *		\em loc.
+			 *
+			 *	\return
+			 *		An array containing the code point or code points
+			 *		which are the result of lowercasing the code point
+			 *		pointed to by \em loc.
+			 */
+			Array<CodePoint> ToLower (const CodePoint * loc, const CodePoint * begin, const CodePoint * end) const noexcept;
+			/**
+			 *	Converts a particular character in a particular
+			 *	context to titlecase.
+			 *
+			 *	The returned array may point to \em loc, so it is
+			 *	not safe to persist the returned array when \em loc
+			 *	is no longer valid.
+			 *
+			 *	\param [in] loc
+			 *		The code point in question.
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the string which
+			 *		contains \em loc.
+			 *	\param [in] end
+			 *		An iterator to the end of the string which contains
+			 *		\em loc.
+			 *
+			 *	\return
+			 *		An array containing the code point or code points
+			 *		which are the result of titlecasing the code point
+			 *		pointed to by \em loc.
+			 */
+			Array<CodePoint> ToTitle (const CodePoint * loc, const CodePoint * begin, const CodePoint * end) const noexcept;
+			/**
+			 *	Converts a particular character in a particular
+			 *	context to uppercase.
+			 *
+			 *	It is assumed that the string bounded by \em begin
+			 *	and \em end is in the proper normalization form for
+			 *	uppercasing.
+			 *
+			 *	The returned array may point to \em loc, so it is
+			 *	not safe to persist the returned array when \em loc
+			 *	is no longer valid.
+			 *
+			 *	\param [in] loc
+			 *		The code point in question.
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the string which
+			 *		contains \em loc.
+			 *	\param [in] end
+			 *		An iterator to the end of the string which contains
+			 *		\em loc.
+			 *
+			 *	\return
+			 *		An array containing the code point or code points
+			 *		which are the result of uppercasing the code point
+			 *		pointed to by \em loc.
+			 */
+			Array<CodePoint> ToUpper (const CodePoint * loc, const CodePoint * begin, const CodePoint * end) const noexcept;
+			/**
+			 *	Case folds a particular character in a particular
+			 *	context.
+			 *
+			 *	It is assumed that the string bounded by \em begin
+			 *	and \em end is in the proper normalization form for
+			 *	case folding.
+			 *
+			 *	The returned array may point to \em loc, so it is
+			 *	not safe to persist the returned array when \em loc
+			 *	is no longer valid.
+			 *
+			 *	\param [in] loc
+			 *		The code point in question.
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the string which
+			 *		contains \em loc.
+			 *	\param [in] end
+			 *		An iterator to the end of the string which contains
+			 *		\em loc.
+			 *
+			 *	\return
+			 *		An array containing the code point or code points
+			 *		which are the result of case folding the code point
+			 *		pointed to by \em loc.
+			 */
+			Array<CodePoint> Fold (const CodePoint * loc, const CodePoint * begin, const CodePoint * end) const noexcept;
 			
 			
 			/**
