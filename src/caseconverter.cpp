@@ -21,9 +21,19 @@ namespace Unicode {
 		return true;
 	
 	}
+	
+	
+	static Array<CodePoint> to_array (const void * ptr, std::size_t size) noexcept {
+	
+		return Array<CodePoint>(
+			reinterpret_cast<const CodePoint *>(ptr),
+			size
+		);
+	
+	}
 
 
-	const Array<CodePoint::Type> * CaseConverter::get_best (
+	std::optional<Array<CodePoint>> CaseConverter::get_best (
 		const CodePoint * loc,
 		const CodePoint * begin,
 		const CodePoint * end,
@@ -37,19 +47,22 @@ namespace Unicode {
 		//	we arbitrarily choose to go with the earliest
 		//	such mapping
 		
-		const Array<CodePoint::Type> * best=nullptr;
+		std::optional<Array<CodePoint>> best;
 		std::size_t count=0;
 		for (auto & mapping : arr) {
 		
 			if (
 				matches(loc,begin,end,mapping.Conditions) &&
 				(
-					(best==nullptr) ||
+					!best ||
 					(mapping.Conditions.size()>count)
 				)
 			) {
 			
-				best=&mapping.Mapping;
+				best=to_array(
+					mapping.Mapping.begin(),
+					mapping.Mapping.Size
+				);
 				count=mapping.Conditions.size();
 			
 			}
@@ -59,65 +72,28 @@ namespace Unicode {
 		return best;
 	
 	}
-
-
-	bool CaseConverter::get_full (
-		std::vector<CodePoint> & vec,
+	
+	
+	Array<CodePoint> CaseConverter::get (
 		const CodePoint * loc,
 		const CodePoint * begin,
 		const CodePoint * end,
-		const Array<CaseMapping> & arr
-	) const {
+		std::optional<CodePoint::Type> (CodePointInfo::* simple),
+		Array<CaseMapping> (CodePointInfo::* full)
+	) const noexcept {
 	
-		auto mapping=get_best(loc,begin,end,arr);
-		if (mapping==nullptr) return false;
+		auto cpi=loc->GetInfo(locale);
+		if (cpi==nullptr) return Array<CodePoint>(loc,1);
 		
-		for (auto cp : *mapping) vec.push_back(cp);
+		if (Full) {
 		
-		return true;
-	
-	}
-
-
-	void CaseConverter::impl (
-		std::vector<CodePoint> & vec,
-		const CodePoint * loc,
-		const CodePoint * begin,
-		const CodePoint * end,
-		Array<CaseMapping> (CodePointInfo::* full),
-		std::optional<CodePoint::Type> (CodePointInfo::* simple)
-	) const {
-	
-		//	Look up this code point
-		auto cpi=locale.GetInfo(*loc);
-		//	If there's no entry, just copy this
-		//	code point untouched
-		if (cpi==nullptr) {
-		
-			vec.push_back(*loc);
-			
-			return;
+			auto mapping=get_best(loc,begin,end,cpi->*full);
+			if (mapping) return *mapping;
 		
 		}
 		
-		//	If full case mappings/foldings are being
-		//	performed, attempt
-		if (
-			Full &&
-			get_full(
-				vec,
-				loc,
-				begin,
-				end,
-				cpi->*full
-			)
-		) return;
-		
-		//	Fall back to simple case mappings/foldings
-		
 		auto & mapping=cpi->*simple;
-		if (mapping) vec.push_back(*mapping);
-		else vec.push_back(*loc);
+		return mapping ? to_array(&(*mapping),1) : Array<CodePoint>(loc,1);
 	
 	}
 	
@@ -125,19 +101,16 @@ namespace Unicode {
 	std::vector<CodePoint> CaseConverter::impl (
 		const CodePoint * begin,
 		const CodePoint * end,
-		Array<CaseMapping> (CodePointInfo::* full),
-		std::optional<CodePoint::Type> (CodePointInfo::* simple)
+		std::optional<CodePoint::Type> (CodePointInfo::* simple),
+		Array<CaseMapping> (CodePointInfo::* full)
 	) const {
 	
 		std::vector<CodePoint> retr;
-		for (auto loc=begin;loc!=end;++loc) impl(
-			retr,
-			loc,
-			begin,
-			end,
-			full,
-			simple
-		);
+		for (auto loc=begin;loc!=end;++loc) {
+		
+			for (auto cp : get(loc,begin,end,simple,full)) retr.push_back(cp);
+		
+		}
 		
 		return retr;
 	
@@ -158,17 +131,69 @@ namespace Unicode {
 	}
 	
 	
-	bool CaseConverter::folding_requires_normalization (const CodePoint * begin, const CodePoint * end) const noexcept {
+	bool CaseConverter::UppercasingRequiresNormalization (const CodePoint * begin, const CodePoint * end) const noexcept {
+	
+		return std::find_if(begin,end,[&] (CodePoint cp) noexcept { return cp==0x345;	})!=end;
+	
+	}
+	
+	
+	bool CaseConverter::CaseFoldingRequiresNormalization (const CodePoint * begin, const CodePoint * end) const noexcept {
 	
 		return std::find_if(begin,end,[&] (CodePoint cp) noexcept {	return folding_normalization_check(cp);	})!=end;
 	
 	}
 	
 	
-	bool CaseConverter::uppercasing_requires_normalization (const CodePoint * begin, const CodePoint * end) const noexcept {
+	Array<CodePoint> CaseConverter::ToLower (const CodePoint * loc, const CodePoint * begin, const CodePoint * end) const noexcept {
 	
-		return std::find_if(begin,end,[&] (CodePoint cp) noexcept { return cp==0x345;	})!=end;
+		return get(
+			loc,
+			begin,
+			end,
+			&CodePointInfo::SimpleLowercaseMapping,
+			&CodePointInfo::LowercaseMappings
+		);
+		
+	}
 	
+	
+	Array<CodePoint> CaseConverter::ToTitle (const CodePoint * loc, const CodePoint * begin, const CodePoint * end) const noexcept {
+	
+		return get(
+			loc,
+			begin,
+			end,
+			&CodePointInfo::SimpleTitlecaseMapping,
+			&CodePointInfo::TitlecaseMappings
+		);
+		
+	}
+	
+	
+	Array<CodePoint> CaseConverter::ToUpper (const CodePoint * loc, const CodePoint * begin, const CodePoint * end) const noexcept {
+	
+		return get(
+			loc,
+			begin,
+			end,
+			&CodePointInfo::SimpleUppercaseMapping,
+			&CodePointInfo::UppercaseMappings
+		);
+		
+	}
+	
+	
+	Array<CodePoint> CaseConverter::Fold (const CodePoint * loc, const CodePoint * begin, const CodePoint * end) const noexcept {
+	
+		return get(
+			loc,
+			begin,
+			end,
+			&CodePointInfo::SimpleCaseFolding,
+			&CodePointInfo::CaseFoldings
+		);
+		
 	}
 	
 	
@@ -177,8 +202,8 @@ namespace Unicode {
 		return impl(
 			begin,
 			end,
-			&CodePointInfo::LowercaseMappings,
-			&CodePointInfo::SimpleLowercaseMapping
+			&CodePointInfo::SimpleLowercaseMapping,
+			&CodePointInfo::LowercaseMappings
 		);
 	
 	}
@@ -189,7 +214,7 @@ namespace Unicode {
 		//	In certain cases normalization is required before
 		//	uppercasing, check if this is one of those cases
 		std::optional<std::vector<CodePoint>> normalized;
-		if (uppercasing_requires_normalization(begin,end)) {
+		if (UppercasingRequiresNormalization(begin,end)) {
 		
 			Normalizer n(locale);
 			normalized=n.ToNFC(begin,end);
@@ -202,8 +227,8 @@ namespace Unicode {
 		return impl(
 			begin,
 			end,
-			&CodePointInfo::UppercaseMappings,
-			&CodePointInfo::SimpleUppercaseMapping
+			&CodePointInfo::SimpleUppercaseMapping,
+			&CodePointInfo::UppercaseMappings
 		);
 	
 	}
@@ -215,7 +240,7 @@ namespace Unicode {
 		//	before case folding, check if this is one
 		//	of those cases
 		std::optional<std::vector<CodePoint>> normalized;
-		if (folding_requires_normalization(begin,end)) {
+		if (CaseFoldingRequiresNormalization(begin,end)) {
 			
 			Normalizer n(locale);
 			normalized=n.ToNFD(begin,end);
@@ -228,8 +253,8 @@ namespace Unicode {
 		return impl(
 			begin,
 			end,
-			&CodePointInfo::CaseFoldings,
-			&CodePointInfo::SimpleCaseFolding
+			&CodePointInfo::SimpleCaseFolding,
+			&CodePointInfo::CaseFoldings
 		);
 	
 	}
