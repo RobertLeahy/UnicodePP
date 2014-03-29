@@ -154,8 +154,7 @@ namespace Unicode {
 	
 	
 	/**
-	 *	When constructed as a global object, installs a certain
-	 *	type of RegexParser into the RegexCompiler.
+	 *	When constructed, installs a certain type of RegexParser.
 	 *
 	 *	\tparam T
 	 *		The type of RegexParser to install.
