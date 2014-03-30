@@ -111,43 +111,88 @@ namespace Unicode {
 			 *	derived class.
 			 */
 			virtual ~RegexParser () noexcept;
-		
-		
+			
+			
 			/**
-			 *	Parses a pattern element or elements from a certain
-			 *	location in a regular expression.
+			 *	Attempts to parse a pattern element at a certain
+			 *	point in a string.
 			 *
-			 *	\param [in,out] pattern
-			 *		The pattern.
-			 *	\param [in] successive
-			 *		\em true if the last successful parse for this
-			 *		regular expression was made by this parser,
-			 *		\em false otherwise.
 			 *	\param [in,out] begin
-			 *		A reference to an iterator to the current location
-			 *		within the pattern.
+			 *		An iterator to the current location in the
+			 *		string.  The parser should advance this iterator
+			 *		as it consumes code points.  If the parser fails
+			 *		to do so, it will be automatically advanced one
+			 *		position.  Guaranteed not to be equal to \em end.
 			 *	\param [in] end
-			 *		An iterator to the end of the pattern.  Guaranteed
-			 *		not to be equal to \em begin.
+			 *		An iterator to the end of the string.
 			 *	\param [in] options
-			 *		The options that are set at this location within
-			 *		the pattern.
+			 *		The RegexOptions currently in effect.
 			 *	\param [in] locale
-			 *		The locale that is set at this location within the
-			 *		pattern.
+			 *		The current locale.
 			 *
 			 *	\return
-			 *		\em true if this element successfully parsed at the
-			 *		given location, \em false otherwise.
+			 *		A std::unique_ptr to a RegexPatternElement if
+			 *		parsing was successful, a null std::unique_ptr
+			 *		otherwise.
 			 */
-			virtual bool operator () (
-				RegexCompiler::Pattern & pattern,
-				bool successive,
+			virtual RegexCompiler::Element operator () (
 				const CodePoint * & begin,
 				const CodePoint * end,
 				RegexOptions options,
 				const Locale & locale
 			) const = 0;
+			
+			
+			/**
+			 *	Attempts to continue parsing a pattern element at a
+			 *	certain point in a string.
+			 *
+			 *	This method will be invoked only when this parser is
+			 *	being invoked at a point in the string immediately
+			 *	following a point at which it successfully parsed a
+			 *	pattern element.
+			 *
+			 *	Default implementation unconditionally returns
+			 *	\em false.
+			 *
+			 *	\param [in,out] element
+			 *		A reference to the pattern element this parser
+			 *		previously produced.
+			 *	\param [in,out] begin
+			 *		An iterator to the current location in the
+			 *		string.  The parser should advance this iterator
+			 *		as it consumes code points.  If the parser fails
+			 *		to do so, it will be automatically advanced one
+			 *		position.  Guaranteed not to be equal to \em end.
+			 *	\param [in] end
+			 *		An iterator to the end of the string.
+			 *
+			 *	\return
+			 *		\em true if parsing was successful, \em false
+			 *		otherwise.  If \em false is returned the compiler
+			 *		will try and obtain a new pattern element by calling
+			 *		the other overload.
+			 */
+			virtual bool operator () (
+				RegexPatternElement & element,
+				const CodePoint * & begin,
+				const CodePoint * end
+			) const;
+			
+			
+			/**
+			 *	Completes a pattern element.
+			 *
+			 *	By default is called when a different parser is selected
+			 *	to parse at a point immediately after this parser produced
+			 *	\em element.
+			 *
+			 *	Default implementation does nothing.
+			 *
+			 *	\param [in,out] element
+			 *		A reference to the element to complete.
+			 */
+			virtual void Complete (RegexPatternElement & element) const;
 	
 	
 	};

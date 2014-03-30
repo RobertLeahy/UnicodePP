@@ -38,8 +38,11 @@ namespace Unicode {
 		const Locale & locale
 	) const {
 	
+		//	The pattern that is being compiled
 		Pattern pattern;
+		//	The last type of pattern element invoked
 		const RegexParser * last=nullptr;
+		//	The list of parsers
 		auto & parsers=get_parsers();
 		
 		//	Loop over each code point in the input string
@@ -50,42 +53,55 @@ namespace Unicode {
 			//	element
 			auto start=begin;
 			
-			//	Loop over each pattern element
+			//	Loop over each parser
 			for (auto & pair : parsers) {
 			
-				//	Attempt to parse
-				if ((*(pair.second))(
-					pattern,
-					last==pair.second,
-					begin,
-					end,
-					options,
-					locale
-				)) {
+				//	The current parser
+				auto & parser=*(pair.second);
 				
-					//	Parse successful
+				//	Attempt to parse using the preceding
+				//	pattern element if this is the same type
+				//	of parser as was used previously
+				bool parsed=(pair.second==last) && parser(*(pattern.back().get()),begin,end);
+				//	If parsing above failed or was not performed,
+				//	perform a regular parse -- i.e. attempt to create
+				//	a new pattern element
+				if (!parsed) {
+				
+					auto element=parser(begin,end,options,locale);
+					if (element) {
 					
-					//	Advance iterator if the parser didn't do it
-					if (start==begin) ++begin;
+						//	If applicable, complete last pattern element
+						if (last!=nullptr) last->Complete(*(pattern.back().get()));
 					
-					//	Set last parser to this parser
+						//	Add newly-parsed pattern element
+						parsed=true;
+						pattern.push_back(std::move(element));
+					
+					}
+				
+				}
+				
+				//	If parsing was successful, perform cleanup
+				//	and stop looping
+				if (parsed) {
+				
 					last=pair.second;
+					//	Advance to next code point if parser
+					//	failed to do so, to avoid possible
+					//	infinite loop
+					if (begin==start) ++begin;
 					
-					//	Advance to next iteration
 					break;
 				
 				}
 				
-				//	Parse failed
-				
-				//	Rewind to start point
+				//	Otherwise rewind and continue
 				begin=start;
 			
 			}
 			
-			//	Was anything parsed?
-			//
-			//	If not, throw
+			//	If nothing was parsed, throw
 			if (start==begin) {
 			
 				//	TODO: Throw
@@ -93,6 +109,9 @@ namespace Unicode {
 			}
 		
 		}
+		
+		//	Complete the last pattern element
+		if (last!=nullptr) last->Complete(*(pattern.back().get()));
 		
 		return pattern;
 	
