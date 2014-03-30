@@ -128,6 +128,13 @@ namespace Unicode {
 		return a;
 	
 	}
+	
+	
+	inline bool Check (RegexOptions options, RegexOptions check) noexcept {
+	
+		return (options&check)==check;
+	
+	}
 
 
 }
