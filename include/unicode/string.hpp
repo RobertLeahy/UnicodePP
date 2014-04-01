@@ -12,6 +12,7 @@
 #include <unicode/vector.hpp>
 #include <cstddef>
 #include <functional>
+#include <optional>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -652,6 +653,78 @@ namespace Unicode {
 					reinterpret_cast<const type *>(Begin(vec)),
 					reinterpret_cast<const type *>(End(vec))
 				);
+			
+			}
+			
+			
+			/**
+			 *	Converts this string to an arbitrary type by using
+			 *	the Converter template.
+			 *
+			 *	Throws on failure.
+			 *
+			 *	\tparam T
+			 *		The type to convert this string to.
+			 *	\tparam Args
+			 *		The types of the arguments to forward through
+			 *		to the converter.
+			 *
+			 *	\param [in] args
+			 *		The arguments of types \em Args to forward through
+			 *		to the converter.
+			 *
+			 *	\return
+			 *		The result of converting this string to type \em T.
+			 */
+			template <typename T, typename... Args>
+			T Convert (Args &&... args) const noexcept(
+				noexcept(
+					Converter<decay<T>>(std::declval<const Locale &>())(
+						std::declval<const CodePoint *>(),
+						std::declval<const CodePoint *>(),
+						std::forward<Args>(args)...
+					)
+				)
+			) {
+			
+				return Converter<decay<T>>(GetLocale())(
+					begin(),
+					end(),
+					std::forward<Args>(args)...
+				);
+			
+			}
+			
+			
+			/**
+			 *	Converts this string to an arbitrary type by using
+			 *	the Converter template.
+			 *
+			 *	\tparam T
+			 *		The type to convert this string to.
+			 *	\tparam Args
+			 *		The types of the arguments to forward through
+			 *		to the converter.
+			 *
+			 *	\param [in] args
+			 *		The arguments of types \em Args to forward through
+			 *		to the converter.
+			 *
+			 *	\return
+			 *		An engaged optional containing the result of converting
+			 *		this string to type \em T, if the conversion
+			 *		was successful, a disengaged optional otherwise.
+			 */
+			template <typename T, typename... Args>
+			std::optional<T> To (Args &&... args) const noexcept {
+			
+				try {
+				
+					return Convert<T>(std::forward<Args>(args)...);
+					
+				} catch (...) {	}
+				
+				return std::nullopt;
 			
 			}
 			
