@@ -32,7 +32,6 @@ obj/regexerror.o \
 obj/regexliteral.o \
 obj/regexparser.o \
 obj/regexpatternelement.o \
-obj/regexpatternelementstate.o \
 obj/string.o \
 obj/ucs2.o \
 obj/utf8.o \

@@ -41,27 +41,6 @@ namespace Unicode {
 	
 	
 	};
-	
-	
-	/**
-	 *	A base class which may be derived from to create
-	 *	custom states for pattern elements which will be
-	 *	available to them during pattern matching.
-	 */
-	class RegexPatternElementState {
-	
-	
-		public:
-		
-		
-			/**
-			 *	Polymorphically cleans up all resources held by
-			 *	this RegexPatternElementState.
-			 */
-			virtual ~RegexPatternElementState () noexcept;
-	
-	
-	};
 
 
 	/**
