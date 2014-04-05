@@ -3040,6 +3040,32 @@ SCENARIO("Strings may be constructed","[string]") {
 	
 	}
 
+	GIVEN("An array of code points") {
+	
+		CodePoint cps []={'H','e','l','l','o','\0'};
+		
+		THEN("A string may be constructed from a begin and end iterator") {
+		
+			String s(std::begin(cps),std::end(cps)-1);
+			REQUIRE(IsEqual(s,cps));
+		
+		}
+	
+	}
+	
+	GIVEN("An array of integral type which is convertible to CodePoint") {
+	
+		int cps []={'H','e','l','l','o','\0'};
+		
+		THEN("A string may be constructed from a begin and end iterator") {
+		
+			String s(std::begin(cps),std::end(cps)-1);
+			REQUIRE(IsEqual(s,cps));
+		
+		}
+	
+	}
+	
 	GIVEN("A C string containing only ASCII characters") {
 	
 		auto c_str="hello world";

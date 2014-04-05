@@ -219,6 +219,39 @@ namespace Unicode {
 			 *		The locale to use.
 			 */
 			String (std::vector<CodePoint> cps, const Locale & locale) noexcept : cps(std::move(cps)), locale(&locale) {	}
+			/**
+			 *	Creates a new string containing a sequence of
+			 *	Unicode code points extracted from a range.
+			 *
+			 *	\tparam Iterator
+			 *		The type of iterator that delimits the
+			 *		range.
+			 *
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the range.
+			 *	\param [in] end
+			 *		An iterator to the end of the range.
+			 */
+			template <typename Iterator>
+			String (Iterator begin, Iterator end) : cps(std::move(begin),std::move(end)), locale(nullptr) {	}
+			/**
+			 *	Creates a new string containing a sequence of
+			 *	Unicode code points extracted from a range, and
+			 *	which will use a certain locale for its operations.
+			 *
+			 *	\tparam Iterator
+			 *		The type of iterator that delimits the
+			 *		range.
+			 *
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the range.
+			 *	\param [in] end
+			 *		An iterator to the end of the range.
+			 *	\param [in] locale
+			 *		The locale to use.
+			 */
+			template <typename Iterator>
+			String (Iterator begin, Iterator end, const Locale & locale) : cps(std::move(begin),std::move(end)), locale(&locale) {	}
 			
 			
 			String (const String &) = default;
