@@ -1,11 +1,13 @@
 #include <unicode/caseconverter.hpp>
 #include <unicode/codepoint.hpp>
+#include <unicode/makereverseiterator.hpp>
 #include <unicode/regex.hpp>
 #include <unicode/regexcompiler.hpp>
 #include <unicode/vector.hpp>
 #include <cstddef>
 #include <limits>
 #include <optional>
+#include <utility>
 
 
 namespace Unicode {
@@ -21,12 +23,104 @@ namespace Unicode {
 			
 			
 				std::vector<CodePoint> cps;
+				
+				
+				template <typename Iterator>
+				static bool case_sensitive_check (Iterator begin, Iterator end, RegexState & state) noexcept {
+				
+					for (;begin!=end;++begin,++state) {
+					
+						if (!(state && (*state==*begin))) return false;
+					
+					}
+					
+					return true;
+				
+				}
+				
+				
+				template <typename Iterator1, typename Iterator2>
+				static bool check (Iterator1 & begin_a, Iterator1 & end_a, Iterator2 begin_b, Iterator2 end_b) noexcept {
+				
+					for (;(begin_a!=end_a) && (begin_b!=end_b);++begin_a,++begin_b) {
+					
+						if (*begin_a!=*begin_b) return false;
+						
+					}
+					
+					return begin_b==end_b;
+				
+				}
+				
+				
+				template <typename Iterator>
+				bool case_insensitive_check (Iterator begin, Iterator end, RegexState & state) const noexcept {
+				
+					auto b=state.Begin();
+					auto e=state.End();
+					CaseConverter cc(Locale);
+					for (;begin!=end;++state) {
+					
+						if (!state) return false;
+					
+						auto folded=cc.Fold(&(*state),b,e);
+						
+						if (!(
+							state.Reversed() ? check(
+								begin,
+								end,
+								MakeReverseIterator(folded.end()),
+								MakeReverseIterator(folded.begin())
+							) : check(
+								begin,
+								end,
+								folded.begin(),
+								folded.end()
+							)
+						)) return false;
+					
+					}
+					
+					return true;
+				
+				}
+				
+				
+				template <typename Iterator>
+				bool check (Iterator begin, Iterator end, RegexState & state) const noexcept {
+				
+					return Check(Options,RegexOptions::IgnoreCase) ? case_insensitive_check(
+						std::move(begin),
+						std::move(end),
+						state
+					) : case_sensitive_check(
+						std::move(begin),
+						std::move(end),
+						state
+					);
+				
+				}
 		
 		
 			public:
 			
 			
 				using RegexPatternElement::RegexPatternElement;
+				
+				
+				virtual bool operator () (RegexState & state, RegexPatternElementState &) const override {
+				
+					return state.Reversed() ? check(
+						MakeReverseIterator(cps.end()),
+						MakeReverseIterator(cps.begin()),
+						state
+					) : check(
+						cps.begin(),
+						cps.end(),
+						state
+					);
+				
+				}
 				
 				
 				virtual RegexToString ToString () const override {
