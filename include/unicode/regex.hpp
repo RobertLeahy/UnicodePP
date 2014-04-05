@@ -432,6 +432,21 @@ namespace Unicode {
 			
 			
 			/**
+			 *	Attempts to match the pattern element.
+			 *
+			 *	\param [in] state
+			 *		The state of the regular expression engine.
+			 *	\param [in] element_state
+			 *		The state specific to this pattern element.
+			 *
+			 *	\return
+			 *		\em true if the match succeeded, \em false
+			 *		otherwise.
+			 */
+			virtual bool operator () (RegexState & state, RegexPatternElementState & element_state) const = 0;
+			
+			
+			/**
 			 *	Obtains a string representation of a pattern
 			 *	element.
 			 *
