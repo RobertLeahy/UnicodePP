@@ -43,7 +43,7 @@ namespace Unicode {
 		ExplicitCapture=8,
 		/**
 		 *	Unescaped white space in the pattern will be ignored,
-		 *	and comments may preced from a number sign to the end
+		 *	and comments may proceed from a number sign to the end
 		 *	of a line.
 		 */
 		IgnorePatternWhitespace=16,
