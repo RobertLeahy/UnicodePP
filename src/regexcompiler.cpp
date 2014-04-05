@@ -44,6 +44,12 @@ namespace Unicode {
 		const RegexParser * last=nullptr;
 		//	The list of parsers
 		auto & parsers=get_parsers();
+		//	The locale that will be used.
+		//
+		//	If the culture invariant flag is set, this
+		//	is always the default locale, otherwise it
+		//	is whatever locale is provided
+		auto & l=Check(options,RegexOptions::CultureInvariant) ? DefaultLocale : locale;
 		
 		//	Loop over each code point in the input string
 		while (begin!=end) {
@@ -68,7 +74,7 @@ namespace Unicode {
 				//	a new pattern element
 				if (!parsed) {
 				
-					auto element=parser(begin,end,options,locale);
+					auto element=parser(begin,end,options,l);
 					if (element) {
 					
 						//	If applicable, complete last pattern element
