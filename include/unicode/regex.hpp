@@ -297,6 +297,111 @@ namespace Unicode {
 	
 	
 	};
+	
+	
+	/**
+	 *	A base class from which state objects specific to
+	 *	a certain type of pattern element may derive.
+	 */
+	class RegexPatternElementPrivateState {
+	
+	
+		public:
+		
+		
+			/**
+			 *	Polymorphically cleans up all resources held
+			 *	by this object.
+			 */
+			virtual ~RegexPatternElementPrivateState () noexcept;
+	
+	
+	};
+	
+	
+	/**
+	 *	The state associated with a certain pattern element
+	 *	during the execution of a regular expression.
+	 */
+	class RegexPatternElementState {
+	
+	
+		private:
+		
+		
+			typedef RegexPatternElementPrivateState state_type;
+			typedef std::unique_ptr<state_type> ptr_type;
+		
+		
+			ptr_type state;
+			
+			
+		public:
+		
+		
+			/**
+			 *	Determines whether or not this state object has
+			 *	been imbued with a private state.
+			 *
+			 *	\return
+			 *		\em true if this state object contains a
+			 *		private state, \em false otherwise.
+			 */
+			operator bool () const noexcept {
+			
+				return static_cast<bool>(state);
+			
+			}
+		
+		
+			/**
+			 *	Retrieves the private state associated with
+			 *	this state object.
+			 *
+			 *	If this state object has not been imbued,
+			 *	results in undefined behaviour.
+			 *
+			 *	\tparam T
+			 *		The type of the private state.  If this
+			 *		type is incorrect, the result is undefined
+			 *		behaviour.
+			 *
+			 *	\return
+			 *		A reference to the private state.
+			 */
+			template <typename T>
+			T & Get () noexcept {
+			
+				return reinterpret_cast<T &>(*state);
+			
+			}
+		
+		
+			/**
+			 *	Imbues this state object with a private state.
+			 *
+			 *	\tparam T
+			 *		The type of the private state.  Must be
+			 *		derived from RegexPatternElementPrivateState.
+			 *
+			 *	\return
+			 *		A reference to the private state.
+			 */
+			template <typename T, typename... Args>
+			T & Imbue (Args &&... args) {
+			
+				state=ptr_type(
+					new state_type(
+						std::forward<Args>(args)...
+					)
+				);
+				
+				return Get<T>();
+			
+			}
+	
+	
+	};
 
 
 	/**
