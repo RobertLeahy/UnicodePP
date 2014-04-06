@@ -295,32 +295,23 @@ namespace Unicode {
 			public:
 			
 			
-				virtual RegexCompiler::Element operator () (
-					const CodePoint * & begin,
-					const CodePoint * end,
-					RegexOptions options,
-					const Locale & locale
-				) const override {
+				virtual RegexCompiler::Element operator () (RegexCompilerState & state) const override {
 				
 					//	This is safe because the constructor for std::unique_ptr
 					//	is noexcept
-					auto ptr=new RegexLiteral(options,locale);
+					auto ptr=new RegexLiteral(state.Options,state.Locale);
 					RegexCompiler::Element retr(ptr);
 					
-					ptr->Add(get(begin,end));
+					ptr->Add(get(state.Begin,state.End));
 					
 					return retr;
 				
 				}
 				
 				
-				virtual bool operator () (
-					RegexPatternElement & element,
-					const CodePoint * & begin,
-					const CodePoint * end
-				) const override {
+				virtual bool operator () (RegexPatternElement & element, RegexCompilerState & state) const override {
 				
-					reinterpret_cast<RegexLiteral &>(element).Add(get(begin,end));
+					reinterpret_cast<RegexLiteral &>(element).Add(get(state.Begin,state.End));
 					
 					return true;
 				

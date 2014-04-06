@@ -44,23 +44,31 @@ namespace Unicode {
 		const RegexParser * last=nullptr;
 		//	The list of parsers
 		auto & parsers=get_parsers();
-		//	The locale that will be used.
-		//
-		//	If the culture invariant flag is set, this
-		//	is always the default locale, otherwise it
-		//	is whatever locale is provided
-		auto & l=Check(options,RegexOptions::CultureInvariant) ? DefaultLocale : locale;
+		//	Prepare the state
+		RegexCompilerState state(
+			begin,
+			end,
+			options,
+			//	If the culture invariant flag is set,
+			//	the default locale is used regardless,
+			//	otherwise whatever locale is provided is
+			//	used
+			Check(options,RegexOptions::CultureInvariant) ? DefaultLocale : locale
+		);
 		
 		//	Loop over each code point in the input string
-		while (begin!=end) {
+		while (state) {
 		
 			//	Track the start point so we can detect the
 			//	case where no parser can generate a pattern
 			//	element
-			auto start=begin;
+			auto start=state.Begin;
 			
 			//	Loop over each parser
 			for (auto & pair : parsers) {
+			
+				//	Make sure the state is clean
+				state.Reset();
 			
 				//	The current parser
 				auto & parser=*(pair.second);
@@ -68,13 +76,16 @@ namespace Unicode {
 				//	Attempt to parse using the preceding
 				//	pattern element if this is the same type
 				//	of parser as was used previously
-				bool parsed=(pair.second==last) && parser(*(pattern.back().get()),begin,end);
+				bool parsed=(pair.second==last) && parser(*(pattern.back().get()),state);
 				//	If parsing above failed or was not performed,
 				//	perform a regular parse -- i.e. attempt to create
 				//	a new pattern element
 				if (!parsed) {
 				
-					auto element=parser(begin,end,options,l);
+					//	Rewind
+					state.Begin=start;
+				
+					auto element=parser(state);
 					if (element) {
 					
 						//	If applicable, complete last pattern element
@@ -90,25 +101,25 @@ namespace Unicode {
 				
 				//	If parsing was successful, perform cleanup
 				//	and stop looping
-				if (parsed) {
+				if (parsed || !state.Fail) {
 				
 					last=pair.second;
 					//	Advance to next code point if parser
 					//	failed to do so, to avoid possible
 					//	infinite loop
-					if (begin==start) ++begin;
+					if (state.Begin==start) ++state.Begin;
 					
 					break;
 				
 				}
 				
 				//	Otherwise rewind and continue
-				begin=start;
+				state.Begin=start;
 			
 			}
 			
-			//	If nothing was parsed, throw
-			if (start==begin) {
+			//	If nothing was consumed, throw
+			if (start==state.Begin) {
 			
 				//	TODO: Throw
 			

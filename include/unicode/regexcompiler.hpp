@@ -9,6 +9,7 @@
 #include <unicode/codepoint.hpp>
 #include <unicode/locale.hpp>
 #include <unicode/regexoptions.hpp>
+#include <cstddef>
 #include <iterator>
 #include <limits>
 #include <memory>
@@ -30,6 +31,208 @@ namespace Unicode {
 	/**
 	 *	\endcond
 	 */
+	 
+	
+	/**
+	 *	Holds the regular expression compiler's internal
+	 *	state.
+	 */
+	class RegexCompilerState {
+		
+		
+		public:
+		
+		
+			/**
+			 *	The current location within the regular expression
+			 *	pattern.
+			 */
+			const CodePoint * Begin;
+			/**
+			 *	The end of the regular expression pattern.
+			 */
+			const CodePoint * const End;
+			/**
+			 *	The options currently set.
+			 */
+			RegexOptions Options;
+			/**
+			 *	The current locale.
+			 */
+			const Unicode::Locale & Locale;
+			/**
+			 *	If \em false, the regular expression compiler will not
+			 *	fail even if a call to a parser fails.
+			 *
+			 *	Defaults to \em true.
+			 */
+			bool Fail;
+			
+			
+			/**
+			 *	Creates a new RegexCompilerState.
+			 *
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the pattern.
+			 *	\param [in] end
+			 *		An iterator to the end of the pattern.
+			 *	\param [in] options
+			 *		The options set for the pattern being compiled.
+			 *	\param [in] locale
+			 *		The locale in which the pattern is being compiled.
+			 */
+			RegexCompilerState (
+				const CodePoint * begin,
+				const CodePoint * end,
+				RegexOptions options,
+				const Unicode::Locale & locale
+			) noexcept
+				:	Begin(begin),
+					End(end),
+					Options(options),
+					Locale(locale),
+					Fail(true)
+			{	}
+			
+			
+			/**
+			 *	Checks to see if the location within the pattern is
+			 *	valid.
+			 *
+			 *	\return
+			 *		\em true if Begin!=End, \em false if Begin==End.
+			 */
+			explicit operator bool () const noexcept {
+			
+				return Begin!=End;
+			
+			}
+			/**
+			 *	Retrieves a reference to the code point at the current
+			 *	location within the pattern.
+			 *
+			 *	\return
+			 *		A reference to a code point.
+			 */
+			const CodePoint & operator * () const noexcept {
+			
+				return *Begin;
+			
+			}
+			/**
+			 *	Retrieves a pointer to the code point at the current
+			 *	location within the pattern.
+			 *
+			 *	\return
+			 *		A pointer to a code point.
+			 */
+			const CodePoint * operator -> () const noexcept {
+			
+				return Begin;
+			
+			}
+			/**
+			 *	Advances the location within the pattern by a certain
+			 *	amount.
+			 *
+			 *	\param [in] dist
+			 *		The number of code points by which the location in
+			 *		the pattern should be advanced.
+			 *
+			 *	\return
+			 *		A reference to this object.
+			 */
+			RegexCompilerState & operator += (std::ptrdiff_t dist) noexcept {
+			
+				Begin+=dist;
+				
+				return *this;
+			
+			}
+			/**
+			 *	Retreats the location within the pattern by a certain
+			 *	amount.
+			 *
+			 *	\param [in] dist
+			 *		The number of code points by which the location in
+			 *		the pattern should retreat.
+			 *
+			 *	\return
+			 *		A reference to this object.
+			 */
+			RegexCompilerState & operator -= (std::ptrdiff_t dist) noexcept {
+			
+				Begin-=dist;
+				
+				return *this;
+			
+			}
+			/**
+			 *	Advances the location within the pattern by one code
+			 *	point.
+			 *
+			 *	\return
+			 *		A reference to this object.
+			 */
+			RegexCompilerState & operator ++ () noexcept {
+			
+				return *this+=1;
+			
+			}
+			/**
+			 *	Retreats the location within the pattern by one code
+			 *	point.
+			 *
+			 *	\return
+			 *		A reference to this object.
+			 */
+			RegexCompilerState & operator -- () noexcept {
+			
+				return *this-=1;
+			
+			}
+			/**
+			 *	Determines how many code points remain in the pattern.
+			 *
+			 *	\return
+			 *		The result of End-Begin.
+			 */
+			std::size_t Remaining () const noexcept {
+			
+				return static_cast<std::size_t>(End-Begin);
+			
+			}
+			
+			
+			/**
+			 *	Checks to see if a certain option or options are set.
+			 *
+			 *	\param [in] option
+			 *		The option or options to check.
+			 *
+			 *	\return
+			 *		\em true if all the options specified by \em option
+			 *		are set, \em false otherwise.
+			 */
+			bool Check (RegexOptions option) const noexcept {
+			
+				return Unicode::Check(Options,option);
+			
+			}
+			
+			
+			/**
+			 *	Resets the flags set or unset on the state object to
+			 *	their default state.
+			 */
+			void Reset () noexcept {
+			
+				Fail=true;
+			
+			}
+	
+	
+	};
 	
 	
 	/**
@@ -117,30 +320,16 @@ namespace Unicode {
 			 *	Attempts to parse a pattern element at a certain
 			 *	point in a string.
 			 *
-			 *	\param [in,out] begin
-			 *		An iterator to the current location in the
-			 *		string.  The parser should advance this iterator
-			 *		as it consumes code points.  If the parser fails
-			 *		to do so, it will be automatically advanced one
-			 *		position.  Guaranteed not to be equal to \em end.
-			 *	\param [in] end
-			 *		An iterator to the end of the string.
-			 *	\param [in] options
-			 *		The RegexOptions currently in effect.
-			 *	\param [in] locale
-			 *		The current locale.
+			 *	\param [in] state
+			 *		The regular expression compiler's internal
+			 *		state.
 			 *
 			 *	\return
 			 *		A std::unique_ptr to a RegexPatternElement if
 			 *		parsing was successful, a null std::unique_ptr
 			 *		otherwise.
 			 */
-			virtual RegexCompiler::Element operator () (
-				const CodePoint * & begin,
-				const CodePoint * end,
-				RegexOptions options,
-				const Locale & locale
-			) const = 0;
+			virtual RegexCompiler::Element operator () (RegexCompilerState & state) const = 0;
 			
 			
 			/**
@@ -158,14 +347,9 @@ namespace Unicode {
 			 *	\param [in,out] element
 			 *		A reference to the pattern element this parser
 			 *		previously produced.
-			 *	\param [in,out] begin
-			 *		An iterator to the current location in the
-			 *		string.  The parser should advance this iterator
-			 *		as it consumes code points.  If the parser fails
-			 *		to do so, it will be automatically advanced one
-			 *		position.  Guaranteed not to be equal to \em end.
-			 *	\param [in] end
-			 *		An iterator to the end of the string.
+			 *	\param [in] state
+			 *		The regular expression compiler's internal
+			 *		state.
 			 *
 			 *	\return
 			 *		\em true if parsing was successful, \em false
@@ -173,11 +357,7 @@ namespace Unicode {
 			 *		will try and obtain a new pattern element by calling
 			 *		the other overload.
 			 */
-			virtual bool operator () (
-				RegexPatternElement & element,
-				const CodePoint * & begin,
-				const CodePoint * end
-			) const;
+			virtual bool operator () (RegexPatternElement & element, RegexCompilerState & state) const;
 			
 			
 			/**

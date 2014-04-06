@@ -8,7 +8,7 @@ namespace Unicode {
 	RegexParser::~RegexParser () noexcept {	}
 	
 	
-	bool RegexParser::operator () (RegexPatternElement &, const CodePoint * &, const CodePoint *) const {
+	bool RegexParser::operator () (RegexPatternElement &, RegexCompilerState &) const {
 	
 		return false;
 	
