@@ -117,7 +117,7 @@ namespace Unicode {
 				//	and stop looping
 				if (parsed || !state.Fail) {
 				
-					last=pair.second;
+					if (parsed) last=pair.second;
 					//	Advance to next code point if parser
 					//	failed to do so, to avoid possible
 					//	infinite loop
