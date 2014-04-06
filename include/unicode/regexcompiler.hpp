@@ -8,6 +8,7 @@
 
 #include <unicode/codepoint.hpp>
 #include <unicode/locale.hpp>
+#include <unicode/regexerror.hpp>
 #include <unicode/regexoptions.hpp>
 #include <cstddef>
 #include <iterator>
@@ -236,6 +237,21 @@ namespace Unicode {
 			void Reset () noexcept {
 			
 				Fail=true;
+			
+			}
+	
+	
+			/**
+			 *	Throws an exception at the current location within the
+			 *	pattern.
+			 *
+			 *	\param [in] what
+			 *		A message describing the error.
+			 */
+			[[noreturn]]
+			void Raise (const char * what) const {
+			
+				throw RegexError(what,Current);
 			
 			}
 	
