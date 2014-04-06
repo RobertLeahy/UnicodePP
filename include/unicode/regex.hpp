@@ -174,7 +174,7 @@ namespace Unicode {
 			 *		\em true if there are code points remaining in
 			 *		the sequence, \em false otherwise.
 			 */
-			operator bool () const noexcept;
+			explicit operator bool () const noexcept;
 			/**
 			 *	Returns an iterator to the regular expression
 			 *	engine's current position within the seequence
@@ -347,7 +347,7 @@ namespace Unicode {
 			 *		\em true if this state object contains a
 			 *		private state, \em false otherwise.
 			 */
-			operator bool () const noexcept {
+			explicit operator bool () const noexcept {
 			
 				return static_cast<bool>(state);
 			
