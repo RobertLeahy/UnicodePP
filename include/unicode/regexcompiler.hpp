@@ -105,6 +105,34 @@ namespace Unicode {
 			
 			
 			/**
+			 *	Creates a new RegexCompilerState whose location is the
+			 *	beginning of the pattern.
+			 *
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the pattern.
+			 *	\param [in] end
+			 *		An iterator to the end of the pattern.
+			 *	\param [in] options
+			 *		The options set for the pattern being compiled.
+			 *	\param [in] locale
+			 *		The locale in which the pattern is being compiled.
+			 */
+			RegexCompilerState (
+				const CodePoint * begin,
+				const CodePoint * end,
+				RegexOptions options,
+				const Unicode::Locale & locale
+			) noexcept : RegexCompilerState(begin,begin,end,options,locale) {	}
+			
+			
+			/**
+			 *	Polymorphically releases all resources held by this
+			 *	object.
+			 */
+			virtual ~RegexCompilerState () noexcept;
+			
+			
+			/**
 			 *	Checks to see if the location within the pattern is
 			 *	valid.
 			 *
@@ -254,6 +282,23 @@ namespace Unicode {
 				throw RegexError(what,Current);
 			
 			}
+			
+			
+			/**
+			 *	Determines whether or not compilation is finished at
+			 *	the current point in the pattern.
+			 *
+			 *	Default implementation returns \em false until the
+			 *	end of the pattern.
+			 *
+			 *	If this method returns \em false at the end of the
+			 *	pattern, the result is undefined behaviour.
+			 *
+			 *	\return
+			 *		\em true if compilation is finished at the current
+			 *		point within the pattern, \em false otherwise.
+			 */
+			virtual bool Done ();
 	
 	
 	};
@@ -301,54 +346,25 @@ namespace Unicode {
 			/**
 			 *	Compiles a regular expression.
 			 *
-			 *	\param [in] loc
-			 *		An iterator to the current location within the
-			 *		pattern.
-			 *	\param [in] begin
-			 *		An iterator to the beginning of the pattern.
-			 *	\param [in] end
-			 *		An iterator to the end of the pattern.
-			 *	\param [in] options
-			 *		The options with which to compile.
-			 *	\param [in] locale
-			 *		The locale with which to compile.
+			 *	\param [in] state
+			 *		The compiler's internal state.
 			 *
 			 *	\return
 			 *		A compiled regular expression pattern.
 			 */
-			Pattern operator () (
-				const CodePoint * begin,
-				const CodePoint * end,
-				RegexOptions options,
-				const Locale & locale
-			) const;
-		
-		
+			Pattern operator () (RegexCompilerState && state) const;
+			
+			
 			/**
 			 *	Compiles a regular expression.
 			 *
-			 *	\param [in] loc
-			 *		An iterator to the current location within the
-			 *		pattern.
-			 *	\param [in] begin
-			 *		An iterator to the beginning of the pattern.
-			 *	\param [in] end
-			 *		An iterator to the end of the pattern.
-			 *	\param [in] options
-			 *		The options with which to compile.
-			 *	\param [in] locale
-			 *		The locale with which to compile.
+			 *	\param [in] state
+			 *		The compiler's internal state.
 			 *
 			 *	\return
 			 *		A compiled regular expression pattern.
 			 */
-			Pattern operator () (
-				const CodePoint * loc,
-				const CodePoint * begin,
-				const CodePoint * end,
-				RegexOptions options,
-				const Locale & locale
-			) const;
+			Pattern operator () (RegexCompilerState & state) const;
 	
 	
 	};

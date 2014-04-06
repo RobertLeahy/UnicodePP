@@ -6,22 +6,22 @@ namespace Unicode {
 
 
 	Regex::Regex (const String & pattern, RegexOptions options, const Locale & locale)
-		:	pattern(RegexCompiler{}(
+		:	pattern(RegexCompiler{}(RegexCompilerState(
 				pattern.begin(),
 				pattern.end(),
 				options,
 				locale
-			))
+			)))
 	{	}
 	
 	
 	Regex::Regex (const CodePoint * begin, const CodePoint * end, RegexOptions options, const Locale & locale)
-		:	pattern(RegexCompiler{}(
+		:	pattern(RegexCompiler{}(RegexCompilerState(
 				begin,
 				end,
 				options,
 				locale
-			))
+			)))
 	{	}
 	
 	

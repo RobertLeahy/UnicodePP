@@ -31,25 +31,14 @@ namespace Unicode {
 	}
 	
 	
-	RegexCompiler::Pattern RegexCompiler::operator () (
-		const CodePoint * begin,
-		const CodePoint * end,
-		RegexOptions options,
-		const Locale & locale
-	) const {
+	RegexCompiler::Pattern RegexCompiler::operator () (RegexCompilerState && state) const {
 	
-		return (*this)(begin,begin,end,options,locale);
+		return (*this)(state);
 	
 	}
 	
 	
-	RegexCompiler::Pattern RegexCompiler::operator () (
-		const CodePoint * loc,
-		const CodePoint * begin,
-		const CodePoint * end,
-		RegexOptions options,
-		const Locale & locale
-	) const {
+	RegexCompiler::Pattern RegexCompiler::operator () (RegexCompilerState & state) const {
 	
 		//	The pattern that is being compiled
 		Pattern pattern;
@@ -57,21 +46,11 @@ namespace Unicode {
 		const RegexParser * last=nullptr;
 		//	The list of parsers
 		auto & parsers=get_parsers();
-		//	Prepare the state
-		RegexCompilerState state(
-			loc,
-			begin,
-			end,
-			options,
-			//	If the culture invariant flag is set,
-			//	the default locale is used regardless,
-			//	otherwise whatever locale is provided is
-			//	used
-			Check(options,RegexOptions::CultureInvariant) ? DefaultLocale : locale
-		);
 		
-		//	Loop over each code point in the input string
-		while (state) {
+		//	Loop over each code point in the input string,
+		//	or until the state reports that compilation is
+		//	finished
+		while (!state.Done()) {
 		
 			//	Track the start point so we can detect the
 			//	case where no parser can generate a pattern
