@@ -38,6 +38,19 @@ namespace Unicode {
 		const Locale & locale
 	) const {
 	
+		return (*this)(begin,begin,end,options,locale);
+	
+	}
+	
+	
+	RegexCompiler::Pattern RegexCompiler::operator () (
+		const CodePoint * loc,
+		const CodePoint * begin,
+		const CodePoint * end,
+		RegexOptions options,
+		const Locale & locale
+	) const {
+	
 		//	The pattern that is being compiled
 		Pattern pattern;
 		//	The last type of pattern element invoked
@@ -46,6 +59,7 @@ namespace Unicode {
 		auto & parsers=get_parsers();
 		//	Prepare the state
 		RegexCompilerState state(
+			loc,
 			begin,
 			end,
 			options,
@@ -62,7 +76,7 @@ namespace Unicode {
 			//	Track the start point so we can detect the
 			//	case where no parser can generate a pattern
 			//	element
-			auto start=state.Begin;
+			auto start=state.Current;
 			
 			//	Loop over each parser
 			for (auto & pair : parsers) {
@@ -83,7 +97,7 @@ namespace Unicode {
 				if (!parsed) {
 				
 					//	Rewind
-					state.Begin=start;
+					state.Current=start;
 				
 					auto element=parser(state);
 					if (element) {
@@ -107,19 +121,19 @@ namespace Unicode {
 					//	Advance to next code point if parser
 					//	failed to do so, to avoid possible
 					//	infinite loop
-					if (state.Begin==start) ++state.Begin;
+					if (state.Current==start) ++state;
 					
 					break;
 				
 				}
 				
 				//	Otherwise rewind and continue
-				state.Begin=start;
+				state.Current=start;
 			
 			}
 			
 			//	If nothing was consumed, throw
-			if (start==state.Begin) {
+			if (start==state.Current) {
 			
 				//	TODO: Throw
 			

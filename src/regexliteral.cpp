@@ -302,7 +302,7 @@ namespace Unicode {
 					auto ptr=new RegexLiteral(state.Options,state.Locale);
 					RegexCompiler::Element retr(ptr);
 					
-					ptr->Add(get(state.Begin,state.End));
+					ptr->Add(get(state.Current,state.End));
 					
 					return retr;
 				
@@ -311,7 +311,7 @@ namespace Unicode {
 				
 				virtual bool operator () (RegexPatternElement & element, RegexCompilerState & state) const override {
 				
-					reinterpret_cast<RegexLiteral &>(element).Add(get(state.Begin,state.End));
+					reinterpret_cast<RegexLiteral &>(element).Add(get(state.Current,state.End));
 					
 					return true;
 				

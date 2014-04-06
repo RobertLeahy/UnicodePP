@@ -44,8 +44,11 @@ namespace Unicode {
 		
 		
 			/**
-			 *	The current location within the regular expression
-			 *	pattern.
+			 *	The current location within the pattern.
+			 */
+			const CodePoint * Current;
+			/**
+			 *	The beginning of the pattern
 			 */
 			const CodePoint * Begin;
 			/**
@@ -72,6 +75,9 @@ namespace Unicode {
 			/**
 			 *	Creates a new RegexCompilerState.
 			 *
+			 *	\param [in] loc
+			 *		An iterator to the current location within the
+			 *		pattern.
 			 *	\param [in] begin
 			 *		An iterator to the beginning of the pattern.
 			 *	\param [in] end
@@ -82,12 +88,14 @@ namespace Unicode {
 			 *		The locale in which the pattern is being compiled.
 			 */
 			RegexCompilerState (
+				const CodePoint * loc,
 				const CodePoint * begin,
 				const CodePoint * end,
 				RegexOptions options,
 				const Unicode::Locale & locale
 			) noexcept
-				:	Begin(begin),
+				:	Current(loc),
+					Begin(begin),
 					End(end),
 					Options(options),
 					Locale(locale),
@@ -100,11 +108,11 @@ namespace Unicode {
 			 *	valid.
 			 *
 			 *	\return
-			 *		\em true if Begin!=End, \em false if Begin==End.
+			 *		\em true if Current!=End, \em false if Current==End.
 			 */
 			explicit operator bool () const noexcept {
 			
-				return Begin!=End;
+				return Current!=End;
 			
 			}
 			/**
@@ -116,7 +124,7 @@ namespace Unicode {
 			 */
 			const CodePoint & operator * () const noexcept {
 			
-				return *Begin;
+				return *Current;
 			
 			}
 			/**
@@ -128,7 +136,7 @@ namespace Unicode {
 			 */
 			const CodePoint * operator -> () const noexcept {
 			
-				return Begin;
+				return Current;
 			
 			}
 			/**
@@ -144,7 +152,7 @@ namespace Unicode {
 			 */
 			RegexCompilerState & operator += (std::ptrdiff_t dist) noexcept {
 			
-				Begin+=dist;
+				Current+=dist;
 				
 				return *this;
 			
@@ -162,7 +170,7 @@ namespace Unicode {
 			 */
 			RegexCompilerState & operator -= (std::ptrdiff_t dist) noexcept {
 			
-				Begin-=dist;
+				Current-=dist;
 				
 				return *this;
 			
@@ -195,11 +203,11 @@ namespace Unicode {
 			 *	Determines how many code points remain in the pattern.
 			 *
 			 *	\return
-			 *		The result of End-Begin.
+			 *		The result of End-Current.
 			 */
 			std::size_t Remaining () const noexcept {
 			
-				return static_cast<std::size_t>(End-Begin);
+				return static_cast<std::size_t>(End-Current);
 			
 			}
 			
@@ -272,11 +280,14 @@ namespace Unicode {
 				const RegexParser & parser,
 				std::size_t priority=std::numeric_limits<std::size_t>::max()/2
 			);
-		
-		
+			
+			
 			/**
 			 *	Compiles a regular expression.
 			 *
+			 *	\param [in] loc
+			 *		An iterator to the current location within the
+			 *		pattern.
 			 *	\param [in] begin
 			 *		An iterator to the beginning of the pattern.
 			 *	\param [in] end
@@ -290,6 +301,33 @@ namespace Unicode {
 			 *		A compiled regular expression pattern.
 			 */
 			Pattern operator () (
+				const CodePoint * begin,
+				const CodePoint * end,
+				RegexOptions options,
+				const Locale & locale
+			) const;
+		
+		
+			/**
+			 *	Compiles a regular expression.
+			 *
+			 *	\param [in] loc
+			 *		An iterator to the current location within the
+			 *		pattern.
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the pattern.
+			 *	\param [in] end
+			 *		An iterator to the end of the pattern.
+			 *	\param [in] options
+			 *		The options with which to compile.
+			 *	\param [in] locale
+			 *		The locale with which to compile.
+			 *
+			 *	\return
+			 *		A compiled regular expression pattern.
+			 */
+			Pattern operator () (
+				const CodePoint * loc,
 				const CodePoint * begin,
 				const CodePoint * end,
 				RegexOptions options,
