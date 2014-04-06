@@ -27,6 +27,7 @@ obj/latin1.o \
 obj/locale.o \
 obj/normalizer.o \
 obj/regex.o \
+obj/regexcomment.o \
 obj/regexcompiler.o \
 obj/regexerror.o \
 obj/regexliteral.o \
