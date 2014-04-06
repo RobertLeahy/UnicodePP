@@ -46,7 +46,7 @@ namespace Unicode {
 		 *	and comments may proceed from a number sign to the end
 		 *	of a line.
 		 */
-		IgnorePatternWhitespace=16,
+		IgnorePatternWhiteSpace=16,
 		/**
 		 *	The search will move from right to left rather than
 		 *	vice versa.
