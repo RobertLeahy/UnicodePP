@@ -61,7 +61,7 @@ namespace Unicode {
 	};
 	
 	
-	inline RegexOptions operator | (RegexOptions a, RegexOptions b) noexcept {
+	constexpr RegexOptions operator | (RegexOptions a, RegexOptions b) noexcept {
 	
 		typedef std::underlying_type<RegexOptions>::type type;
 	
@@ -72,7 +72,7 @@ namespace Unicode {
 	}
 	
 	
-	inline RegexOptions operator & (RegexOptions a, RegexOptions b) noexcept {
+	constexpr RegexOptions operator & (RegexOptions a, RegexOptions b) noexcept {
 	
 		typedef std::underlying_type<RegexOptions>::type type;
 		
@@ -83,7 +83,7 @@ namespace Unicode {
 	}
 	
 	
-	inline RegexOptions operator ^ (RegexOptions a, RegexOptions b) noexcept {
+	constexpr RegexOptions operator ^ (RegexOptions a, RegexOptions b) noexcept {
 	
 		typedef std::underlying_type<RegexOptions>::type type;
 		
@@ -94,7 +94,7 @@ namespace Unicode {
 	}
 	
 	
-	inline RegexOptions operator ~ (RegexOptions a) noexcept {
+	constexpr RegexOptions operator ~ (RegexOptions a) noexcept {
 	
 		return static_cast<RegexOptions>(
 			~static_cast<std::underlying_type<RegexOptions>::type>(a)
@@ -130,7 +130,7 @@ namespace Unicode {
 	}
 	
 	
-	inline bool Check (RegexOptions options, RegexOptions check) noexcept {
+	constexpr bool Check (RegexOptions options, RegexOptions check) noexcept {
 	
 		return (options&check)==check;
 	
