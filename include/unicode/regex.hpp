@@ -418,6 +418,13 @@ namespace Unicode {
 		
 			RegexOptions Options;
 			const Unicode::Locale & Locale;
+			
+			
+			bool Check (RegexOptions option) const noexcept {
+			
+				return Unicode::Check(Options,option);
+			
+			}
 	
 	
 		public:

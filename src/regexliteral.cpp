@@ -89,7 +89,7 @@ namespace Unicode {
 				template <typename Iterator>
 				bool check (Iterator begin, Iterator end, RegexState & state) const noexcept {
 				
-					return Check(Options,RegexOptions::IgnoreCase) ? case_insensitive_check(
+					return Check(RegexOptions::IgnoreCase) ? case_insensitive_check(
 						std::move(begin),
 						std::move(end),
 						state
@@ -143,7 +143,7 @@ namespace Unicode {
 				void Complete () {
 				
 					//	If not ignoring case, we're done
-					if (!Check(Options,RegexOptions::IgnoreCase)) return;
+					if (!Check(RegexOptions::IgnoreCase)) return;
 					
 					//	Case fold
 					cps=CaseConverter(Locale).Fold(Begin(cps),End(cps));
