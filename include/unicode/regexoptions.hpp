@@ -105,27 +105,21 @@ namespace Unicode {
 	
 	inline RegexOptions & operator |= (RegexOptions & a, RegexOptions b) noexcept {
 	
-		a=a|b;
-		
-		return a;
+		return a=a|b;
 	
 	}
 	
 	
 	inline RegexOptions & operator &= (RegexOptions & a, RegexOptions b) noexcept {
 	
-		a=a&b;
-		
-		return a;
+		return a=a&b;
 	
 	}
 	
 	
 	inline RegexOptions & operator ^= (RegexOptions & a, RegexOptions b) noexcept {
 	
-		a=a^b;
-		
-		return a;
+		return a=a^b;
 	
 	}
 	
