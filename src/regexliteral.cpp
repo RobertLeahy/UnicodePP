@@ -348,7 +348,7 @@ namespace Unicode {
 	}
 	
 	
-	static RegexParserInstaller<RegexLiteralParser> installer(std::numeric_limits<std::size_t>::max());
+	static const RegexParserInstaller<RegexLiteralParser> installer(std::numeric_limits<std::size_t>::max());
 
 
 }
