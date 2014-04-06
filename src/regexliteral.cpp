@@ -290,12 +290,29 @@ namespace Unicode {
 					return next;
 				
 				}
+				
+				
+				static bool ignore (RegexCompilerState & state) noexcept {
+				
+					if (state.Check(RegexOptions::IgnorePatternWhiteSpace) && state->IsWhiteSpace()) {
+					
+						state.Fail=false;
+						
+						return true;
+					
+					}
+					
+					return false;
+				
+				}
 		
 		
 			public:
 			
 			
 				virtual RegexCompiler::Element operator () (RegexCompilerState & state) const override {
+				
+					if (ignore(state)) return RegexCompiler::Element{};
 				
 					//	This is safe because the constructor for std::unique_ptr
 					//	is noexcept
@@ -311,7 +328,7 @@ namespace Unicode {
 				
 				virtual bool operator () (RegexPatternElement & element, RegexCompilerState & state) const override {
 				
-					reinterpret_cast<RegexLiteral &>(element).Add(get(state.Current,state.End));
+					if (!ignore(state)) reinterpret_cast<RegexLiteral &>(element).Add(get(state.Current,state.End));
 					
 					return true;
 				
