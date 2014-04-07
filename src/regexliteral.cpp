@@ -294,6 +294,9 @@ namespace Unicode {
 				
 				static bool ignore (RegexCompilerState & state) noexcept {
 				
+					//	White space is not ignored in character classes
+					if (state.CharacterClass) return false;
+				
 					if (state.Check(RegexOptions::IgnorePatternWhiteSpace) && state->IsWhiteSpace()) {
 					
 						state.Fail=false;

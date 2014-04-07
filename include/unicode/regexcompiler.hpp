@@ -12,7 +12,6 @@
 #include <unicode/regexoptions.hpp>
 #include <cstddef>
 #include <iterator>
-#include <limits>
 #include <memory>
 #include <vector>
 
@@ -71,6 +70,13 @@ namespace Unicode {
 			 *	Defaults to \em true.
 			 */
 			bool Fail;
+			/**
+			 *	If \em true, the regular expression compiler is compiling
+			 *	a character class.
+			 *
+			 *	Defaults to \em false.
+			 */
+			bool CharacterClass;
 			
 			
 			/**
@@ -100,7 +106,8 @@ namespace Unicode {
 					End(end),
 					Options(options),
 					Locale(locale),
-					Fail(true)
+					Fail(true),
+					CharacterClass(false)
 			{	}
 			
 			
@@ -332,15 +339,56 @@ namespace Unicode {
 			 *
 			 *	\param [in] parser
 			 *		The parser to add.
+			 */
+			static void Add (const RegexParser & parser);
+			/**
+			 *	Adds a parser to the internal collection of parsers
+			 *	that will be used to parse regular expressions.
+			 *
+			 *	Not thread safe.
+			 *
+			 *	\param [in] parser
+			 *		The parser to add.
 			 *	\param [in] priority
 			 *		The relative priority of the parser.  Parsers with
 			 *		a lower priority will be called on each position in
 			 *		a string earlier than parsers with a higher priority.
 			 */
-			static void Add (
-				const RegexParser & parser,
-				std::size_t priority=std::numeric_limits<std::size_t>::max()/2
-			);
+			static void Add (const RegexParser & parser, std::size_t priority);
+			/**
+			 *	Adds a parser to the internal collection of parsers
+			 *	that will be used to parse regular expressions.
+			 *
+			 *	Not thread safe.
+			 *
+			 *	\param [in] parser
+			 *		The parser to add.
+			 *	\param [in] character_class
+			 *		\em true if this parser should be invoked only
+			 *		within character classes, \em false if this
+			 *		parser should only be invoked outside of character
+			 *		classes.
+			 */
+			static void Add (const RegexParser & parser, bool character_class);
+			/**
+			 *	Adds a parser to the internal collection of parsers
+			 *	that will be used to parse regular expressions.
+			 *
+			 *	Not thread safe.
+			 *
+			 *	\param [in] parser
+			 *		The parser to add.
+			 *	\param [in] priority
+			 *		The relative priority of the parser.  Parsers with
+			 *		a lower priority will be called on each position in
+			 *		a string earlier than parsers with a higher priority.
+			 *	\param [in] character_class
+			 *		\em true if this parser should be invoked only
+			 *		within character classes, \em false if this
+			 *		parser should only be invoked outside of character
+			 *		classes.
+			 */
+			static void Add (const RegexParser & parser, std::size_t priority, bool character_class);
 			
 			
 			/**
@@ -476,8 +524,7 @@ namespace Unicode {
 			
 			}
 			/**
-			 *	Installs a parser of type \em T with a certain
-			 *	priority.
+			 *	Installs a parser of type \em T.
 			 *
 			 *	\param [in] priority
 			 *		The priority.
@@ -485,6 +532,34 @@ namespace Unicode {
 			RegexParserInstaller (std::size_t priority) {
 			
 				RegexCompiler::Add(parser,priority);
+			
+			}
+			/**
+			 *	Installs a parser of type \em T.
+			 *
+			 *	\param [in] character_class
+			 *		\em true if the parser should only be invoked
+			 *		within character classes, \em false if it should
+			 *		only be invoked outside of character classes.
+			 */
+			RegexParserInstaller (bool character_class) {
+			
+				RegexCompiler::Add(parser,character_class);
+			
+			}
+			/**
+			 *	Installs a parser of type \em T.
+			 *
+			 *	\param [in] priority
+			 *		The priority.
+			 *	\param [in] character_class
+			 *		\em true if the parser should only be invoked
+			 *		within character classes, \em false if it should
+			 *		only be invoked outside of character classes.
+			 */
+			RegexParserInstaller (std::size_t priority, bool character_class) {
+			
+				RegexCompiler::Add(parser,priority,character_class);
 			
 			}
 			

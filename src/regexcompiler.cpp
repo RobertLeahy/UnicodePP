@@ -1,32 +1,86 @@
 #include <unicode/regex.hpp>
 #include <unicode/regexcompiler.hpp>
+#include <limits>
+#include <optional>
 #include <utility>
 
 
 namespace Unicode {
+
+
+	namespace {
 	
 	
-	typedef std::vector<std::pair<std::size_t,const RegexParser *>> parsers_type;
+		class RegexParserInfo {
+		
+		
+			public:
+			
+			
+				const RegexParser * Parser;
+				std::size_t Priority;
+				std::optional<bool> CharacterClass;
+		
+		
+		};
 	
 	
-	static parsers_type & get_parsers () {
+	}
 	
-		static parsers_type parsers;
+	
+	static std::vector<RegexParserInfo> & get_parsers () {
+	
+		static std::vector<RegexParserInfo> parsers;
 		
 		return parsers;
 	
 	}
 	
 	
-	void RegexCompiler::Add (const RegexParser & parser, std::size_t priority) {
+	static void add_impl (const RegexParser & parser, std::size_t priority, std::optional<bool> character_class) {
 	
 		auto & parsers=get_parsers();
-	
+		
 		//	Find insertion point
 		auto begin=parsers.begin();
-		for (auto end=parsers.end();begin!=end;++begin) if (begin->first>priority) break;
+		for (
+			auto end=parsers.end();
+			(begin!=end) && (begin->Priority<priority);
+			++begin
+		);
 		
-		parsers.insert(begin,{priority,&parser});
+		parsers.insert(begin,{&parser,priority,character_class});
+	
+	}
+	
+	
+	constexpr std::size_t default_priority=std::numeric_limits<std::size_t>::max()/2;
+	
+	
+	void RegexCompiler::Add (const RegexParser & parser) {
+	
+		Add(parser,default_priority);
+	
+	}
+	
+	
+	void RegexCompiler::Add (const RegexParser & parser, std::size_t priority) {
+	
+		add_impl(parser,priority,std::nullopt);
+	
+	}
+	
+	
+	void RegexCompiler::Add (const RegexParser & parser, bool character_class) {
+	
+		add_impl(parser,default_priority,character_class);
+	
+	}
+	
+	
+	void RegexCompiler::Add (const RegexParser & parser, std::size_t priority, bool character_class) {
+	
+		add_impl(parser,priority,character_class);
 	
 	}
 	
@@ -34,6 +88,13 @@ namespace Unicode {
 	RegexCompiler::Pattern RegexCompiler::operator () (RegexCompilerState && state) const {
 	
 		return (*this)(state);
+	
+	}
+	
+	
+	static bool should_invoke (const RegexParserInfo & info, const RegexCompilerState & state) noexcept {
+	
+		return !info.CharacterClass || (*(info.CharacterClass)==state.CharacterClass);
 	
 	}
 	
@@ -58,18 +119,23 @@ namespace Unicode {
 			auto start=state.Current;
 			
 			//	Loop over each parser
-			for (auto & pair : parsers) {
+			for (auto & info : parsers) {
+			
+				//	Skip parsers that shouldn't be invoked in this
+				//	context
+				if (!should_invoke(info,state)) continue;
 			
 				//	Make sure the state is clean
 				state.Reset();
-			
+				
 				//	The current parser
-				auto & parser=*(pair.second);
+				auto & parser=*(info.Parser);
 				
 				//	Attempt to parse using the preceding
 				//	pattern element if this is the same type
-				//	of parser as was used previously
-				bool parsed=(pair.second==last) && parser(*(pattern.back().get()),state);
+				//	of parser as was used previously, and if
+				//	this is not a character class
+				bool parsed=state.CharacterClass ? false : ((info.Parser==last) && parser(*(pattern.back().get()),state));
 				//	If parsing above failed or was not performed,
 				//	perform a regular parse -- i.e. attempt to create
 				//	a new pattern element
@@ -96,7 +162,7 @@ namespace Unicode {
 				//	and stop looping
 				if (parsed || !state.Fail) {
 				
-					if (parsed) last=pair.second;
+					if (parsed) last=info.Parser;
 					//	Advance to next code point if parser
 					//	failed to do so, to avoid possible
 					//	infinite loop
