@@ -38,6 +38,7 @@ obj/regexparser.o \
 obj/regexpatternelement.o \
 obj/regexpatternelementprivatestate.o \
 obj/regexstate.o \
+obj/regexunicodeproperties.o \
 obj/regexwildcard.o \
 obj/string.o \
 obj/ucs2.o \
