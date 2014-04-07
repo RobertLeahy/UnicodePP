@@ -483,6 +483,23 @@ namespace Unicode {
 		public:
 		
 		
+			/**
+			 *	Escapes a string.
+			 *
+			 *	Inserting the escaped string into a regular expression
+			 *	pattern will cause all code points therein to be treated
+			 *	as literals by the regular expression engine, i.e. none of
+			 *	them will be interpreted as metacharacters.
+			 *
+			 *	\param [in] str
+			 *		The string to escape.
+			 *
+			 *	\return
+			 *		The escaped string.
+			 */
+			static String Escape (String str);
+		
+		
 			Regex () = delete;
 			/**
 			 *	Compiles a regular expression.

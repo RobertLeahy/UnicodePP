@@ -1,8 +1,48 @@
 #include <unicode/regex.hpp>
 #include <unicode/regexcompiler.hpp>
+#include <optional>
 
 
 namespace Unicode {
+
+
+	String Regex::Escape (String str) {
+	
+		String retr;
+		for (auto cp : str) {
+		
+			if (cp.IsWhiteSpace()) goto escape;
+		
+			switch (cp) {
+			
+				case '\\':
+				case '*':
+				case '+':
+				case '?':
+				case '|':
+				case '{':
+				case '}':
+				case '[':
+				case ']':
+				case '(':
+				case ')':
+				case '^':
+				case '$':
+				case '.':
+				case '#':
+					escape:
+					retr << CodePoint('\\');
+				default:
+					retr << cp;
+					break;
+			
+			}
+		
+		}
+		
+		return retr;
+	
+	}
 
 
 	Regex::Regex (const String & pattern, RegexOptions options, const Locale & locale)
