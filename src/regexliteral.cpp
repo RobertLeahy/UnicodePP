@@ -3,7 +3,6 @@
 #include <unicode/makereverseiterator.hpp>
 #include <unicode/regex.hpp>
 #include <unicode/regexcompiler.hpp>
-#include <unicode/vector.hpp>
 #include <cstddef>
 #include <limits>
 #include <optional>
@@ -22,7 +21,7 @@ namespace Unicode {
 			private:
 			
 			
-				std::vector<CodePoint> cps;
+				String str;
 				
 				
 				template <typename Iterator>
@@ -105,18 +104,25 @@ namespace Unicode {
 			public:
 			
 			
+				RegexLiteral (RegexOptions options, const Unicode::Locale & locale) noexcept : RegexPatternElement(options,locale) {
+				
+					str.SetLocale(locale);
+				
+				}
+			
+			
 				using RegexPatternElement::RegexPatternElement;
 				
 				
 				virtual bool operator () (RegexState & state, RegexPatternElementState &) const override {
 				
 					return state.Reversed() ? check(
-						MakeReverseIterator(cps.end()),
-						MakeReverseIterator(cps.begin()),
+						MakeReverseIterator(str.end()),
+						MakeReverseIterator(str.begin()),
 						state
 					) : check(
-						cps.begin(),
-						cps.end(),
+						str.begin(),
+						str.end(),
 						state
 					);
 				
@@ -126,7 +132,7 @@ namespace Unicode {
 				virtual RegexToString ToString () const override {
 				
 					RegexToString retr;
-					retr.Parent << "The literal string: \"" << cps << "\"";
+					retr.Parent << "The literal string: \"" << str << "\"";
 					
 					return retr;
 				
@@ -135,18 +141,14 @@ namespace Unicode {
 				
 				void Add (CodePoint cp) {
 				
-					cps.push_back(cp);
+					str << cp;
 				
 				}
 				
 				
 				void Complete () {
-				
-					//	If not ignoring case, we're done
-					if (!Check(RegexOptions::IgnoreCase)) return;
 					
-					//	Case fold
-					cps=CaseConverter(Locale).Fold(Begin(cps),End(cps));
+					if (Check(RegexOptions::IgnoreCase)) str.ToCaseFold();
 				
 				}
 		
