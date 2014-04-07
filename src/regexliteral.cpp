@@ -147,6 +147,8 @@ namespace Unicode {
 				
 				
 				void Complete () {
+				
+					str.ToNFD();
 					
 					if (Check(RegexOptions::IgnoreCase)) str.ToCaseFold();
 				
