@@ -43,15 +43,10 @@ namespace Unicode {
 		return retr;
 	
 	}
-
-
+	
+	
 	Regex::Regex (const String & pattern, RegexOptions options, const Locale & locale)
-		:	pattern(RegexCompiler{}(RegexCompilerState(
-				pattern.begin(),
-				pattern.end(),
-				options,
-				locale
-			)))
+		:	Regex(pattern.begin(),pattern.end(),options,locale)
 	{	}
 	
 	
@@ -61,7 +56,8 @@ namespace Unicode {
 				end,
 				options,
 				locale
-			)))
+			))),
+			rtl(Check(options,RegexOptions::RightToLeft))
 	{	}
 	
 	

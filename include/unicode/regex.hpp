@@ -478,6 +478,7 @@ namespace Unicode {
 		
 		
 			std::vector<std::unique_ptr<RegexPatternElement>> pattern;
+			bool rtl;
 			
 			
 		public:
