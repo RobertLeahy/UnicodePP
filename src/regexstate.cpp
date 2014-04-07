@@ -368,6 +368,13 @@ namespace Unicode {
 	}
 	
 	
+	void RegexState::begin (Iterator i) noexcept {
+	
+		l=i;
+	
+	}
+	
+	
 	const CodePoint * RegexState::Begin () const noexcept {
 	
 		return Reversed() ? e.Base() : b.Base();

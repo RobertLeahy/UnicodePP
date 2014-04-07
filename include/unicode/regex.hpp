@@ -185,6 +185,14 @@ namespace Unicode {
 			 */
 			Iterator begin () const noexcept;
 			/**
+			 *	Sets the regular expression engine's current position
+			 *	within the sequence against which it is matching.
+			 *
+			 *	\param [in] i
+			 *		The iterator.
+			 */
+			void begin (Iterator i) noexcept;
+			/**
 			 *	Returns an iterator to the beginning of the
 			 *	underlying sequence.
 			 *
