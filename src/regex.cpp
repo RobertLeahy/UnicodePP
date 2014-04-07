@@ -30,6 +30,7 @@ namespace Unicode {
 				case '$':
 				case '.':
 				case '#':
+				case '-':
 					escape:
 					retr << CodePoint('\\');
 				default:
