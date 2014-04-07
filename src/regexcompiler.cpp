@@ -1,5 +1,6 @@
 #include <unicode/regex.hpp>
 #include <unicode/regexcompiler.hpp>
+#include <algorithm>
 #include <limits>
 #include <optional>
 #include <utility>
@@ -40,16 +41,14 @@ namespace Unicode {
 	static void add_impl (const RegexParser & parser, std::size_t priority, std::optional<bool> character_class) {
 	
 		auto & parsers=get_parsers();
-		
-		//	Find insertion point
-		auto begin=parsers.begin();
-		for (
-			auto end=parsers.end();
-			(begin!=end) && (begin->Priority<priority);
-			++begin
+		parsers.insert(
+			std::find_if(
+				parsers.begin(),
+				parsers.end(),
+				[&] (const RegexParserInfo & info) noexcept {	return info.Priority>=priority;	}
+			),
+			{&parser,priority,character_class}
 		);
-		
-		parsers.insert(begin,{&parser,priority,character_class});
 	
 	}
 	
