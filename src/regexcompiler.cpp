@@ -177,11 +177,7 @@ namespace Unicode {
 			}
 			
 			//	If nothing was consumed, throw
-			if (start==state.Current) {
-			
-				//	TODO: Throw
-			
-			}
+			if (start==state.Current) state.Raise("No matching parser");
 		
 		}
 		
