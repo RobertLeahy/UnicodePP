@@ -189,6 +189,22 @@ namespace Unicode {
 	}
 	
 	
+	template <typename T>
+	constexpr typename std::enable_if<std::is_integral<T>::value,bool>::type operator != (CodePoint a, T b) noexcept {
+	
+		return !(a==b);
+	
+	}
+	
+	
+	template <typename T>
+	constexpr typename std::enable_if<std::is_integral<T>::value,bool>::type operator != (T a, CodePoint b) noexcept {
+	
+		return !(b==a);
+	
+	}
+	
+	
 	/**
 	 *	Encapsulates a compile time array.
 	 */
