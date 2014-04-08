@@ -54,11 +54,13 @@ namespace Unicode {
 			public:
 			
 			
-				virtual RegexCompiler::Element operator () (RegexCompilerState & state) const override {
+				virtual bool operator () (RegexCompilerState & state) const override {
 				
-					return (*state=='.') ? RegexCompiler::Element(
-						new RegexWildcard(state.Options,state.Locale)
-					) : RegexCompiler::Element{};
+					if (*state!='.') return false;
+					
+					state.Add<RegexWildcard>();
+					
+					return true;
 				
 				}
 		

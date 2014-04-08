@@ -84,9 +84,22 @@ namespace Unicode {
 	}
 	
 	
-	RegexCompiler::Pattern RegexCompiler::operator () (RegexCompilerState && state) const {
+	RegexCompiler::Pattern RegexCompiler::operator () (
+		const CodePoint * begin,
+		const CodePoint * end,
+		RegexOptions options,
+		const Locale & locale
+	) const {
 	
-		return (*this)(state);
+		RegexCompilerState state(
+			begin,
+			end,
+			options,
+			locale
+		);
+		(*this)(state);
+		
+		return std::move(state.Pattern);
 	
 	}
 	
@@ -98,93 +111,88 @@ namespace Unicode {
 	}
 	
 	
-	RegexCompiler::Pattern RegexCompiler::operator () (RegexCompilerState & state) const {
+	static void complete (const RegexParser * last, std::size_t last_loc, RegexCompilerState & state) {
 	
-		//	The pattern that is being compiled
-		Pattern pattern;
-		//	The last type of pattern element invoked
+		if (last!=nullptr) last->Complete(*(state.Pattern[last_loc].get()));
+	
+	}
+	
+	
+	void RegexCompiler::operator () (RegexCompilerState & state) const {
+	
+		//	The last type of parser successfully
+		//	invoked
 		const RegexParser * last=nullptr;
+		//	Index of the pattern element the last
+		//	successfully invoked parser generated
+		std::size_t last_loc;
 		//	The list of parsers
 		auto & parsers=get_parsers();
 		
-		//	Loop over each code point in the input string,
-		//	or until the state reports that compilation is
-		//	finished
+		//	Loop until done
 		while (!state.Done()) {
 		
-			//	Track the start point so we can detect the
-			//	case where no parser can generate a pattern
-			//	element
+			//	Track the start point so:
+			//
+			//	A.	We can return here if a parse fails.
+			//	B.	We can detect the case where no parser
+			//		can generate a pattern element/consume
+			//		code points
 			auto start=state.Current;
 			
-			//	Loop over each parser
+			//	Loop for each parser
 			for (auto & info : parsers) {
 			
-				//	Skip parsers that shouldn't be invoked in this
-				//	context
+				//	Skip parsers that shouldn't be invoked in
+				//	this context
 				if (!should_invoke(info,state)) continue;
-			
-				//	Make sure the state is clean
+				
+				//	Make sure the state is clean/consistent
 				state.Reset();
+				state.Successive=info.Parser==last;
 				
-				//	The current parser
-				auto & parser=*(info.Parser);
+				if ((*(info.Parser))(state)) {
 				
-				//	Attempt to parse using the preceding
-				//	pattern element if this is the same type
-				//	of parser as was used previously, and if
-				//	this is not a character class
-				bool parsed=state.CharacterClass ? false : ((info.Parser==last) && parser(*(pattern.back().get()),state));
-				//	If parsing above failed or was not performed,
-				//	perform a regular parse -- i.e. attempt to create
-				//	a new pattern element
-				if (!parsed) {
-				
-					//	Rewind
-					state.Current=start;
-				
-					auto element=parser(state);
-					if (element) {
+					//	Parse successful
 					
-						//	If applicable, complete last pattern element
-						if (last!=nullptr) last->Complete(*(pattern.back().get()));
+					//	Update last parser if pattern elements were
+					//	actually generated
+					if (state.Parsed) {
 					
-						//	Add newly-parsed pattern element
-						parsed=true;
-						pattern.push_back(std::move(element));
+						//	Complete last pattern element
+						complete(last,last_loc,state);
 					
+						last=info.Parser;
+						last_loc=state.Pattern.size()-1;
+						
 					}
-				
-				}
-				
-				//	If parsing was successful, perform cleanup
-				//	and stop looping
-				if (parsed || !state.Fail) {
-				
-					if (parsed) last=info.Parser;
-					//	Advance to next code point if parser
-					//	failed to do so, to avoid possible
-					//	infinite loop
+					
+					//	If parser failed to advance state, do it
+					//	for them
 					if (state.Current==start) ++state;
 					
-					break;
+					//	Proceeds to next iteration of outer loop
+					goto success;
 				
 				}
 				
-				//	Otherwise rewind and continue
+				//	Parse failed
+				
+				//	Rewind
 				state.Current=start;
 			
 			}
 			
-			//	If nothing was consumed, throw
-			if (start==state.Current) state.Raise("No matching parser");
+			//	Nothing was consumed, throw
+			state.Raise("No matching parser");
+			
+			//	Control comes here after a successful parse
+			success:;
 		
 		}
 		
-		//	Complete the last pattern element
-		if (last!=nullptr) last->Complete(*(pattern.back().get()));
-		
-		return pattern;
+		//	Complete last pattern element
+		complete(last,state.Pattern.size()-1,state);
 	
 	}
 

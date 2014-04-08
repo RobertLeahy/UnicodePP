@@ -336,52 +336,53 @@ namespace Unicode {
 			
 			
 				template <typename T>
-				static RegexCompiler::Element create (T category, bool inverted, const RegexCompilerState & state) {
+				static void create (T category, bool inverted, RegexCompilerState & state) {
 				
-					return RegexCompiler::Element(
-						new RegexCategory<T>(
-							category,
-							inverted,
-							state.Options,
-							state.Locale
-						)
-					);
+					state.Add<RegexCategory<T>>(category,inverted);
 				
 				}
 				
 				
-				static RegexCompiler::Element create (
+				static void create (
 					const CodePoint * begin,
 					const CodePoint * end,
 					bool is_block,
 					bool inverted,
-					const RegexCompilerState & state
+					RegexCompilerState & state
 				) {
 				
-					return RegexCompiler::Element(
-						new RegexBlockOrScript(
-							String(begin,end),
-							is_block,
-							inverted,
-							state.Options,
-							state.Locale
-						)
+					state.Add<RegexBlockOrScript>(
+						String(begin,end),
+						is_block,
+						inverted
 					);
 				
 				}
 			
 			
-				static RegexCompiler::Element get (const String & str, bool inverted, const RegexCompilerState & state) {
+				static void get (const String & str, bool inverted, RegexCompilerState & state) {
 				
 					if (str.Size()==0) state.Raise("No Unicode property specification");
 					
 					//	Try and get a super category
 					auto sc=CategoryImpl<SuperCategory>::FromString(str);
-					if (sc) return create<SuperCategory>(*sc,inverted,state);
+					if (sc) {
+					
+						create(*sc,inverted,state);
+						
+						return;
+						
+					}
 					
 					//	Try and get a general category
 					auto gc=CategoryImpl<GeneralCategory>::FromString(str);
-					if (gc) return create<GeneralCategory>(*gc,inverted,state);
+					if (gc) {
+					
+						create(*gc,inverted,state);
+						
+						return;
+						
+					}
 					
 					//	Blocks and scripts require two code points at least
 					if (str.Size()>2) {
@@ -394,10 +395,12 @@ namespace Unicode {
 						
 							//	Block
 							case 's':
-								return create(begin,str.end(),true,inverted,state);
+								create(begin,str.end(),true,inverted,state);
+								return;
 							//	Script
 							case 'n':
-								return create(begin,str.end(),false,inverted,state);
+								create(begin,str.end(),false,inverted,state);
+								return;
 							//	Invalid
 							default:
 								invalid:
@@ -416,9 +419,9 @@ namespace Unicode {
 			public:
 			
 			
-				virtual RegexCompiler::Element operator () (RegexCompilerState & state) const override {
+				virtual bool operator () (RegexCompilerState & state) const override {
 				
-					if (!((*state=='\\') && ++state)) return RegexCompiler::Element{};
+					if (!((*state=='\\') && ++state)) return false;
 					
 					bool inverted;
 					switch (*state) {
@@ -430,11 +433,11 @@ namespace Unicode {
 							inverted=true;
 							break;
 						default:
-							return RegexCompiler::Element{};
+							return false;
 					
 					}
 					
-					if (!(++state && (*state=='{') && ++state)) return RegexCompiler::Element{};
+					if (!(++state && (*state=='{') && ++state)) return false;
 					
 					String str;
 					while (*state!='}') {
@@ -447,7 +450,9 @@ namespace Unicode {
 					
 					++state;
 					
-					return get(str,inverted,state);
+					get(str,inverted,state);
+					
+					return true;
 				
 				}
 		

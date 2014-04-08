@@ -301,13 +301,7 @@ namespace Unicode {
 					//	White space is not ignored in character classes
 					if (state.CharacterClass) return false;
 				
-					if (state.Check(RegexOptions::IgnorePatternWhiteSpace) && state->IsWhiteSpace()) {
-					
-						state.Fail=false;
-						
-						return true;
-					
-					}
+					if (state.Check(RegexOptions::IgnorePatternWhiteSpace) && state->IsWhiteSpace()) return true;
 					
 					return false;
 				
@@ -317,25 +311,13 @@ namespace Unicode {
 			public:
 			
 			
-				virtual RegexCompiler::Element operator () (RegexCompilerState & state) const override {
+				virtual bool operator () (RegexCompilerState & state) const override {
 				
-					if (ignore(state)) return RegexCompiler::Element{};
-				
-					//	This is safe because the constructor for std::unique_ptr
-					//	is noexcept
-					auto ptr=new RegexLiteral(state.Options,state.Locale);
-					RegexCompiler::Element retr(ptr);
+					if (ignore(state)) return true;
 					
-					ptr->Add(get(state.Current,state.End));
-					
-					return retr;
-				
-				}
-				
-				
-				virtual bool operator () (RegexPatternElement & element, RegexCompilerState & state) const override {
-				
-					if (!ignore(state)) reinterpret_cast<RegexLiteral &>(element).Add(get(state.Current,state.End));
+					(state.Successive ? state.Back<RegexLiteral>() : state.Add<RegexLiteral>()).Add(
+						get(state.Current,state.End)
+					);
 					
 					return true;
 				

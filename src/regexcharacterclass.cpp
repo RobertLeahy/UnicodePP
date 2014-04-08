@@ -26,7 +26,47 @@ namespace Unicode {
 			
 			
 				RegexCompiler::Pattern elements;
+				RegexCompiler::Pattern subtracted;
 				bool inverted;
+				
+				
+				static bool check (const RegexCompiler::Pattern & elements, RegexState & state) {
+				
+					auto begin=state.begin();
+					for (auto & element : elements) {
+					
+						RegexPatternElementState s;
+						if ((*element)(state,s)) return true;
+						
+						state.begin(begin);
+					
+					}
+					
+					return false;
+				
+				}
+				
+				
+				bool evaluate (RegexState & state) const {
+				
+					auto begin=state.begin();
+				
+					if (!check(elements,state)) {
+					
+						++state;
+						
+						return false;
+					
+					}
+					
+					auto after=state.begin();
+					state.begin(begin);
+					auto result=check(subtracted,state);
+					state.begin(after);
+					
+					return !result;
+				
+				}
 				
 				
 			public:
@@ -34,12 +74,14 @@ namespace Unicode {
 			
 				RegexCharacterClass (
 					RegexCompiler::Pattern elements,
+					RegexCompiler::Pattern subtracted,
 					bool inverted,
 					RegexOptions options,
 					const Unicode::Locale & locale
 				) noexcept
 					:	RegexPatternElement(options,locale),
 						elements(std::move(elements)),
+						subtracted(std::move(subtracted)),
 						inverted(inverted)
 				{	}
 				
@@ -55,15 +97,8 @@ namespace Unicode {
 						return inverted;
 					
 					}
-				
-					for (auto & element : elements) {
 					
-						RegexPatternElementState s;
-						if ((*element)(state,s)) return !inverted;
-					
-					}
-					
-					return inverted;
+					return evaluate(state)!=inverted;
 				
 				}
 				
@@ -101,6 +136,9 @@ namespace Unicode {
 			public:
 			
 			
+				bool Subtraction;
+			
+			
 				RegexCharacterClassCompilerState (
 					const CodePoint * loc,
 					const CodePoint * begin,
@@ -114,7 +152,8 @@ namespace Unicode {
 							end,
 							options,
 							locale
-						)
+						),
+						Subtraction(false)
 				{
 				
 					CharacterClass=true;
@@ -126,7 +165,17 @@ namespace Unicode {
 				
 					if (!*this) raise(*this);
 					
-					return *(*this)==']';
+					auto cp=*(*this);
+					
+					if (!Subtraction && (cp=='-')) {
+					
+						Subtraction=true;
+						
+						return true;
+					
+					}
+					
+					return cp==']';
 				
 				}
 		
@@ -140,10 +189,13 @@ namespace Unicode {
 			public:
 			
 			
-				virtual RegexCompiler::Element operator () (RegexCompilerState & state) const override {
+				virtual bool operator () (RegexCompilerState & state) const override {
 				
 					//	Verify that this is a character class
-					if (*state!='[') return RegexCompiler::Element{};
+					if (
+						state.CharacterClass ||
+						(*state!='[')
+					) return false;
 					
 					if (!++state) raise(state);
 					
@@ -152,6 +204,7 @@ namespace Unicode {
 					if ((inverted=*state=='^')) if (!++state) raise(state);
 					
 					//	Compile
+					
 					RegexCharacterClassCompilerState c(
 						state.Current,
 						state.Begin,
@@ -159,20 +212,36 @@ namespace Unicode {
 						state.Options,
 						state.Locale
 					);
-					auto retr=RegexCompiler::Element(
-						new RegexCharacterClass(
-							RegexCompiler{}(c),
-							inverted,
-							state.Options,
-							state.Locale
-						)
-					);
+					c.CharacterClass=true;
+					
+					RegexCompiler compiler;
+					
+					compiler(c);
+					auto elements=std::move(c.Pattern);
+					c.Pattern=RegexCompiler::Pattern{};
+					
+					++c;
+					
+					RegexCompiler::Pattern subtracted;
+					if (c.Subtraction) {
+					
+						compiler(c);
+						subtracted=std::move(c.Pattern);
+						
+						++c;
+						
+					}
 					
 					//	Advance this compiler's state
-					++c;
 					state.Current=c.Current;
 					
-					return retr;
+					state.Add<RegexCharacterClass>(
+						std::move(elements),
+						std::move(subtracted),
+						inverted
+					);
+					
+					return true;
 				
 				}
 		

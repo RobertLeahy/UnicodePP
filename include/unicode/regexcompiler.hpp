@@ -8,11 +8,23 @@
 
 #include <unicode/codepoint.hpp>
 #include <unicode/locale.hpp>
+//	This header shouldn't be needed, but GCC's
+//	implementation of std::unique_ptr won't compile
+//	if it's instantiated with an incomplete type, so
+//	I can't just forward declare RegexPatternElement.
+//
+//	Accordingly, all files which include this file
+//	should act as though unicode/regex.hpp is not
+//	included automatically, as it may not be when/if
+//	GCC's implementation of std::unique_ptr is ever
+//	fixed.
+#include <unicode/regex.hpp>
 #include <unicode/regexerror.hpp>
 #include <unicode/regexoptions.hpp>
 #include <cstddef>
 #include <iterator>
 #include <memory>
+#include <utility>
 #include <vector>
 
 
@@ -24,14 +36,124 @@ namespace Unicode {
 	 */
 
 
-	class RegexPatternElement;
+	class RegexCompilerState;
 	class RegexParser;
 	
 	
 	/**
 	 *	\endcond
 	 */
-	 
+	
+	
+	/**
+	 *	Compiles regular expressions.
+	 */
+	class RegexCompiler {
+	
+	
+		public:
+		
+		
+			/**
+			 *	The type of each pattern element in a pattern
+			 *	formed by the compiler.
+			 */
+			typedef std::unique_ptr<RegexPatternElement> Element;
+			/**
+			 *	The type of the pattern formed by the compiler.
+			 */
+			typedef std::vector<Element> Pattern;
+		
+		
+			/**
+			 *	Adds a parser to the internal collection of parsers
+			 *	that will be used to parse regular expressions.
+			 *
+			 *	Not thread safe.
+			 *
+			 *	\param [in] parser
+			 *		The parser to add.
+			 */
+			static void Add (const RegexParser & parser);
+			/**
+			 *	Adds a parser to the internal collection of parsers
+			 *	that will be used to parse regular expressions.
+			 *
+			 *	Not thread safe.
+			 *
+			 *	\param [in] parser
+			 *		The parser to add.
+			 *	\param [in] priority
+			 *		The relative priority of the parser.  Parsers with
+			 *		a lower priority will be called on each position in
+			 *		a string earlier than parsers with a higher priority.
+			 */
+			static void Add (const RegexParser & parser, std::size_t priority);
+			/**
+			 *	Adds a parser to the internal collection of parsers
+			 *	that will be used to parse regular expressions.
+			 *
+			 *	Not thread safe.
+			 *
+			 *	\param [in] parser
+			 *		The parser to add.
+			 *	\param [in] character_class
+			 *		\em true if this parser should be invoked only
+			 *		within character classes, \em false if this
+			 *		parser should only be invoked outside of character
+			 *		classes.
+			 */
+			static void Add (const RegexParser & parser, bool character_class);
+			/**
+			 *	Adds a parser to the internal collection of parsers
+			 *	that will be used to parse regular expressions.
+			 *
+			 *	Not thread safe.
+			 *
+			 *	\param [in] parser
+			 *		The parser to add.
+			 *	\param [in] priority
+			 *		The relative priority of the parser.  Parsers with
+			 *		a lower priority will be called on each position in
+			 *		a string earlier than parsers with a higher priority.
+			 *	\param [in] character_class
+			 *		\em true if this parser should be invoked only
+			 *		within character classes, \em false if this
+			 *		parser should only be invoked outside of character
+			 *		classes.
+			 */
+			static void Add (const RegexParser & parser, std::size_t priority, bool character_class);
+			
+			
+			/**
+			 *	Compiles a regular expression.
+			 *
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the pattern.
+			 *	\param [in] end
+			 *		An iterator to the end of the pattern.
+			 *	\param [in] options
+			 *		The options with which to compile.
+			 *	\param [in] locale
+			 *		The locale with which to compile.
+			 *
+			 *	\return
+			 *		The compiled pattern.
+			 */
+			Pattern operator () (const CodePoint * begin, const CodePoint * end, RegexOptions options, const Locale & locale) const;
+			
+			
+			/**
+			 *	Compiles a regular expression.
+			 *
+			 *	\param [in] state
+			 *		The compiler's internal state.
+			 */
+			void operator () (RegexCompilerState & state) const;
+	
+	
+	};
+	
 	
 	/**
 	 *	Holds the regular expression compiler's internal
@@ -64,19 +186,29 @@ namespace Unicode {
 			 */
 			const Unicode::Locale & Locale;
 			/**
-			 *	If \em false, the regular expression compiler will not
-			 *	fail even if a call to a parser fails.
-			 *
-			 *	Defaults to \em true.
-			 */
-			bool Fail;
-			/**
 			 *	If \em true, the regular expression compiler is compiling
 			 *	a character class.
 			 *
 			 *	Defaults to \em false.
 			 */
 			bool CharacterClass;
+			/**
+			 *	The pattern being built.
+			 */
+			RegexCompiler::Pattern Pattern;
+			/** 
+			 *	\em true if the current parser is being invoked again
+			 *	after being the last parser to successfully be invoked,
+			 *	\em false otherwise.
+			 */
+			bool Successive;
+			/**
+			 *	Parsers should set this to \em false if they do not
+			 *	generate any pattern elements.
+			 *
+			 *	Defaults to \em true.
+			 */
+			bool Parsed;
 			
 			
 			/**
@@ -106,8 +238,9 @@ namespace Unicode {
 					End(end),
 					Options(options),
 					Locale(locale),
-					Fail(true),
-					CharacterClass(false)
+					CharacterClass(false),
+					Successive(false),
+					Parsed(true)
 			{	}
 			
 			
@@ -271,7 +404,7 @@ namespace Unicode {
 			 */
 			void Reset () noexcept {
 			
-				Fail=true;
+				Parsed=true;
 			
 			}
 	
@@ -306,113 +439,68 @@ namespace Unicode {
 			 *		point within the pattern, \em false otherwise.
 			 */
 			virtual bool Done ();
-	
-	
-	};
-	
-	
-	/**
-	 *	Compiles regular expressions.
-	 */
-	class RegexCompiler {
-	
-	
-		public:
-		
-		
-			/**
-			 *	The type of each pattern element in a pattern
-			 *	formed by the compiler.
-			 */
-			typedef std::unique_ptr<RegexPatternElement> Element;
-			/**
-			 *	The type of the pattern formed by the compiler.
-			 */
-			typedef std::vector<Element> Pattern;
-		
-		
-			/**
-			 *	Adds a parser to the internal collection of parsers
-			 *	that will be used to parse regular expressions.
-			 *
-			 *	Not thread safe.
-			 *
-			 *	\param [in] parser
-			 *		The parser to add.
-			 */
-			static void Add (const RegexParser & parser);
-			/**
-			 *	Adds a parser to the internal collection of parsers
-			 *	that will be used to parse regular expressions.
-			 *
-			 *	Not thread safe.
-			 *
-			 *	\param [in] parser
-			 *		The parser to add.
-			 *	\param [in] priority
-			 *		The relative priority of the parser.  Parsers with
-			 *		a lower priority will be called on each position in
-			 *		a string earlier than parsers with a higher priority.
-			 */
-			static void Add (const RegexParser & parser, std::size_t priority);
-			/**
-			 *	Adds a parser to the internal collection of parsers
-			 *	that will be used to parse regular expressions.
-			 *
-			 *	Not thread safe.
-			 *
-			 *	\param [in] parser
-			 *		The parser to add.
-			 *	\param [in] character_class
-			 *		\em true if this parser should be invoked only
-			 *		within character classes, \em false if this
-			 *		parser should only be invoked outside of character
-			 *		classes.
-			 */
-			static void Add (const RegexParser & parser, bool character_class);
-			/**
-			 *	Adds a parser to the internal collection of parsers
-			 *	that will be used to parse regular expressions.
-			 *
-			 *	Not thread safe.
-			 *
-			 *	\param [in] parser
-			 *		The parser to add.
-			 *	\param [in] priority
-			 *		The relative priority of the parser.  Parsers with
-			 *		a lower priority will be called on each position in
-			 *		a string earlier than parsers with a higher priority.
-			 *	\param [in] character_class
-			 *		\em true if this parser should be invoked only
-			 *		within character classes, \em false if this
-			 *		parser should only be invoked outside of character
-			 *		classes.
-			 */
-			static void Add (const RegexParser & parser, std::size_t priority, bool character_class);
 			
 			
 			/**
-			 *	Compiles a regular expression.
+			 *	Fetches the most recently created pattern element
+			 *	cast to a certain type.
 			 *
-			 *	\param [in] state
-			 *		The compiler's internal state.
+			 *	If the most recently created pattern element is not
+			 *	of type \em T, or there is no most recently created
+			 *	pattern element, the behaviour is undefined.
+			 *
+			 *	\tparam T
+			 *		The type of the pattern element to retrieve.
 			 *
 			 *	\return
-			 *		A compiled regular expression pattern.
+			 *		A reference to the last pattern element.
 			 */
-			Pattern operator () (RegexCompilerState && state) const;
+			template <typename T>
+			T & Back () noexcept {
+			
+				return reinterpret_cast<T &>(*(Pattern.back().get()));
+			
+			}
 			
 			
 			/**
-			 *	Compiles a regular expression.
+			 *	Adds a new pattern element.
 			 *
-			 *	\param [in] state
-			 *		The compiler's internal state.
+			 *	Options and Locale will always be passed as the
+			 *	last two arguments to the constructor of \em T, they
+			 *	do not have to be explicitly provided.
+			 *
+			 *	\tparam T
+			 *		The type of the pattern element to add.
+			 *	\tparam Args
+			 *		The types of the arguments to forward
+			 *		through to a constructor of \em T.
+			 *
+			 *	\param [in] args
+			 *		The arguments of types \em Args which
+			 *		shall be forwarded through to a constructor
+			 *		of \em T.
 			 *
 			 *	\return
-			 *		A compiled regular expression pattern.
+			 *		A reference to the newly-created pattern
+			 *		element.
 			 */
-			Pattern operator () (RegexCompilerState & state) const;
+			template <typename T, typename... Args>
+			T & Add (Args &&... args) {
+			
+				Pattern.push_back(
+					RegexCompiler::Element(
+						new T(
+							std::forward<Args>(args)...,
+							Options,
+							Locale
+						)
+					)
+				);
+				
+				return Back<T>();
+			
+			}
 	
 	
 	};
@@ -443,39 +531,10 @@ namespace Unicode {
 			 *		state.
 			 *
 			 *	\return
-			 *		A std::unique_ptr to a RegexPatternElement if
-			 *		parsing was successful, a null std::unique_ptr
+			 *		\em true if the parse succeeded, \em false
 			 *		otherwise.
 			 */
-			virtual RegexCompiler::Element operator () (RegexCompilerState & state) const = 0;
-			
-			
-			/**
-			 *	Attempts to continue parsing a pattern element at a
-			 *	certain point in a string.
-			 *
-			 *	This method will be invoked only when this parser is
-			 *	being invoked at a point in the string immediately
-			 *	following a point at which it successfully parsed a
-			 *	pattern element.
-			 *
-			 *	Default implementation unconditionally returns
-			 *	\em false.
-			 *
-			 *	\param [in,out] element
-			 *		A reference to the pattern element this parser
-			 *		previously produced.
-			 *	\param [in] state
-			 *		The regular expression compiler's internal
-			 *		state.
-			 *
-			 *	\return
-			 *		\em true if parsing was successful, \em false
-			 *		otherwise.  If \em false is returned the compiler
-			 *		will try and obtain a new pattern element by calling
-			 *		the other overload.
-			 */
-			virtual bool operator () (RegexPatternElement & element, RegexCompilerState & state) const;
+			virtual bool operator () (RegexCompilerState & state) const = 0;
 			
 			
 			/**
