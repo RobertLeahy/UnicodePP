@@ -357,7 +357,7 @@ namespace Unicode {
 	
 	RegexState::operator bool () const noexcept {
 	
-		return b!=e;
+		return l!=e;
 	
 	}
 	
