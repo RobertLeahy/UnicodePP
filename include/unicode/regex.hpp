@@ -146,6 +146,15 @@ namespace Unicode {
 		
 		
 			/**
+			 *	\em true if the engine is backtracking, \em false
+			 *	otherwise.
+			 *
+			 *	Defaults to \em false.
+			 */
+			bool Backtracking;
+		
+		
+			/**
 			 *	Creates a new regular expression engine state.
 			 *
 			 *	\param [in] begin
@@ -321,6 +330,17 @@ namespace Unicode {
 			 *	by this object.
 			 */
 			virtual ~RegexPatternElementPrivateState () noexcept;
+			
+			
+			/**
+			 *	Rewinds the regular expression engine's state.
+			 *
+			 *	Default implementation does nothing.
+			 *
+			 *	\param [in] state
+			 *		The regular expression engine's state.
+			 */
+			virtual void Rewind (RegexState & state);
 	
 	
 	};
@@ -341,9 +361,45 @@ namespace Unicode {
 		
 		
 			ptr_type state;
+			RegexState::Iterator loc;
 			
 			
 		public:
+		
+		
+			bool CanBacktrack;
+			bool PreventsBacktracking;
+		
+		
+			RegexPatternElementState () noexcept
+				:	CanBacktrack(false),
+					PreventsBacktracking(false)
+			{	}
+			/**
+			 *	Creates a new RegexPatternElement which stores
+			 *	the location at which the associated pattern
+			 *	element was invoked.
+			 *
+			 *	\param [in] loc
+			 *		The location at which the pattern element was
+			 *		invoked.
+			 */
+			RegexPatternElementState (RegexState::Iterator loc) noexcept
+				:	loc(loc),
+					CanBacktrack(false),
+					PreventsBacktracking(false)
+			{	}
+			
+			
+			/**
+			 *	Rewinds the regular expression engine's state
+			 *	to the point it was at before the associated
+			 *	pattern element was invoked.
+			 *
+			 *	\param [in] state
+			 *		The regular expression engine's state.
+			 */
+			void Rewind (RegexState & state);
 		
 		
 			/**
@@ -481,10 +537,17 @@ namespace Unicode {
 	class Regex {
 	
 	
+		public:
+		
+		
+			typedef std::vector<std::unique_ptr<RegexPatternElement>> Pattern;
+			typedef std::vector<RegexPatternElementState> States;
+	
+	
 		private:
 		
 		
-			std::vector<std::unique_ptr<RegexPatternElement>> pattern;
+			Pattern pattern;
 			bool rtl;
 			
 			
@@ -506,6 +569,10 @@ namespace Unicode {
 			 *		The escaped string.
 			 */
 			static String Escape (String str);
+			
+			
+			static bool Execute (const Pattern & pattern, RegexState & state);
+			static bool Execute (const Pattern & pattern, RegexState & state, States & states);
 		
 		
 			Regex () = delete;

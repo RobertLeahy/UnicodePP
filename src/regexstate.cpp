@@ -350,7 +350,8 @@ namespace Unicode {
 	RegexState::RegexState (const CodePoint * begin, const CodePoint * end, bool reversed) noexcept
 		:	b(reversed ? end : begin,reversed),
 			l(b),
-			e(reversed ? begin : end,reversed)
+			e(reversed ? begin : end,reversed),
+			Backtracking(false)
 	{	}
 	
 	

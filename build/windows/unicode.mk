@@ -36,6 +36,7 @@ obj/regexerror.o \
 obj/regexliteral.o \
 obj/regexparser.o \
 obj/regexpatternelement.o \
+obj/regexpatternelementstate.o \
 obj/regexpatternelementprivatestate.o \
 obj/regexstate.o \
 obj/regexunicodeproperties.o \
