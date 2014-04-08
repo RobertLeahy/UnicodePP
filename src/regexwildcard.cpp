@@ -54,7 +54,7 @@ namespace Unicode {
 			public:
 			
 			
-				virtual bool operator () (RegexCompilerState & state) const override {
+				virtual bool operator () (RegexCompiler & state) const override {
 				
 					if (*state!='.') return false;
 					

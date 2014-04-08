@@ -158,9 +158,9 @@ namespace Unicode {
 			
 			
 				template <typename T>
-				static void create (bool inverted, RegexCompilerState & state) {
+				static void create (bool inverted, RegexCompiler & compiler) {
 				
-					state.Add<RegexCharacterClasses<T>>(inverted);
+					compiler.Add<RegexCharacterClasses<T>>(inverted);
 				
 				}
 		
@@ -168,29 +168,29 @@ namespace Unicode {
 			public:
 			
 			
-				virtual bool operator () (RegexCompilerState & state) const override {
+				virtual bool operator () (RegexCompiler & compiler) const override {
 				
-					if (!((*state=='\\') && ++state)) return false;
+					if (!((*compiler=='\\') && ++compiler)) return false;
 					
 					bool inverted=false;
-					auto cp=*state;
-					++state;
+					auto cp=*compiler;
+					++compiler;
 					switch (cp) {
 					
 						case 'W':
 							inverted=true;
 						case 'w':
-							create<RegexWord>(inverted,state);
+							create<RegexWord>(inverted,compiler);
 							break;
 						case 'D':
 							inverted=true;
 						case 'd':
-							create<RegexDigit>(inverted,state);
+							create<RegexDigit>(inverted,compiler);
 							break;
 						case 'S':
 							inverted=true;
 						case 's':
-							create<RegexWhiteSpace>(inverted,state);
+							create<RegexWhiteSpace>(inverted,compiler);
 							break;
 						default:
 							return false;

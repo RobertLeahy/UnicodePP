@@ -9,9 +9,9 @@ namespace Unicode {
 	//	Throws an exception appropriate for an unterminated
 	//	character class
 	[[noreturn]]
-	static void raise (RegexCompilerState & state) {
+	static void raise (RegexCompiler & compiler) {
 	
-		state.Raise("No end of character class");
+		compiler.Raise("No end of character class");
 	
 	}
 
@@ -130,7 +130,7 @@ namespace Unicode {
 		};
 		
 		
-		class RegexCharacterClassCompilerState : public RegexCompilerState {
+		class RegexCharacterClassCompiler : public RegexCompiler {
 		
 		
 			public:
@@ -139,14 +139,14 @@ namespace Unicode {
 				bool Subtraction;
 			
 			
-				RegexCharacterClassCompilerState (
+				RegexCharacterClassCompiler (
 					const CodePoint * loc,
 					const CodePoint * begin,
 					const CodePoint * end,
 					RegexOptions options,
 					const Unicode::Locale & locale
 				) noexcept
-					:	RegexCompilerState(
+					:	RegexCompiler(
 							loc,
 							begin,
 							end,
@@ -189,53 +189,47 @@ namespace Unicode {
 			public:
 			
 			
-				virtual bool operator () (RegexCompilerState & state) const override {
+				virtual bool operator () (RegexCompiler & compiler) const override {
 				
 					//	Verify that this is a character class
-					if (
-						state.CharacterClass ||
-						(*state!='[')
-					) return false;
+					if (*compiler!='[') return false;
 					
-					if (!++state) raise(state);
+					if (!++compiler) raise(compiler);
 					
 					//	Inverted?
 					bool inverted;
-					if ((inverted=*state=='^')) if (!++state) raise(state);
+					if ((inverted=*compiler=='^')) if (!++compiler) raise(compiler);
 					
 					//	Compile
 					
-					RegexCharacterClassCompilerState c(
-						state.Current,
-						state.Begin,
-						state.End,
-						state.Options,
-						state.Locale
+					RegexCharacterClassCompiler c(
+						compiler.Current,
+						compiler.Begin,
+						compiler.End,
+						compiler.Options,
+						compiler.Locale
 					);
 					c.CharacterClass=true;
 					
-					RegexCompiler compiler;
-					
-					compiler(c);
-					auto elements=std::move(c.Pattern);
-					c.Pattern=RegexCompiler::Pattern{};
+					c();
+					auto elements=c.Get();
 					
 					++c;
 					
 					RegexCompiler::Pattern subtracted;
 					if (c.Subtraction) {
 					
-						compiler(c);
-						subtracted=std::move(c.Pattern);
+						c();
+						subtracted=c.Get();
 						
 						++c;
 						
 					}
 					
-					//	Advance this compiler's state
-					state.Current=c.Current;
+					//	Advance this compiler's compiler
+					compiler.Current=c.Current;
 					
-					state.Add<RegexCharacterClass>(
+					compiler.Add<RegexCharacterClass>(
 						std::move(elements),
 						std::move(subtracted),
 						inverted

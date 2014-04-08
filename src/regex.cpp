@@ -158,12 +158,7 @@ namespace Unicode {
 	
 	
 	Regex::Regex (const CodePoint * begin, const CodePoint * end, RegexOptions options, const Locale & locale)
-		:	pattern(RegexCompiler{}(
-				begin,
-				end,
-				options,
-				locale
-			)),
+		:	pattern(RegexCompiler::Compile(begin,end,options,locale)),
 			rtl(Check(options,RegexOptions::RightToLeft))
 	{	}
 	

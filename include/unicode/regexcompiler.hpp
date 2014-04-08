@@ -19,11 +19,11 @@
 //	GCC's implementation of std::unique_ptr is ever
 //	fixed.
 #include <unicode/regex.hpp>
-#include <unicode/regexerror.hpp>
 #include <unicode/regexoptions.hpp>
 #include <cstddef>
 #include <iterator>
 #include <memory>
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -36,7 +36,6 @@ namespace Unicode {
 	 */
 
 
-	class RegexCompilerState;
 	class RegexParser;
 	
 	
@@ -45,352 +44,106 @@ namespace Unicode {
 	 */
 	
 	
-	/**
-	 *	Compiles regular expressions.
-	 */
 	class RegexCompiler {
 	
 	
 		public:
 		
 		
-			/**
-			 *	The type of each pattern element in a pattern
-			 *	formed by the compiler.
-			 */
 			typedef std::unique_ptr<RegexPatternElement> Element;
-			/**
-			 *	The type of the pattern formed by the compiler.
-			 */
 			typedef std::vector<Element> Pattern;
-		
-		
-			/**
-			 *	Adds a parser to the internal collection of parsers
-			 *	that will be used to parse regular expressions.
-			 *
-			 *	Not thread safe.
-			 *
-			 *	\param [in] parser
-			 *		The parser to add.
-			 */
-			static void Add (const RegexParser & parser);
-			/**
-			 *	Adds a parser to the internal collection of parsers
-			 *	that will be used to parse regular expressions.
-			 *
-			 *	Not thread safe.
-			 *
-			 *	\param [in] parser
-			 *		The parser to add.
-			 *	\param [in] priority
-			 *		The relative priority of the parser.  Parsers with
-			 *		a lower priority will be called on each position in
-			 *		a string earlier than parsers with a higher priority.
-			 */
-			static void Add (const RegexParser & parser, std::size_t priority);
-			/**
-			 *	Adds a parser to the internal collection of parsers
-			 *	that will be used to parse regular expressions.
-			 *
-			 *	Not thread safe.
-			 *
-			 *	\param [in] parser
-			 *		The parser to add.
-			 *	\param [in] character_class
-			 *		\em true if this parser should be invoked only
-			 *		within character classes, \em false if this
-			 *		parser should only be invoked outside of character
-			 *		classes.
-			 */
-			static void Add (const RegexParser & parser, bool character_class);
-			/**
-			 *	Adds a parser to the internal collection of parsers
-			 *	that will be used to parse regular expressions.
-			 *
-			 *	Not thread safe.
-			 *
-			 *	\param [in] parser
-			 *		The parser to add.
-			 *	\param [in] priority
-			 *		The relative priority of the parser.  Parsers with
-			 *		a lower priority will be called on each position in
-			 *		a string earlier than parsers with a higher priority.
-			 *	\param [in] character_class
-			 *		\em true if this parser should be invoked only
-			 *		within character classes, \em false if this
-			 *		parser should only be invoked outside of character
-			 *		classes.
-			 */
-			static void Add (const RegexParser & parser, std::size_t priority, bool character_class);
-			
-			
-			/**
-			 *	Compiles a regular expression.
-			 *
-			 *	\param [in] begin
-			 *		An iterator to the beginning of the pattern.
-			 *	\param [in] end
-			 *		An iterator to the end of the pattern.
-			 *	\param [in] options
-			 *		The options with which to compile.
-			 *	\param [in] locale
-			 *		The locale with which to compile.
-			 *
-			 *	\return
-			 *		The compiled pattern.
-			 */
-			Pattern operator () (const CodePoint * begin, const CodePoint * end, RegexOptions options, const Locale & locale) const;
-			
-			
-			/**
-			 *	Compiles a regular expression.
-			 *
-			 *	\param [in] state
-			 *		The compiler's internal state.
-			 */
-			void operator () (RegexCompilerState & state) const;
+			typedef const CodePoint * Iterator;
 	
 	
-	};
-	
-	
-	/**
-	 *	Holds the regular expression compiler's internal
-	 *	state.
-	 */
-	class RegexCompilerState {
+		private:
 		
 		
+			class RegexParserInfo {
+			
+			
+				public:
+				
+				
+					const RegexParser * Parser;
+					std::size_t Priority;
+					std::optional<bool> CharacterClass;
+			
+			
+			};
+			
+			
+			static std::vector<RegexParserInfo> & get_parsers ();
+			static void add_impl (const RegexParser &, std::size_t, std::optional<bool>);
+		
+		
+			Pattern pattern;
+			const RegexParser * last;
+			const RegexParser * current;
+			
+			
+			void complete ();
+			bool should_invoke (const RegexParserInfo &) const noexcept;
+			void rewind (Iterator) noexcept;
+	
+	
 		public:
 		
 		
-			/**
-			 *	The current location within the pattern.
-			 */
-			const CodePoint * Current;
-			/**
-			 *	The beginning of the pattern
-			 */
-			const CodePoint * Begin;
-			/**
-			 *	The end of the regular expression pattern.
-			 */
-			const CodePoint * const End;
-			/**
-			 *	The options currently set.
-			 */
+			static void Add (const RegexParser & parser);
+			static void Add (const RegexParser & parser, std::size_t priority);
+			static void Add (const RegexParser & parser, bool character_class);
+			static void Add (const RegexParser & parser, std::size_t priority, bool character_class);
+			
+			
+			static Pattern Compile (Iterator begin, Iterator end, RegexOptions options, const Unicode::Locale & locale);
+		
+		
+			Iterator Current;
+			Iterator Begin;
+			Iterator End;
+			
+			
 			RegexOptions Options;
-			/**
-			 *	The current locale.
-			 */
 			const Unicode::Locale & Locale;
-			/**
-			 *	If \em true, the regular expression compiler is compiling
-			 *	a character class.
-			 *
-			 *	Defaults to \em false.
-			 */
-			bool CharacterClass;
-			/**
-			 *	The pattern being built.
-			 */
-			RegexCompiler::Pattern Pattern;
-			/** 
-			 *	\em true if the current parser is being invoked again
-			 *	after being the last parser to successfully be invoked,
-			 *	\em false otherwise.
-			 */
 			bool Successive;
-			/**
-			 *	Parsers should set this to \em false if they do not
-			 *	generate any pattern elements.
-			 *
-			 *	Defaults to \em true.
-			 */
-			bool Parsed;
+			bool CharacterClass;
 			
 			
-			/**
-			 *	Creates a new RegexCompilerState.
-			 *
-			 *	\param [in] loc
-			 *		An iterator to the current location within the
-			 *		pattern.
-			 *	\param [in] begin
-			 *		An iterator to the beginning of the pattern.
-			 *	\param [in] end
-			 *		An iterator to the end of the pattern.
-			 *	\param [in] options
-			 *		The options set for the pattern being compiled.
-			 *	\param [in] locale
-			 *		The locale in which the pattern is being compiled.
-			 */
-			RegexCompilerState (
-				const CodePoint * loc,
-				const CodePoint * begin,
-				const CodePoint * end,
-				RegexOptions options,
-				const Unicode::Locale & locale
-			) noexcept
-				:	Current(loc),
-					Begin(begin),
-					End(end),
-					Options(options),
-					Locale(locale),
-					CharacterClass(false),
-					Successive(false),
-					Parsed(true)
-			{	}
+			RegexCompiler (Iterator begin, Iterator end, RegexOptions options, const Unicode::Locale & locale) noexcept;
+			RegexCompiler (Iterator curr, Iterator begin, Iterator end, RegexOptions options, const Unicode::Locale & locale) noexcept;
 			
 			
-			/**
-			 *	Creates a new RegexCompilerState whose location is the
-			 *	beginning of the pattern.
-			 *
-			 *	\param [in] begin
-			 *		An iterator to the beginning of the pattern.
-			 *	\param [in] end
-			 *		An iterator to the end of the pattern.
-			 *	\param [in] options
-			 *		The options set for the pattern being compiled.
-			 *	\param [in] locale
-			 *		The locale in which the pattern is being compiled.
-			 */
-			RegexCompilerState (
-				const CodePoint * begin,
-				const CodePoint * end,
-				RegexOptions options,
-				const Unicode::Locale & locale
-			) noexcept : RegexCompilerState(begin,begin,end,options,locale) {	}
-			
-			
-			/**
-			 *	Polymorphically releases all resources held by this
-			 *	object.
-			 */
-			virtual ~RegexCompilerState () noexcept;
-			
-			
-			/**
-			 *	Checks to see if the location within the pattern is
-			 *	valid.
-			 *
-			 *	\return
-			 *		\em true if Current!=End, \em false if Current==End.
-			 */
-			explicit operator bool () const noexcept {
+			operator bool () const noexcept {
 			
 				return Current!=End;
 			
 			}
-			/**
-			 *	Retrieves a reference to the code point at the current
-			 *	location within the pattern.
-			 *
-			 *	\return
-			 *		A reference to a code point.
-			 */
 			const CodePoint & operator * () const noexcept {
 			
 				return *Current;
 			
 			}
-			/**
-			 *	Retrieves a pointer to the code point at the current
-			 *	location within the pattern.
-			 *
-			 *	\return
-			 *		A pointer to a code point.
-			 */
 			const CodePoint * operator -> () const noexcept {
 			
 				return Current;
 			
 			}
-			/**
-			 *	Advances the location within the pattern by a certain
-			 *	amount.
-			 *
-			 *	\param [in] dist
-			 *		The number of code points by which the location in
-			 *		the pattern should be advanced.
-			 *
-			 *	\return
-			 *		A reference to this object.
-			 */
-			RegexCompilerState & operator += (std::ptrdiff_t dist) noexcept {
+			RegexCompiler & operator ++ () noexcept {
 			
-				Current+=dist;
+				++Current;
 				
 				return *this;
 			
 			}
-			/**
-			 *	Retreats the location within the pattern by a certain
-			 *	amount.
-			 *
-			 *	\param [in] dist
-			 *		The number of code points by which the location in
-			 *		the pattern should retreat.
-			 *
-			 *	\return
-			 *		A reference to this object.
-			 */
-			RegexCompilerState & operator -= (std::ptrdiff_t dist) noexcept {
+			RegexCompiler & operator -- () noexcept {
 			
-				Current-=dist;
+				--Current;
 				
 				return *this;
 			
 			}
-			/**
-			 *	Advances the location within the pattern by one code
-			 *	point.
-			 *
-			 *	\return
-			 *		A reference to this object.
-			 */
-			RegexCompilerState & operator ++ () noexcept {
-			
-				return *this+=1;
-			
-			}
-			/**
-			 *	Retreats the location within the pattern by one code
-			 *	point.
-			 *
-			 *	\return
-			 *		A reference to this object.
-			 */
-			RegexCompilerState & operator -- () noexcept {
-			
-				return *this-=1;
-			
-			}
-			/**
-			 *	Determines how many code points remain in the pattern.
-			 *
-			 *	\return
-			 *		The result of End-Current.
-			 */
-			std::size_t Remaining () const noexcept {
-			
-				return static_cast<std::size_t>(End-Current);
-			
-			}
 			
 			
-			/**
-			 *	Checks to see if a certain option or options are set.
-			 *
-			 *	\param [in] option
-			 *		The option or options to check.
-			 *
-			 *	\return
-			 *		\em true if all the options specified by \em option
-			 *		are set, \em false otherwise.
-			 */
 			bool Check (RegexOptions option) const noexcept {
 			
 				return Unicode::Check(Options,option);
@@ -398,98 +151,25 @@ namespace Unicode {
 			}
 			
 			
-			/**
-			 *	Resets the flags set or unset on the state object to
-			 *	their default state.
-			 */
-			void Reset () noexcept {
-			
-				Parsed=true;
-			
-			}
-	
-	
-			/**
-			 *	Throws an exception at the current location within the
-			 *	pattern.
-			 *
-			 *	\param [in] what
-			 *		A message describing the error.
-			 */
-			[[noreturn]]
-			void Raise (const char * what) const {
-			
-				throw RegexError(what,Current);
-			
-			}
+			Pattern Get ();
+			void Set (Pattern pattern);
 			
 			
-			/**
-			 *	Determines whether or not compilation is finished at
-			 *	the current point in the pattern.
-			 *
-			 *	Default implementation returns \em false until the
-			 *	end of the pattern.
-			 *
-			 *	If this method returns \em false at the end of the
-			 *	pattern, the result is undefined behaviour.
-			 *
-			 *	\return
-			 *		\em true if compilation is finished at the current
-			 *		point within the pattern, \em false otherwise.
-			 */
-			virtual bool Done ();
-			
-			
-			/**
-			 *	Fetches the most recently created pattern element
-			 *	cast to a certain type.
-			 *
-			 *	If the most recently created pattern element is not
-			 *	of type \em T, or there is no most recently created
-			 *	pattern element, the behaviour is undefined.
-			 *
-			 *	\tparam T
-			 *		The type of the pattern element to retrieve.
-			 *
-			 *	\return
-			 *		A reference to the last pattern element.
-			 */
 			template <typename T>
 			T & Back () noexcept {
 			
-				return reinterpret_cast<T &>(*(Pattern.back().get()));
+				return reinterpret_cast<T &>(*(pattern.back().get()));
 			
 			}
 			
 			
-			/**
-			 *	Adds a new pattern element.
-			 *
-			 *	Options and Locale will always be passed as the
-			 *	last two arguments to the constructor of \em T, they
-			 *	do not have to be explicitly provided.
-			 *
-			 *	\tparam T
-			 *		The type of the pattern element to add.
-			 *	\tparam Args
-			 *		The types of the arguments to forward
-			 *		through to a constructor of \em T.
-			 *
-			 *	\param [in] args
-			 *		The arguments of types \em Args which
-			 *		shall be forwarded through to a constructor
-			 *		of \em T.
-			 *
-			 *	\return
-			 *		A reference to the newly-created pattern
-			 *		element.
-			 */
 			template <typename T, typename... Args>
 			T & Add (Args &&... args) {
 			
-				Pattern.push_back(
-					RegexCompiler::Element(
+				complete();
+			
+				pattern.push_back(
+					Element(
 						new T(
 							std::forward<Args>(args)...,
 							Options,
@@ -498,9 +178,21 @@ namespace Unicode {
 					)
 				);
 				
+				last=current;
+				
 				return Back<T>();
 			
 			}
+			
+			
+			[[noreturn]]
+			void Raise (const char * what) const;
+			
+			
+			virtual bool Done ();
+			
+			
+			void operator () ();
 	
 	
 	};
@@ -526,15 +218,14 @@ namespace Unicode {
 			 *	Attempts to parse a pattern element at a certain
 			 *	point in a string.
 			 *
-			 *	\param [in] state
-			 *		The regular expression compiler's internal
-			 *		state.
+			 *	\param [in] compiler
+			 *		The regular expression compiler.
 			 *
 			 *	\return
 			 *		\em true if the parse succeeded, \em false
 			 *		otherwise.
 			 */
-			virtual bool operator () (RegexCompilerState & state) const = 0;
+			virtual bool operator () (RegexCompiler & compiler) const = 0;
 			
 			
 			/**

@@ -1,35 +1,15 @@
 #include <unicode/regex.hpp>
 #include <unicode/regexcompiler.hpp>
+#include <unicode/regexerror.hpp>
 #include <algorithm>
 #include <limits>
-#include <optional>
 #include <utility>
 
 
 namespace Unicode {
-
-
-	namespace {
 	
 	
-		class RegexParserInfo {
-		
-		
-			public:
-			
-			
-				const RegexParser * Parser;
-				std::size_t Priority;
-				std::optional<bool> CharacterClass;
-		
-		
-		};
-	
-	
-	}
-	
-	
-	static std::vector<RegexParserInfo> & get_parsers () {
+	std::vector<RegexCompiler::RegexParserInfo> & RegexCompiler::get_parsers () {
 	
 		static std::vector<RegexParserInfo> parsers;
 		
@@ -38,7 +18,7 @@ namespace Unicode {
 	}
 	
 	
-	static void add_impl (const RegexParser & parser, std::size_t priority, std::optional<bool> character_class) {
+	void RegexCompiler::add_impl (const RegexParser & parser, std::size_t priority, std::optional<bool> character_class) {
 	
 		auto & parsers=get_parsers();
 		parsers.insert(
@@ -84,115 +64,151 @@ namespace Unicode {
 	}
 	
 	
-	RegexCompiler::Pattern RegexCompiler::operator () (
-		const CodePoint * begin,
-		const CodePoint * end,
-		RegexOptions options,
-		const Locale & locale
-	) const {
+	RegexCompiler::Pattern RegexCompiler::Compile (Iterator begin, Iterator end, RegexOptions options, const Unicode::Locale & locale) {
 	
-		RegexCompilerState state(
-			begin,
-			end,
-			options,
-			locale
-		);
-		(*this)(state);
+		RegexCompiler c(begin,end,options,locale);
+		c();
 		
-		return std::move(state.Pattern);
+		return c.Get();
 	
 	}
 	
 	
-	static bool should_invoke (const RegexParserInfo & info, const RegexCompilerState & state) noexcept {
+	void RegexCompiler::complete () {
 	
-		return !info.CharacterClass || (*(info.CharacterClass)==state.CharacterClass);
-	
-	}
-	
-	
-	static void complete (const RegexParser * last, std::size_t last_loc, RegexCompilerState & state) {
-	
-		if (last!=nullptr) last->Complete(*(state.Pattern[last_loc].get()));
+		if (last==nullptr) return;
+		
+		last->Complete(*(pattern.back().get()));
+		last=nullptr;
 	
 	}
 	
 	
-	void RegexCompiler::operator () (RegexCompilerState & state) const {
+	bool RegexCompiler::should_invoke (const RegexParserInfo & info) const noexcept {
 	
-		//	The last type of parser successfully
-		//	invoked
-		const RegexParser * last=nullptr;
-		//	Index of the pattern element the last
-		//	successfully invoked parser generated
-		std::size_t last_loc;
-		//	The list of parsers
+		if (!info.CharacterClass) return true;
+		
+		return *info.CharacterClass==CharacterClass;
+	
+	}
+	
+	
+	void RegexCompiler::rewind (Iterator loc) noexcept {
+	
+		Current=loc;
+		current=nullptr;
+		Successive=false;
+	
+	}
+	
+	
+	RegexCompiler::RegexCompiler (Iterator begin, Iterator end, RegexOptions options, const Unicode::Locale & locale) noexcept
+		:	RegexCompiler(begin,begin,end,options,locale)
+	{	}
+	
+	
+	RegexCompiler::RegexCompiler (Iterator curr, Iterator begin, Iterator end, RegexOptions options, const Unicode::Locale & locale) noexcept
+		:	last(nullptr),
+			current(nullptr),
+			Current(curr),
+			Begin(begin),
+			End(end),
+			Options(options),
+			Locale(locale),
+			Successive(false),
+			CharacterClass(false)
+	{	}
+	
+	
+	RegexCompiler::Pattern RegexCompiler::Get () {
+	
+		complete();
+		
+		auto retr=std::move(pattern);
+		pattern=Pattern{};
+		last=nullptr;
+		
+		return retr;
+	
+	}
+	
+	
+	void RegexCompiler::Set (Pattern pattern) {
+	
+		this->pattern=std::move(pattern);
+		last=nullptr;
+	
+	}
+	
+	
+	void RegexCompiler::Raise (const char * what) const {
+	
+		throw RegexError(what,Current);
+	
+	}
+	
+	
+	bool RegexCompiler::Done () {
+	
+		return !static_cast<bool>(*this);
+	
+	}
+	
+	
+	void RegexCompiler::operator () () {
+	
 		auto & parsers=get_parsers();
-		
+	
 		//	Loop until done
-		while (!state.Done()) {
+		while (!Done()) {
 		
-			//	Track the start point so:
-			//
-			//	A.	We can return here if a parse fails.
-			//	B.	We can detect the case where no parser
-			//		can generate a pattern element/consume
-			//		code points
-			auto start=state.Current;
+			//	Track start position so that we
+			//	can rewind to it on failure
+			auto start=Current;
 			
-			//	Loop for each parser
+			//	Loop over each parser
 			for (auto & info : parsers) {
 			
-				//	Skip parsers that shouldn't be invoked in
-				//	this context
-				if (!should_invoke(info,state)) continue;
+				//	Skip parsers that shouldn't be invoked
+				if (!should_invoke(info)) continue;
 				
-				//	Make sure the state is clean/consistent
-				state.Reset();
-				state.Successive=info.Parser==last;
+				current=info.Parser;
+				Successive=current==last;
+				try {
 				
-				if ((*(info.Parser))(state)) {
-				
-					//	Parse successful
+					if ((*info.Parser)(*this)) {
 					
-					//	Update last parser if pattern elements were
-					//	actually generated
-					if (state.Parsed) {
-					
-						//	Complete last pattern element
-						complete(last,last_loc,state);
-					
-						last=info.Parser;
-						last_loc=state.Pattern.size()-1;
+						//	SUCCESS
 						
+						//	If the parser didn't advance the
+						//	iterator, do it for it
+						if (Current==start) ++Current;
+						
+						goto success;
+					
 					}
+				
+				} catch (...) {
+				
+					rewind(start);
 					
-					//	If parser failed to advance state, do it
-					//	for them
-					if (state.Current==start) ++state;
-					
-					//	Proceeds to next iteration of outer loop
-					goto success;
+					throw;
 				
 				}
 				
-				//	Parse failed
-				
-				//	Rewind
-				state.Current=start;
+				rewind(start);
 			
 			}
+		
+			//	If no parser was found, throw
+			Raise("No matching parser");
 			
-			//	Nothing was consumed, throw
-			state.Raise("No matching parser");
-			
-			//	Control comes here after a successful parse
 			success:;
 		
 		}
 		
-		//	Complete last pattern element
-		complete(last,state.Pattern.size()-1,state);
+		//	Make sure everything is wrapped up
+		complete();
 	
 	}
 

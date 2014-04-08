@@ -31,7 +31,6 @@ obj/regexcharacterclass.o \
 obj/regexcharacterclasses.o \
 obj/regexcomment.o \
 obj/regexcompiler.o \
-obj/regexcompilerstate.o \
 obj/regexerror.o \
 obj/regexliteral.o \
 obj/regexparser.o \

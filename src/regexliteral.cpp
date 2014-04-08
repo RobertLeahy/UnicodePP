@@ -296,12 +296,12 @@ namespace Unicode {
 				}
 				
 				
-				static bool ignore (RegexCompilerState & state) noexcept {
+				static bool ignore (RegexCompiler & compiler) noexcept {
 				
 					//	White space is not ignored in character classes
-					if (state.CharacterClass) return false;
+					if (compiler.CharacterClass) return false;
 				
-					if (state.Check(RegexOptions::IgnorePatternWhiteSpace) && state->IsWhiteSpace()) return true;
+					if (compiler.Check(RegexOptions::IgnorePatternWhiteSpace) && compiler->IsWhiteSpace()) return true;
 					
 					return false;
 				
@@ -311,12 +311,12 @@ namespace Unicode {
 			public:
 			
 			
-				virtual bool operator () (RegexCompilerState & state) const override {
+				virtual bool operator () (RegexCompiler & compiler) const override {
 				
-					if (ignore(state)) return true;
+					if (ignore(compiler)) return true;
 					
-					(state.Successive ? state.Back<RegexLiteral>() : state.Add<RegexLiteral>()).Add(
-						get(state.Current,state.End)
+					(compiler.Successive ? compiler.Back<RegexLiteral>() : compiler.Add<RegexLiteral>()).Add(
+						get(compiler.Current,compiler.End)
 					);
 					
 					return true;

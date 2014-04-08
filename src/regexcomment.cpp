@@ -15,29 +15,29 @@ namespace Unicode {
 			private:
 			
 			
-				static bool skip_comment (RegexCompilerState & state) {
+				static bool skip_comment (RegexCompiler & compiler) {
 				
 					if (!(
-						++state && (*state=='?') &&
-						++state && (*state=='#')
+						++compiler && (*compiler=='?') &&
+						++compiler && (*compiler=='#')
 					)) return false;
 					
-					while (++state) if (*state==')') {
+					while (++compiler) if (*compiler==')') {
 					
-						++state;
+						++compiler;
 						
 						return true;
 					
 					}
 					
-					state.Raise("No end of comment");
+					compiler.Raise("No end of comment");
 				
 				}
 				
 				
-				static void skip_line_comment (RegexCompilerState & state) noexcept {
+				static void skip_line_comment (RegexCompiler & compiler) noexcept {
 				
-					for (;state && !IsLineBreak(state.Current,state.Begin,state.End,state.Locale);++state);
+					for (;compiler && !IsLineBreak(compiler.Current,compiler.Begin,compiler.End,compiler.Locale);++compiler);
 				
 				}
 		
@@ -45,21 +45,21 @@ namespace Unicode {
 			public:
 			
 			
-				virtual bool operator () (RegexCompilerState & state) const override {
+				virtual bool operator () (RegexCompiler & compiler) const override {
 				
-					switch (*state) {
+					switch (*compiler) {
 					
 						case '#':
-							if (state.Check(RegexOptions::IgnorePatternWhiteSpace)) {
+							if (compiler.Check(RegexOptions::IgnorePatternWhiteSpace)) {
 							
-								skip_line_comment(state);
+								skip_line_comment(compiler);
 								
 								return true;
 								
 							}
 							return false;
 						case '(':
-							return skip_comment(state);
+							return skip_comment(compiler);
 						default:
 							break;
 					

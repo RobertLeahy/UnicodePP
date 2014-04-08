@@ -336,9 +336,9 @@ namespace Unicode {
 			
 			
 				template <typename T>
-				static void create (T category, bool inverted, RegexCompilerState & state) {
+				static void create (T category, bool inverted, RegexCompiler & compiler) {
 				
-					state.Add<RegexCategory<T>>(category,inverted);
+					compiler.Add<RegexCategory<T>>(category,inverted);
 				
 				}
 				
@@ -348,10 +348,10 @@ namespace Unicode {
 					const CodePoint * end,
 					bool is_block,
 					bool inverted,
-					RegexCompilerState & state
+					RegexCompiler & compiler
 				) {
 				
-					state.Add<RegexBlockOrScript>(
+					compiler.Add<RegexBlockOrScript>(
 						String(begin,end),
 						is_block,
 						inverted
@@ -360,15 +360,15 @@ namespace Unicode {
 				}
 			
 			
-				static void get (const String & str, bool inverted, RegexCompilerState & state) {
+				static void get (const String & str, bool inverted, RegexCompiler & compiler) {
 				
-					if (str.Size()==0) state.Raise("No Unicode property specification");
+					if (str.Size()==0) compiler.Raise("No Unicode property specification");
 					
 					//	Try and get a super category
 					auto sc=CategoryImpl<SuperCategory>::FromString(str);
 					if (sc) {
 					
-						create(*sc,inverted,state);
+						create(*sc,inverted,compiler);
 						
 						return;
 						
@@ -378,7 +378,7 @@ namespace Unicode {
 					auto gc=CategoryImpl<GeneralCategory>::FromString(str);
 					if (gc) {
 					
-						create(*gc,inverted,state);
+						create(*gc,inverted,compiler);
 						
 						return;
 						
@@ -395,23 +395,23 @@ namespace Unicode {
 						
 							//	Block
 							case 's':
-								create(begin,str.end(),true,inverted,state);
+								create(begin,str.end(),true,inverted,compiler);
 								return;
 							//	Script
 							case 'n':
-								create(begin,str.end(),false,inverted,state);
+								create(begin,str.end(),false,inverted,compiler);
 								return;
 							//	Invalid
 							default:
 								invalid:
-								state.Raise("Invalid block or script specification");
+								compiler.Raise("Invalid block or script specification");
 						
 						}
 					
 					}
 					
 					//	Invalid
-					state.Raise("Invalid Unicode property specification");
+					compiler.Raise("Invalid Unicode property specification");
 				
 				}
 		
@@ -419,12 +419,12 @@ namespace Unicode {
 			public:
 			
 			
-				virtual bool operator () (RegexCompilerState & state) const override {
+				virtual bool operator () (RegexCompiler & compiler) const override {
 				
-					if (!((*state=='\\') && ++state)) return false;
+					if (!((*compiler=='\\') && ++compiler)) return false;
 					
 					bool inverted;
-					switch (*state) {
+					switch (*compiler) {
 					
 						case 'p':
 							inverted=false;
@@ -437,20 +437,20 @@ namespace Unicode {
 					
 					}
 					
-					if (!(++state && (*state=='{') && ++state)) return false;
+					if (!(++compiler && (*compiler=='{') && ++compiler)) return false;
 					
 					String str;
-					while (*state!='}') {
+					while (*compiler!='}') {
 					
-						str << *state;
+						str << *compiler;
 						
-						if (!++state) state.Raise("No end of Unicode property specification");
+						if (!++compiler) compiler.Raise("No end of Unicode property specification");
 					
 					}
 					
-					++state;
+					++compiler;
 					
-					get(str,inverted,state);
+					get(str,inverted,compiler);
 					
 					return true;
 				
