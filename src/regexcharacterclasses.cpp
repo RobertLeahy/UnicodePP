@@ -127,11 +127,11 @@ namespace Unicode {
 				{	}
 				
 				
-				virtual bool operator () (RegexState & state, RegexPatternElementState &) const override {
+				virtual bool operator () (RegexEngine & engine, RegexState &) const override {
 				
-					if (!state || (T::Check(*state,Locale)==inverted)) return false;
+					if (!engine || (T::Check(*engine,Locale)==inverted)) return false;
 					
-					++state;
+					++engine;
 					
 					return true;
 				

@@ -25,11 +25,11 @@ namespace Unicode {
 				
 				
 				template <typename Iterator>
-				static bool case_sensitive_check (Iterator begin, Iterator end, RegexState & state) noexcept {
+				static bool case_sensitive_check (Iterator begin, Iterator end, RegexEngine & engine) noexcept {
 				
-					for (;begin!=end;++begin,++state) {
+					for (;begin!=end;++begin,++engine) {
 					
-						if (!(state && (*state==*begin))) return false;
+						if (!(engine && (*engine==*begin))) return false;
 					
 					}
 					
@@ -53,19 +53,19 @@ namespace Unicode {
 				
 				
 				template <typename Iterator>
-				bool case_insensitive_check (Iterator begin, Iterator end, RegexState & state) const noexcept {
+				bool case_insensitive_check (Iterator begin, Iterator end, RegexEngine & engine) const noexcept {
 				
-					auto b=state.Begin();
-					auto e=state.End();
+					auto b=engine.Begin();
+					auto e=engine.End();
 					CaseConverter cc(Locale);
-					for (;begin!=end;++state) {
+					for (;begin!=end;++engine) {
 					
-						if (!state) return false;
+						if (!engine) return false;
 					
-						auto folded=cc.Fold(&(*state),b,e);
+						auto folded=cc.Fold(&(*engine),b,e);
 						
 						if (!(
-							state.Reversed() ? check(
+							engine.Reversed() ? check(
 								begin,
 								end,
 								MakeReverseIterator(folded.end()),
@@ -86,16 +86,16 @@ namespace Unicode {
 				
 				
 				template <typename Iterator>
-				bool check (Iterator begin, Iterator end, RegexState & state) const noexcept {
+				bool check (Iterator begin, Iterator end, RegexEngine & engine) const noexcept {
 				
 					return Check(RegexOptions::IgnoreCase) ? case_insensitive_check(
 						std::move(begin),
 						std::move(end),
-						state
+						engine
 					) : case_sensitive_check(
 						std::move(begin),
 						std::move(end),
-						state
+						engine
 					);
 				
 				}
@@ -114,16 +114,16 @@ namespace Unicode {
 				using RegexPatternElement::RegexPatternElement;
 				
 				
-				virtual bool operator () (RegexState & state, RegexPatternElementState &) const override {
+				virtual bool operator () (RegexEngine & engine, RegexState &) const override {
 				
-					return state.Reversed() ? check(
+					return engine.Reversed() ? check(
 						MakeReverseIterator(str.end()),
 						MakeReverseIterator(str.begin()),
-						state
+						engine
 					) : check(
 						str.begin(),
 						str.end(),
-						state
+						engine
 					);
 				
 				}

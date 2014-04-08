@@ -17,17 +17,17 @@ namespace Unicode {
 				using RegexPatternElement::RegexPatternElement;
 				
 				
-				virtual bool operator () (RegexState & state, RegexPatternElementState &) const override {
+				virtual bool operator () (RegexEngine & engine, RegexState &) const override {
 				
 					if (
-						!state ||
+						!engine ||
 						(
 							!Check(RegexOptions::Singleline) &&
-							(*state=='\n')
+							(*engine=='\n')
 						)
 					) return false;
 					
-					++state;
+					++engine;
 					
 					return true;
 				

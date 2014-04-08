@@ -31,12 +31,13 @@ obj/regexcharacterclass.o \
 obj/regexcharacterclasses.o \
 obj/regexcomment.o \
 obj/regexcompiler.o \
+obj/regexengine.o \
 obj/regexerror.o \
+obj/regexiterator.o \
 obj/regexliteral.o \
 obj/regexparser.o \
 obj/regexpatternelement.o \
-obj/regexpatternelementstate.o \
-obj/regexpatternelementprivatestate.o \
+obj/regexprivatestate.o \
 obj/regexstate.o \
 obj/regexunicodeproperties.o \
 obj/regexwildcard.o \

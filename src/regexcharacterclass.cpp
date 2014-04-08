@@ -30,15 +30,14 @@ namespace Unicode {
 				bool inverted;
 				
 				
-				static bool check (const RegexCompiler::Pattern & elements, RegexState & state) {
+				static bool check (const RegexCompiler::Pattern & elements, RegexEngine & engine) {
 				
-					auto begin=state.begin();
 					for (auto & element : elements) {
 					
-						RegexPatternElementState s;
-						if ((*element)(state,s)) return true;
+						RegexState s(engine.begin());
+						if ((*element)(engine,s)) return true;
 						
-						state.begin(begin);
+						s.Rewind(engine);
 					
 					}
 					
@@ -47,22 +46,22 @@ namespace Unicode {
 				}
 				
 				
-				bool evaluate (RegexState & state) const {
+				bool evaluate (RegexEngine & engine) const {
 				
-					auto begin=state.begin();
+					auto begin=engine.begin();
 				
-					if (!check(elements,state)) {
+					if (!check(elements,engine)) {
 					
-						++state;
+						++engine;
 						
 						return false;
 					
 					}
 					
-					auto after=state.begin();
-					state.begin(begin);
-					auto result=check(subtracted,state);
-					state.begin(after);
+					auto after=engine.begin();
+					engine.begin(begin);
+					auto result=check(subtracted,engine);
+					engine.begin(after);
 					
 					return !result;
 				
@@ -86,19 +85,19 @@ namespace Unicode {
 				{	}
 				
 				
-				virtual bool operator () (RegexState & state, RegexPatternElementState &) const override {
+				virtual bool operator () (RegexEngine & engine, RegexState &) const override {
 				
 					//	Handle the case where this character class
 					//	is empty
 					if (elements.size()==0) {
 					
-						++state;
+						++engine;
 						
 						return inverted;
 					
 					}
 					
-					return evaluate(state)!=inverted;
+					return evaluate(engine)!=inverted;
 				
 				}
 				

@@ -212,16 +212,16 @@ namespace Unicode {
 				{	}
 				
 				
-				virtual bool operator () (RegexState & state, RegexPatternElementState &) const override {
+				virtual bool operator () (RegexEngine & engine, RegexState &) const override {
 				
-					if (!state) return false;
+					if (!engine) return false;
 					
-					auto cpi=state->GetInfo(Locale);
+					auto cpi=engine->GetInfo(Locale);
 					if (cpi==nullptr) return inverted;
 					
 					if (CategoryImpl<T>::Check(category,*cpi)==inverted) return false;
 					
-					++state;
+					++engine;
 					
 					return true;
 				
@@ -295,16 +295,16 @@ namespace Unicode {
 				{	}
 				
 				
-				virtual bool operator () (RegexState & state, RegexPatternElementState &) const override {
+				virtual bool operator () (RegexEngine & engine, RegexState &) const override {
 				
-					if (!state) return false;
+					if (!engine) return false;
 					
-					auto cpi=state->GetInfo(Locale);
+					auto cpi=engine->GetInfo(Locale);
 					if (cpi==nullptr) return inverted;
 					
 					if (check(*cpi)==inverted) return false;
 					
-					++state;
+					++engine;
 					
 					return true;
 				
