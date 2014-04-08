@@ -315,9 +315,11 @@ namespace Unicode {
 				
 					if (ignore(compiler)) return true;
 					
-					(compiler.Successive ? compiler.Back<RegexLiteral>() : compiler.Add<RegexLiteral>()).Add(
-						get(compiler.Current,compiler.End)
-					);
+					(
+						(compiler.Successive && !compiler.CharacterClass)
+							?	compiler.Back<RegexLiteral>()
+							:	compiler.Add<RegexLiteral>()
+					).Add(get(compiler.Current,compiler.End));
 					
 					return true;
 				
