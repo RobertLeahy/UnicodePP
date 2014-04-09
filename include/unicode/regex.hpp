@@ -250,8 +250,7 @@ namespace Unicode {
 		private:
 		
 		
-			typedef RegexPrivateState state_type;
-			typedef std::unique_ptr<state_type> ptr_type;
+			typedef std::unique_ptr<RegexPrivateState> ptr_type;
 		
 		
 			ptr_type state;
@@ -358,7 +357,7 @@ namespace Unicode {
 			T & Imbue (Args &&... args) {
 			
 				state=ptr_type(
-					new state_type(
+					new T(
 						std::forward<Args>(args)...
 					)
 				);
