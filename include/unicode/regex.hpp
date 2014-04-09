@@ -271,10 +271,7 @@ namespace Unicode {
 			bool PreventsBacktracking;
 		
 		
-			RegexState () noexcept
-				:	CanBacktrack(false),
-					PreventsBacktracking(false)
-			{	}
+			RegexState () = delete;
 			/**
 			 *	Creates a new RegexPatternElement which stores
 			 *	the location at which the associated pattern
