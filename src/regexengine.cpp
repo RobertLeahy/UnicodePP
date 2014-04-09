@@ -14,13 +14,7 @@ namespace Unicode {
 		
 			iter->Rewind(*this);
 			
-			if (iter->CanBacktrack) {
-			
-				Backtracking=true;
-				
-				return true;
-			
-			}
+			if (iter->CanBacktrack) return true;
 			
 			if (iter->PreventsBacktracking) return false;
 			
@@ -58,7 +52,7 @@ namespace Unicode {
 		
 		//	Loop over each pattern element and attempt to
 		//	match it
-		for (;begin!=end;Backtracking=false) {
+		while (begin!=end) {
 		
 			//	Create state for this pattern element
 			states.emplace_back(b);
@@ -88,8 +82,7 @@ namespace Unicode {
 		:	b(reversed ? end : begin,reversed),
 			l(b),
 			e(reversed ? begin : end,reversed),
-			pattern(pattern),
-			Backtracking(false)
+			pattern(pattern)
 	{	}
 	
 	

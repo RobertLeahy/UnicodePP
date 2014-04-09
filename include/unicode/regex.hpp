@@ -477,15 +477,6 @@ namespace Unicode {
 		
 		
 			/**
-			 *	\em true if the engine is backtracking, \em false
-			 *	otherwise.
-			 *
-			 *	Defaults to \em false.
-			 */
-			bool Backtracking;
-		
-		
-			/**
 			 *	Creates a new regular expression engine.
 			 *
 			 *	\param [in] begin
