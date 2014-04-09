@@ -82,7 +82,9 @@ namespace Unicode {
 		:	b(reversed ? end : begin,reversed),
 			l(b),
 			e(reversed ? begin : end,reversed),
-			pattern(pattern)
+			pattern(pattern),
+			CanBacktrack(false),
+			PreventsBacktracking(false)
 	{	}
 	
 	
@@ -190,13 +192,27 @@ namespace Unicode {
 	
 	bool RegexEngine::operator () () {
 	
-		return Reversed() ? execute(
+		CanBacktrack=false;
+		PreventsBacktracking=false;
+		
+		auto retr=Reversed() ? execute(
 			pattern.rbegin(),
 			pattern.rend()
 		) : execute(
 			pattern.begin(),
 			pattern.end()
 		);
+		
+		for (auto & state : states) {
+		
+			if (state.CanBacktrack) CanBacktrack=true;
+			if (state.PreventsBacktracking) PreventsBacktracking=true;
+			
+			if (CanBacktrack && PreventsBacktracking) break;
+		
+		}
+		
+		return retr;
 	
 	}
 	

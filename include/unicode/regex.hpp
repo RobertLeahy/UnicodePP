@@ -477,6 +477,24 @@ namespace Unicode {
 		
 		
 			/**
+			 *	Only meaningful after the engine has been invoked
+			 *	at least once.
+			 *
+			 *	Determines whether or not the engine may be invoked
+			 *	again to obtain a different match.
+			 */
+			bool CanBacktrack;
+			/**
+			 *	Only meaningful after the engine has been invoked
+			 *	at least once.
+			 *
+			 *	Determines whether or not the pattern elements the
+			 *	engine matches against may be backtracked over.
+			 */
+			bool PreventsBacktracking;
+		
+		
+			/**
 			 *	Creates a new regular expression engine.
 			 *
 			 *	\param [in] begin
