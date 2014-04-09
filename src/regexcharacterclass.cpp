@@ -19,10 +19,34 @@ namespace Unicode {
 	namespace {
 	
 	
+		class RegexCharacterClassPrivateState : public RegexPrivateState {
+		
+		
+			private:
+			
+			
+				typedef RegexCompiler::Pattern::const_iterator type;
+		
+		
+			public:
+			
+			
+				type Location;
+				
+				
+				RegexCharacterClassPrivateState (type loc) noexcept : Location(loc) {	}
+		
+		
+		};
+	
+	
 		class RegexCharacterClass : public RegexPatternElement {
 		
 		
 			private:
+			
+			
+				typedef RegexCharacterClassPrivateState state_type;
 			
 			
 				RegexCompiler::Pattern elements;
@@ -30,14 +54,23 @@ namespace Unicode {
 				bool inverted;
 				
 				
-				static bool check (const RegexCompiler::Pattern & elements, RegexEngine & engine) {
+				bool is_subtracted (RegexEngine & engine, RegexState & state) const {
 				
-					for (auto & element : elements) {
+					//	If this pattern element has already been
+					//	invoked at this point in the string, we
+					//	know that nothing subtracted matches, otherwise
+					//	there would not have been a match here in the
+					//	first place
+					if (state) return false;
+				
+					for (auto & element : subtracted) {
 					
 						RegexState s(engine.begin());
-						if ((*element)(engine,s)) return true;
+						auto result=(*element)(engine,s);
 						
 						s.Rewind(engine);
+						
+						if (result) return true;
 					
 					}
 					
@@ -46,24 +79,40 @@ namespace Unicode {
 				}
 				
 				
-				bool evaluate (RegexEngine & engine) const {
+				bool is_match (RegexEngine & engine, RegexState & state) const {
 				
-					auto begin=engine.begin();
-				
-					if (!check(elements,engine)) {
+					if (state) ++state.Get<state_type>().Location;
+					auto & s=state ? state.Get<state_type>() : state.Imbue<state_type>(elements.begin());
 					
-						++engine;
+					for (auto end=elements.end();s.Location!=end;++s.Location) {
+					
+						RegexState st(engine.begin());
+						if ((*(s.Location->get()))(engine,st)) return true;
 						
-						return false;
+						st.Rewind(engine);
 					
 					}
 					
-					auto after=engine.begin();
-					engine.begin(begin);
-					auto result=check(subtracted,engine);
-					engine.begin(after);
+					return false;
+				
+				}
+				
+				
+				bool evaluate (RegexEngine & engine, RegexState & state) const {
+				
+					if (is_subtracted(engine,state)) return false;
 					
-					return !result;
+					if (is_match(engine,state)) {
+					
+						state.CanBacktrack=state.Get<state_type>().Location!=elements.end()-1;
+						
+						return true;
+					
+					}
+					
+					state.CanBacktrack=false;
+					
+					return false;
 				
 				}
 				
@@ -85,7 +134,7 @@ namespace Unicode {
 				{	}
 				
 				
-				virtual bool operator () (RegexEngine & engine, RegexState &) const override {
+				virtual bool operator () (RegexEngine & engine, RegexState & state) const override {
 				
 					//	Handle the case where this character class
 					//	is empty
@@ -97,7 +146,18 @@ namespace Unicode {
 					
 					}
 					
-					return evaluate(engine)!=inverted;
+					auto result=evaluate(engine,state);
+					
+					if (inverted) {
+					
+						if (!result) ++engine;
+						state.CanBacktrack=false;
+						
+						return !result;
+						
+					}
+					
+					return result;
 				
 				}
 				
