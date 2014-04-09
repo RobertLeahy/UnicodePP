@@ -1,5 +1,4 @@
 #include <unicode/regex.hpp>
-#include <new>
 
 
 namespace Unicode {
