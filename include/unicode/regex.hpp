@@ -212,6 +212,13 @@ namespace Unicode {
 		public:
 		
 		
+			RegexPrivateState () = default;
+			RegexPrivateState (const RegexPrivateState &) = delete;
+			RegexPrivateState (RegexPrivateState &&) = delete;
+			RegexPrivateState & operator = (const RegexPrivateState &) = delete;
+			RegexPrivateState & operator = (RegexPrivateState &&) = delete;
+		
+		
 			/**
 			 *	Polymorphically cleans up all resources held
 			 *	by this object.
