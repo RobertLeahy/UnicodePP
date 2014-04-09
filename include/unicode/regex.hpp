@@ -254,7 +254,20 @@ namespace Unicode {
 		public:
 		
 		
+			/**
+			 *	Set to \em true if the pattern element associated
+			 *	with this state can be invoked again to obtain a
+			 *	different match.
+			 *
+			 *	Defaults to \em false.
+			 */
 			bool CanBacktrack;
+			/**
+			 *	Set to \em true if the pattern element associated
+			 *	with this state cannot be backtracked over.
+			 *
+			 *	Defaults to \em false.
+			 */
 			bool PreventsBacktracking;
 		
 		
