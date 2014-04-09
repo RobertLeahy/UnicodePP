@@ -499,6 +499,12 @@ namespace Unicode {
 			 *	engine matches against may be backtracked over.
 			 */
 			bool PreventsBacktracking;
+			
+			
+			RegexEngine (const RegexEngine &) = delete;
+			RegexEngine (RegexEngine &&) = delete;
+			RegexEngine & operator = (const RegexEngine &) = delete;
+			RegexEngine & operator = (RegexEngine &&) = delete;
 		
 		
 			/**
