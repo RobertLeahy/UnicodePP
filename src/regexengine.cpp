@@ -35,10 +35,16 @@ namespace Unicode {
 	template <typename Iterator>
 	bool RegexEngine::execute (Iterator begin, Iterator end) {
 	
-		//	If there are states, that means that this
-		//	engine has executed previously, and that
-		//	backtracking may be possible
-		if (states.size()!=0) {
+		//	Whether the engine has just backtracked,
+		//	causes creation of a RegexState to be skipped
+		//	so that the RegexPatternElement being invoked
+		//	has access to its backtracking information.
+		//
+		//	The engine initially backtracks if there are
+		//	states, as this means that it has executed
+		//	previously.
+		bool backtracked=states.size()!=0;
+		if (backtracked) {
 		
 			//	Advance to last state
 			begin+=states.size();
@@ -54,8 +60,10 @@ namespace Unicode {
 		//	match it
 		while (begin!=end) {
 		
-			//	Create state for this pattern element
-			states.emplace_back(b);
+			//	Create state for this pattern element if
+			//	appropriate
+			if (backtracked) backtracked=false;
+			else states.emplace_back(b);
 			
 			//	Evaluate pattern element
 			if ((*(begin->get()))(*this,states.back())) {
@@ -67,6 +75,8 @@ namespace Unicode {
 			
 				//	Failed, attempt to backtrack
 				if (!backtrack(begin,end)) return false;
+				
+				backtracked=true;
 			
 			}
 		
