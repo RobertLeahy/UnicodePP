@@ -87,13 +87,31 @@ namespace Unicode {
 	}
 	
 	
-	RegexEngine::RegexEngine (const CodePoint * begin, const CodePoint * end, bool reversed, const Regex::Pattern & pattern) noexcept
+	RegexEngine::RegexEngine (
+		const CodePoint * begin,
+		const CodePoint * end,
+		bool reversed,
+		const Regex::Pattern & pattern,
+		RegexMatch & match
+	) noexcept
 		:	b(reversed ? end : begin,reversed),
 			l(b),
 			e(reversed ? begin : end,reversed),
 			pattern(pattern),
 			CanBacktrack(false),
-			PreventsBacktracking(false)
+			PreventsBacktracking(false),
+			Match(match)
+	{	}
+	
+	
+	RegexEngine::RegexEngine (const RegexEngine & other, const Regex::Pattern & pattern)
+		:	b(other.b),
+			l(other.l),
+			e(other.e),
+			pattern(pattern),
+			CanBacktrack(false),
+			PreventsBacktracking(false),
+			Match(other.Match)
 	{	}
 	
 	

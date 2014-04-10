@@ -565,6 +565,9 @@ namespace Unicode {
 			bool rtl;
 			
 			
+			std::optional<RegexMatch> match (const CodePoint *, const CodePoint *) const;
+			
+			
 		public:
 		
 		
@@ -615,6 +618,34 @@ namespace Unicode {
 			 *		Defaults to the current locale.
 			 */
 			Regex (const CodePoint * begin, const CodePoint * end, RegexOptions options=RegexOptions::None, const Locale & locale=Locale::Get());
+			
+			
+			/**
+			 *	Attempts to perform one match against a string.
+			 *
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the string.
+			 *	\param [in] end
+			 *		An iterator to the end of the string.
+			 *
+			 *	\return
+			 *		An engaged optional containing RegexMatch
+			 *		corresponding to the match if the match was
+			 *		successful, a disengaged optional otherwise.
+			 */
+			std::optional<RegexMatch> Match (const CodePoint * begin, const CodePoint * end) const;
+			/**
+			 *	Attempts to perform one match against a string.
+			 *
+			 *	\param [in] str
+			 *		The string.
+			 *
+			 *	\return
+			 *		An engaged optional containing RegexMatch
+			 *		corresponding to the match if the match was
+			 *		successful, a disengaged optional otherwise.
+			 */
+			std::optional<RegexMatch> Match (const String & str) const;
 			
 			
 			/**
@@ -674,6 +705,10 @@ namespace Unicode {
 			 *	engine matches against may be backtracked over.
 			 */
 			bool PreventsBacktracking;
+			/**
+			 *	The match that is being built.
+			 */
+			RegexMatch & Match;
 			
 			
 			RegexEngine (const RegexEngine &) = delete;
@@ -697,8 +732,33 @@ namespace Unicode {
 			 *		\em true if the regular expression engine
 			 *		should proceed from end to begin, \em false
 			 *		otherwise.
+			 *	\param [in] pattern
+			 *		The pattern against which this engine will
+			 *		attempt to match.
+			 *	\param [in] match
+			 *		The match on top of which this engine will
+			 *		build.
 			 */
-			RegexEngine (const CodePoint * begin, const CodePoint * end, bool reversed, const Regex::Pattern & pattern) noexcept;
+			RegexEngine (
+				const CodePoint * begin,
+				const CodePoint * end,
+				bool reversed,
+				const Regex::Pattern & pattern,
+				RegexMatch & match
+			) noexcept;
+			
+			
+			/**
+			 *	Creates a new RegexEngine from an existing RegexEngine,
+			 *	which matches a different pattern.
+			 *
+			 *	\param [in] other
+			 *		The RegexEngine from which to build this RegexEngine.
+			 *	\param [in] pattern
+			 *		The pattern against which this engine will
+			 *		attempt to match.
+			 */
+			RegexEngine (const RegexEngine & other, const Regex::Pattern & pattern);
 			
 			
 			/**
