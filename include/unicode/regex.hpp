@@ -13,6 +13,8 @@
 #include <cstddef>
 #include <iterator>
 #include <memory>
+#include <optional>
+#include <unordered_map>
 #include <vector>
 
 
@@ -31,6 +33,185 @@ namespace Unicode {
 	/**
 	 *	\endcond
 	 */
+	 
+	
+	/**
+	 *	Contains the result of a single capture performed
+	 *	by the regular expression engine.
+	 */
+	class RegexCapture {
+	
+	
+		private:
+		
+		
+			const CodePoint * b;
+			const CodePoint * e;
+			std::optional<String> s;
+			
+			
+		public:
+		
+		
+			RegexCapture () = delete;
+			/**
+			 *	Creates a new, lazily-evaluated RegexCapture.
+			 *
+			 *	\param [in] begin
+			 *		The beginning of the substring to capture.
+			 *	\param [in] end
+			 *		The end of the substring to capture.
+			 */
+			RegexCapture (const CodePoint * begin, const CodePoint * end) noexcept;
+			
+			
+			/**
+			 *	Completes the capture, evaluating it and storing
+			 *	the substring internally.
+			 */
+			void Complete ();
+			
+			
+			/**
+			 *	Retrieves the captured substring.
+			 *
+			 *	\return
+			 *		A reference to the captured substring.
+			 */
+			String & Get ();
+			
+			
+			/** 
+			 *	Retrieves an iterator to the beginning of the
+			 *	captured substring.
+			 *
+			 *	If the string that the regular expression
+			 *	engine matched against has gone out of scope,
+			 *	dereferencing the returned iterator results in
+			 *	undefined behaviour.
+			 *
+			 *	\return
+			 *		An iterator.
+			 */
+			const CodePoint * begin () const noexcept;
+			/**
+			 *	Retrieves an iterator to the end of the
+			 *	captured substring.
+			 *
+			 *	\return
+			 *		An iterator.
+			 */
+			const CodePoint * end () const noexcept;
+	
+	
+	};
+	
+	
+	/**
+	 *	Contains the results of a match performed by the
+	 *	regular expression engine.
+	 */
+	class RegexMatch {
+	
+	
+		public:
+		
+		
+			typedef std::vector<RegexCapture> Type;
+	
+	
+		private:
+		
+		
+			const CodePoint * b;
+			const CodePoint * e;
+			String s;
+			std::unordered_map<std::size_t,Type> numbered;
+			std::unordered_map<String,Type> named;
+			
+			
+		public:
+		
+		
+			/**
+			 *	Completes the match.
+			 *
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the substring
+			 *		where the pattern matched.
+			 *	\param [in] end
+			 *		An iterator to the end of the substring where
+			 *		the pattern matched.
+			 */
+			void Complete (const CodePoint * begin, const CodePoint * end);
+		
+		
+			/**
+			 *	Retrieves the substring against which the pattern
+			 *	matched.
+			 *
+			 *	\return
+			 *		A reference to a string.
+			 */
+			String & Get () noexcept;
+			
+			
+			/**
+			 *	Retrieves an iterator to the beginning of the substring
+			 *	against which the pattern matched.
+			 *
+			 *	Dereferencing the returned iterator before the match has
+			 *	completed results in undefined behaviour.
+			 *
+			 *	\return
+			 *		An iterator.
+			 */
+			const CodePoint * begin () const noexcept;
+			/**
+			 *	Retrieves an iterator to the end of the substring against
+			 *	which the pattern matched.
+			 *
+			 *	\return
+			 *		An iterator.
+			 */
+			const CodePoint * end () const noexcept;
+		
+		
+			/**
+			 *	Obtains a collection of captures which correspond to a
+			 *	named capturing group.
+			 *
+			 *	\param [in] key
+			 *		The name of the capturing group.
+			 *
+			 *	\return
+			 *		A reference to the capturing group.
+			 */
+			Type & operator [] (const String & key);
+			/**
+			 *	Obtains a collection of captures which correspond to a
+			 *	named capturing group.
+			 *
+			 *	\param [in] key
+			 *		The name of the capturing group.
+			 *
+			 *	\return
+			 *		A reference to the capturing group.
+			 */
+			Type & operator [] (String && key);
+			/**
+			 *	Obtains a collection of captures which correspond to a
+			 *	numbered capturing group.
+			 *
+			 *	\param [in] key
+			 *		The number of the capturing group.
+			 *
+			 *	\return
+			 *		A reference to the capturing group.
+			 */
+			Type & operator [] (std::size_t key);
+	
+	};
 	 
 
 	class RegexIterator : public std::iterator<std::random_access_iterator_tag,const CodePoint> {
