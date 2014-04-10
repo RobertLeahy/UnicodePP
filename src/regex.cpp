@@ -3,21 +3,17 @@
 #include <unicode/regexcompiler.hpp>
 #include <unicode/vector.hpp>
 #include <optional>
+#include <utility>
 
 
 namespace Unicode {
 
 
-	static void complete (RegexMatch & match, RegexEngine & engine) {
+	static void complete (RegexMatch & match, const CodePoint * begin, const CodePoint * end) {
 	
-		if (engine.Reversed()) match.Complete(
-			engine.begin().Base(),
-			engine.End()
-		);
-		else match.Complete(
-			engine.Begin(),
-			engine.begin().Base()
-		);
+		if (begin>end) std::swap(begin,end);
+		
+		match.Complete(begin,end);
 	
 	}
 
@@ -36,9 +32,10 @@ namespace Unicode {
 				pattern,
 				match
 			);
+			auto b=engine.begin().Base();
 			if (engine()) {
 			
-				complete(match,engine);
+				complete(match,b,engine.begin().Base());
 			
 				retr.emplace(std::move(match));
 				
