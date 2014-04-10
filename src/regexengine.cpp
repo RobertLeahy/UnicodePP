@@ -62,7 +62,7 @@ namespace Unicode {
 			//	Create state for this pattern element if
 			//	appropriate
 			if (backtracked) backtracked=false;
-			else states.emplace_back(b);
+			else states.emplace_back(*this);
 			
 			//	Evaluate pattern element
 			if ((*(begin->get()))(*this,states.back())) {

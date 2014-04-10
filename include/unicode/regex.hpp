@@ -283,15 +283,10 @@ namespace Unicode {
 			 *	the location at which the associated pattern
 			 *	element was invoked.
 			 *
-			 *	\param [in] loc
-			 *		The location at which the pattern element was
-			 *		invoked.
+			 *	\param [in] engine
+			 *		The engine from which to create the state.
 			 */
-			RegexState (RegexIterator loc) noexcept
-				:	loc(loc),
-					CanBacktrack(false),
-					PreventsBacktracking(false)
-			{	}
+			RegexState (const RegexEngine & engine) noexcept;
 			
 			
 			/**
