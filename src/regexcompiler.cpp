@@ -141,6 +141,29 @@ namespace Unicode {
 	}
 	
 	
+	RegexCompiler::Element RegexCompiler::Pop () {
+	
+		complete();
+		
+		auto retr=std::move(pattern.back());
+		pattern.erase(pattern.end()-1);
+		
+		return retr;
+	
+	}
+	
+	
+	void RegexCompiler::Add (Element element) {
+	
+		complete();
+		
+		pattern.push_back(std::move(element));
+		
+		last=current;
+	
+	}
+	
+	
 	void RegexCompiler::Raise (const char * what) const {
 	
 		throw RegexError(what,Current);

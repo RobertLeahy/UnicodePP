@@ -349,6 +349,34 @@ namespace Unicode {
 			
 			
 			/**
+			 *	Determines the number of pattern elements stored
+			 *	within this compiler.
+			 *
+			 *	\return
+			 *		The number of RegexPatternElements in the
+			 *		pattern the compiler is building.
+			 */
+			std::size_t Size () const noexcept {
+			
+				return pattern.size();
+			
+			}
+			
+			
+			/**
+			 *	Retrieves the rear pattern element and removes
+			 *	it from the internal collection of pattern elements.
+			 *
+			 *	If the compiler contains no pattern elements,
+			 *	behaviour is undefined.
+			 *
+			 *	\return
+			 *		The rear pattern element.
+			 */
+			Element Pop ();
+			
+			
+			/**
 			 *	Retrieves the last compiled RegexPatternElement
 			 *	cast to a certain type.
 			 *
@@ -373,24 +401,66 @@ namespace Unicode {
 			
 			
 			/**
-			 *	Adds a RegexPatternElement of a certain type to
-			 *	the back of the pattern.
+			 *	Creates a new pattern element of a certain type.
 			 *
-			 *	Options and Locale will always be passed,
+			 *	Options and Locale will always, implicitly be passed,
 			 *	respectively, as the last two arguments to the
-			 *	constructor of \em T and do not have to be
-			 *	provided.
+			 *	constructor of \em T.
 			 *
 			 *	\tparam T
-			 *		The type of RegexPatternElement to add.
+			 *		The type of RegexPatternElement to create.
 			 *	\tparam Args
 			 *		The types of the arguments to forward through
 			 *		to the constructor of \em T.
 			 *
 			 *	\param [in] args
+			 *		The arguments of types \em Args which shall be
+			 *		forwarded through to the constructor of \em T.
+			 *
+			 *	\return
+			 *		A std::unique_ptr to the created RegexPatternElement.
+			 */
+			template <typename T, typename... Args>
+			Element Create (Args &&... args) {
+			
+				return Element(
+					new T(
+						std::forward<Args>(args)...,
+						Options,
+						Locale
+					)
+				);
+			
+			}
+			
+			
+			/**
+			 *	Adds a std::unique_ptr to a RegexPatternElement
+			 *	to the back of the pattern.
+			 *
+			 *	\param [in] element
+			 *		A std::unique_ptr to the RegexPatternElement
+			 *		to add.
+			 */
+			void Add (Element element);
+			
+			
+			/**
+			 *	Adds a RegexPatternElement of a certain type to
+			 *	the back of the pattern.
+			 *
+			 *	The RegexPatternElement will be obtained through
+			 *	a call to Create.
+			 *
+			 *	\tparam T
+			 *		The type of RegexPatternElement to add.
+			 *	\tparam Args
+			 *		The types of the arguments to forward through
+			 *		to Create of \em T.
+			 *
+			 *	\param [in] args
 			 *		The arguments of types \em Args which shall
-			 *		be forwarded through to the constructor of
-			 *		\em T.
+			 *		be forwarded through to Create.
 			 *
 			 *	\return
 			 *		A reference to the newly-created RegexPatternElement.
@@ -398,19 +468,7 @@ namespace Unicode {
 			template <typename T, typename... Args>
 			T & Add (Args &&... args) {
 			
-				complete();
-			
-				pattern.push_back(
-					Element(
-						new T(
-							std::forward<Args>(args)...,
-							Options,
-							Locale
-						)
-					)
-				);
-				
-				last=current;
+				Add(Create<T>(std::forward<Args>(args)...));
 				
 				return Back<T>();
 			
