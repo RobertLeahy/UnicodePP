@@ -120,6 +120,19 @@ namespace Unicode {
 	{	}
 	
 	
+	RegexCompiler::RegexCompiler (const RegexCompiler & other) noexcept
+		:	last(nullptr),
+			current(nullptr),
+			Current(other.Current),
+			Begin(other.Begin),
+			End(other.End),
+			Options(other.Options),
+			Locale(other.Locale),
+			Successive(false),
+			CharacterClass(false)
+	{	}
+	
+	
 	RegexCompiler::Pattern RegexCompiler::Get () {
 	
 		complete();

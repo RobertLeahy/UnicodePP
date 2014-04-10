@@ -249,6 +249,14 @@ namespace Unicode {
 			 *		The locale with which to compile.
 			 */
 			RegexCompiler (Iterator curr, Iterator begin, Iterator end, RegexOptions options, const Unicode::Locale & locale) noexcept;
+			/**
+			 *	Copies a RegexCompiler, except the pattern it has
+			 *	compiled and related state information.
+			 *
+			 *	\param [in] other
+			 *		The RegexCompiler to copy.
+			 */
+			RegexCompiler (const RegexCompiler & other) noexcept;
 			
 			
 			/**

@@ -324,24 +324,9 @@ namespace Unicode {
 			
 			
 				bool Subtraction;
-			
-			
-				RegexCharacterClassCompiler (
-					const CodePoint * loc,
-					const CodePoint * begin,
-					const CodePoint * end,
-					RegexOptions options,
-					const Unicode::Locale & locale
-				) noexcept
-					:	RegexCompiler(
-							loc,
-							begin,
-							end,
-							options,
-							locale
-						),
-						Subtraction(false)
-				{
+				
+				
+				RegexCharacterClassCompiler (const RegexCompiler & other) noexcept : RegexCompiler(other), Subtraction(false) {
 				
 					CharacterClass=true;
 				
@@ -410,13 +395,7 @@ namespace Unicode {
 					if (inverted && !++compiler) raise(compiler);
 					
 					//	Create a compiler
-					RegexCharacterClassCompiler c(
-						compiler.Current,
-						compiler.Begin,
-						compiler.End,
-						compiler.Options,
-						compiler.Locale
-					);
+					RegexCharacterClassCompiler c(compiler);
 					
 					//	Compile
 					c();
