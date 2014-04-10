@@ -344,6 +344,52 @@ namespace Unicode {
 			
 			
 			/**
+			 *	Determines if a certain code point is next in the pattern.
+			 *
+			 *	If the code point is found, the compiler's location will
+			 *	be advanced by one, otherwise the compiler's location
+			 *	will not change.
+			 *
+			 *	\param [in] cp
+			 *		A Unicode code point.
+			 *
+			 *	\return
+			 *		\em true if \em cp was next, \em false otherwise.
+			 */
+			bool IsNext (CodePoint cp) noexcept;
+			/**
+			 *	Determines if a certain string is next in the pattern.
+			 *
+			 *	If the string is found, the compiler's location will
+			 *	be advanced to one past the end of the string, otherwise
+			 *	the compiler's location will not change.
+			 *
+			 *	\param [in] str
+			 *		A null-terminated string of Unicode code points.
+			 *
+			 *	\return
+			 *		\em true if \em str was next in the pattern,
+			 *		\em false otherwise.
+			 */
+			bool IsNext (const char32_t * str) noexcept;
+			/**
+			 *	Determines if a certain string is next in the pattern.
+			 *
+			 *	If the string is found, the compiler's location will
+			 *	be advanced to one past the end of the string, otherwise
+			 *	the compiler's location will not change.
+			 *
+			 *	\param [in] str
+			 *		A null-terminated string of Unicode code points.
+			 *
+			 *	\return
+			 *		\em true if \em str was next in the pattern,
+			 *		\em false otherwise.
+			 */
+			bool IsNext (const char * str) noexcept;
+			
+			
+			/**
 			 *	Retrieves and clears the compiled pattern.
 			 *
 			 *	\return

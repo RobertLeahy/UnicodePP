@@ -133,6 +133,58 @@ namespace Unicode {
 	{	}
 	
 	
+	bool RegexCompiler::IsNext (CodePoint cp) noexcept {
+	
+		if (*this && (*(*this)==cp)) {
+		
+			++*this;
+			
+			return true;
+			
+		}
+		
+		return false;
+	
+	}
+	
+	
+	template <typename T>
+	bool is_next (const T * str, RegexCompiler & compiler) noexcept {
+	
+		if (str==nullptr) return true;
+		
+		if (!compiler) return *str==0;
+		
+		auto loc=compiler.Current;
+		for (
+			;
+			(*str!='\0') && (*str==*compiler) && ++compiler;
+			++str
+		);
+		
+		if (*str=='\0') return true;
+		
+		compiler.Current=loc;
+		
+		return false;
+	
+	}
+	
+	
+	bool RegexCompiler::IsNext (const char32_t * str) noexcept {
+	
+		return is_next(str,*this);
+	
+	}
+	
+	
+	bool RegexCompiler::IsNext (const char * str) noexcept {
+	
+		return is_next(str,*this);
+	
+	}
+	
+	
 	RegexCompiler::Pattern RegexCompiler::Get () {
 	
 		complete();
