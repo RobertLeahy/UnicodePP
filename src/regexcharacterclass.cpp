@@ -29,6 +29,36 @@ namespace Unicode {
 				RegexCompiler::Element subtraction;
 				
 				
+				static RegexToString to_string (String str) {
+				
+					RegexToString retr;
+					retr.Parent=std::move(str);
+					
+					return retr;
+				
+				}
+				
+				
+				RegexToString pattern_to_string (String str) const {
+				
+					auto retr=to_string(std::move(str));
+					for (auto & element : elements) retr.Children.push_back(element->ToString());
+					
+					return retr;
+				
+				}
+				
+				
+				RegexToString subtraction_to_string (String str) const {
+				
+					auto retr=to_string(std::move(str));
+					retr.Children.push_back(subtraction->ToString());
+					
+					return retr;
+				
+				}
+				
+				
 			public:
 			
 			
@@ -161,8 +191,20 @@ namespace Unicode {
 				
 				
 				virtual RegexToString ToString () const override {
-				
-					return RegexToString{};
+					
+					if (subtraction) {
+					
+						RegexToString retr;
+					
+						retr.Parent << "The set";
+						retr.Children.push_back(pattern_to_string("Any of"));
+						retr.Children.push_back(subtraction_to_string("Except"));
+						
+						return retr;
+					
+					}
+					
+					return pattern_to_string("Any of");
 				
 				}
 		
@@ -255,7 +297,19 @@ namespace Unicode {
 				
 				virtual RegexToString ToString () const override {
 				
-					return RegexToString{};
+					if (subtraction) {
+					
+						RegexToString retr;
+					
+						retr.Parent << "The set";
+						retr.Children.push_back(subtraction->ToString());
+						retr.Children.push_back(pattern_to_string("Except"));
+						
+						return retr;
+					
+					}
+					
+					return pattern_to_string("Any code point except");
 				
 				}
 		
