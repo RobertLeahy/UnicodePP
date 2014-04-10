@@ -19,7 +19,56 @@ namespace Unicode {
 	namespace {
 	
 	
-		class RegexCharacterClassPrivateState : public RegexPrivateState {
+		class RegexCharacterClassBase : public RegexPatternElement {
+		
+		
+			protected:
+			
+			
+				RegexCompiler::Pattern elements;
+				RegexCompiler::Element subtraction;
+				
+				
+			public:
+			
+			
+				RegexCharacterClassBase (
+					RegexCompiler::Pattern elements,
+					RegexCompiler::Element subtraction,
+					RegexOptions options,
+					const Unicode::Locale & locale
+				)	:	RegexPatternElement(options,locale),
+						elements(std::move(elements)),
+						subtraction(std::move(subtraction))
+				{	}
+		
+		
+		};
+		
+		
+		class RegexCharacterClassStateBase : public RegexPrivateState {
+		
+		
+			public:
+			
+			
+				RegexState State;
+				
+				
+				RegexCharacterClassStateBase (RegexState state) noexcept : State(std::move(state)) {	}
+				
+				
+				virtual void Rewind (RegexEngine & engine) override {
+				
+					State.Rewind(engine);
+				
+				}
+		
+		
+		};
+		
+		
+		class RegexCharacterClassState : public RegexCharacterClassStateBase {
 		
 		
 			private:
@@ -34,154 +83,179 @@ namespace Unicode {
 				type Location;
 				
 				
-				RegexCharacterClassPrivateState (type loc) noexcept : Location(loc) {	}
+				RegexCharacterClassState (RegexState state, type loc) noexcept
+					:	RegexCharacterClassStateBase(std::move(state)),
+						Location(std::move(loc))
+				{	}
 		
 		
 		};
-	
-	
-		class RegexCharacterClass : public RegexPatternElement {
+		
+		
+		class RegexCharacterClass : public RegexCharacterClassBase {
 		
 		
 			private:
 			
 			
-				typedef RegexCharacterClassPrivateState state_type;
+				typedef RegexCharacterClassState type;
 			
 			
-				RegexCompiler::Pattern elements;
-				RegexCompiler::Pattern subtracted;
-				bool inverted;
+				RegexCompiler::Pattern::const_iterator get_begin (RegexState & state) const noexcept {
 				
-				
-				bool is_subtracted (RegexEngine & engine, RegexState & state) const {
-				
-					//	If this pattern element has already been
-					//	invoked at this point in the string, we
-					//	know that nothing subtracted matches, otherwise
-					//	there would not have been a match here in the
-					//	first place
-					if (state) return false;
-				
-					for (auto & element : subtracted) {
-					
-						RegexState s(engine.begin());
-						auto result=(*element)(engine,s);
-						
-						s.Rewind(engine);
-						
-						if (result) return true;
-					
-					}
-					
-					return false;
+					return state ? state.Get<type>().Location : elements.begin();
 				
 				}
-				
-				
-				bool is_match (RegexEngine & engine, RegexState & state) const {
-				
-					if (state) ++state.Get<state_type>().Location;
-					auto & s=state ? state.Get<state_type>() : state.Imbue<state_type>(elements.begin());
-					
-					for (auto end=elements.end();s.Location!=end;++s.Location) {
-					
-						RegexState st(engine.begin());
-						if ((*(s.Location->get()))(engine,st)) return true;
-						
-						st.Rewind(engine);
-					
-					}
-					
-					return false;
-				
-				}
-				
-				
-				bool evaluate (RegexEngine & engine, RegexState & state) const {
-				
-					if (is_subtracted(engine,state)) return false;
-					
-					if (is_match(engine,state)) {
-					
-						state.CanBacktrack=state.Get<state_type>().Location!=elements.end()-1;
-						
-						return true;
-					
-					}
-					
-					state.CanBacktrack=false;
-					
-					return false;
-				
-				}
-				
-				
+		
+		
 			public:
 			
 			
-				RegexCharacterClass (
-					RegexCompiler::Pattern elements,
-					RegexCompiler::Pattern subtracted,
-					bool inverted,
-					RegexOptions options,
-					const Unicode::Locale & locale
-				) noexcept
-					:	RegexPatternElement(options,locale),
-						elements(std::move(elements)),
-						subtracted(std::move(subtracted)),
-						inverted(inverted)
-				{	}
-				
-				
+				using RegexCharacterClassBase::RegexCharacterClassBase;
+			
+			
 				virtual bool operator () (RegexEngine & engine, RegexState & state) const override {
 				
-					//	Handle the case where this character class
-					//	is empty
-					if (elements.size()==0) {
+					//	Check the subtraction -- if it matches,
+					//	there's no use checking anything else
+					//
+					//	If this pattern element has already executed
+					//	before, and left a private state behind,
+					//	the subtraction must not match, otherwise
+					//	the first attempt would not have succeeded
+					if (!state && subtraction) {
 					
-						++engine;
+						RegexState s(engine);
+						auto result=(*subtraction)(engine,s);
+						s.Rewind(engine);
 						
-						return inverted;
+						if (result) return false;
 					
 					}
 					
-					auto result=evaluate(engine,state);
+					//	Loop over each element and check to see if
+					//	any of them match
+					for (auto begin=get_begin(state),end=elements.end();begin!=end;++begin) {
 					
-					if (inverted) {
+						RegexState s(engine);
+						if ((*(*begin))(engine,s)) {
+						
+							state.CanBacktrack=begin+1!=end;
+							state.Imbue<type>(
+								std::move(s),
+								std::move(begin)
+							);
+							
+							return true;
+						
+						}
+						
+						s.Rewind(engine);
 					
-						if (!result) ++engine;
-						state.CanBacktrack=false;
-						
-						return !result;
-						
 					}
 					
-					return result;
+					//	Nothing matched, which means this is a failure
+					return false;
 				
 				}
 				
 				
 				virtual RegexToString ToString () const override {
 				
-					RegexToString retr;
+					return RegexToString{};
+				
+				}
+		
+		
+		};
+		
+		
+		class RegexInvertedCharacterClass : public RegexCharacterClassBase {
+		
+		
+			private:
+			
+			
+				typedef RegexCharacterClassStateBase type;
+				
+				
+			public:
+			
+			
+				using RegexCharacterClassBase::RegexCharacterClassBase;
+				
+				
+				virtual bool operator () (RegexEngine & engine, RegexState & state) const override {
+				
+					//	If a match has previously been formed, i.e.
+					//	there is a private state, then none of the
+					//	pattern elements can have matched, otherwise
+					//	that first match would not have succeeded,
+					//	therefore we can skip the process of matching
+					//	them
+					if (!state) {
 					
-					if (elements.size()==0) {
-
-						if (inverted) retr.Parent << "Always matches";
-						else retr.Parent << "Never matches";
-					
-					} else {
-					
-						retr.Parent << "Any ";
-						if (inverted) retr.Parent << "but";
-						else retr.Parent << "of";
+						for (auto & element : elements) {
+						
+							RegexState s(engine);
+							auto result=(*element)(engine,s);
+							s.Rewind(engine);
+							
+							if (result) return false;
+						
+						}
 					
 					}
 					
-					for (auto & element : elements) retr.Children.push_back(element->ToString());
+					//	If there's no subtraction, we match automatically,
+					//	consuming exactly one code point
+					if (!subtraction) {
 					
-					return retr;
+						++engine;
+						
+						return true;
+					
+					}
+					
+					//	We only match if the subtraction matches, due
+					//	to the inverted nature of the matching
+					
+					if (state) {
+					
+						auto & s=state.Get<type>().State;
+					
+						if ((*subtraction)(engine,s)) {
+						
+							state.CanBacktrack=s.CanBacktrack;
+							
+							return true;
+						
+						}
+						
+						return false;
+					
+					}
+					
+					RegexState s(engine);
+					if ((*subtraction)(engine,s)) {
+					
+						state.CanBacktrack=s.CanBacktrack;
+						state.Imbue<type>(std::move(s));
+						
+						return true;
+					
+					}
+					
+					s.Rewind(engine);
+					
+					return false;
+				
+				}
+				
+				
+				virtual RegexToString ToString () const override {
+				
+					return RegexToString{};
 				
 				}
 		
@@ -222,19 +296,43 @@ namespace Unicode {
 			
 				virtual bool Done () override {
 				
-					if (!*this) raise(*this);
+					auto & self=*this;
+				
+					//	If we're at the end, it's an unterminated
+					//	set, so throw
+					if (!self) raise(self);
 					
-					auto cp=*(*this);
+					//	Check for a subtraction
+					if ((Size()!=0) && (*self=='-')) {
 					
-					if (!Subtraction && (cp=='-')) {
+						if (++self && (*self=='[')) {
+						
+							if (++self) {
+							
+								Subtraction=true;
+								
+								return true;
+							
+							}
+							
+							--self;
+						
+						}
+						
+						--self;
 					
-						Subtraction=true;
+					}
+					
+					//	Check for end of set
+					if (*self==']') {
+					
+						++self;
 						
 						return true;
 					
 					}
 					
-					return cp==']';
+					return false;
 				
 				}
 		
@@ -245,6 +343,50 @@ namespace Unicode {
 		class RegexCharacterClassParser : public RegexParser {
 		
 		
+			private:
+			
+			
+				static RegexCompiler::Element get_subtraction (RegexCompiler &);
+			
+			
+				static RegexCompiler::Element compile (RegexCompiler & compiler) {
+				
+					//	Inverted?
+					bool inverted=*compiler=='^';
+					if (inverted && !++compiler) raise(compiler);
+					
+					//	Create a compiler
+					RegexCharacterClassCompiler c(
+						compiler.Current,
+						compiler.Begin,
+						compiler.End,
+						compiler.Options,
+						compiler.Locale
+					);
+					
+					//	Compile
+					c();
+					if (c.Size()==0) c.Raise("Empty character class");
+					auto elements=c.Get();
+					
+					//	If necessary, compile the subtraction
+					RegexCompiler::Element subtraction;
+					if (c.Subtraction) subtraction=get_subtraction(c);
+					
+					//	Advance the outer compiler
+					compiler.Current=c.Current;
+					
+					return inverted ? compiler.Create<RegexInvertedCharacterClass>(
+						std::move(elements),
+						std::move(subtraction)
+					) : compiler.Create<RegexCharacterClass>(
+						std::move(elements),
+						std::move(subtraction)
+					);
+				
+				}
+		
+		
 			public:
 			
 			
@@ -253,46 +395,12 @@ namespace Unicode {
 					//	Verify that this is a character class
 					if (*compiler!='[') return false;
 					
+					//	Verify that the opening square bracket
+					//	is not the last character in the string
 					if (!++compiler) raise(compiler);
 					
-					//	Inverted?
-					bool inverted;
-					if ((inverted=*compiler=='^')) if (!++compiler) raise(compiler);
-					
 					//	Compile
-					
-					RegexCharacterClassCompiler c(
-						compiler.Current,
-						compiler.Begin,
-						compiler.End,
-						compiler.Options,
-						compiler.Locale
-					);
-					c.CharacterClass=true;
-					
-					c();
-					auto elements=c.Get();
-					
-					++c;
-					
-					RegexCompiler::Pattern subtracted;
-					if (c.Subtraction) {
-					
-						c();
-						subtracted=c.Get();
-						
-						++c;
-						
-					}
-					
-					//	Advance this compiler's compiler
-					compiler.Current=c.Current;
-					
-					compiler.Add<RegexCharacterClass>(
-						std::move(elements),
-						std::move(subtracted),
-						inverted
-					);
+					compiler.Add(compile(compiler));
 					
 					return true;
 				
@@ -300,6 +408,19 @@ namespace Unicode {
 		
 		
 		};
+		
+		
+		RegexCompiler::Element RegexCharacterClassParser::get_subtraction (RegexCompiler & compiler) {
+		
+			auto retr=compile(compiler);
+			
+			if (!(compiler && (*compiler==']'))) raise(compiler);
+			
+			++compiler;
+			
+			return retr;
+		
+		}
 	
 	
 	}
