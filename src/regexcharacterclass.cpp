@@ -133,7 +133,12 @@ namespace Unicode {
 			
 				RegexCompiler::Pattern::const_iterator get_begin (RegexState & state) const noexcept {
 				
-					return state ? state.Get<type>().Location : elements.begin();
+					if (!state) return elements.begin();
+					
+					auto retr=state.Get<type>().Location;
+					++retr;
+					
+					return retr;
 				
 				}
 		
