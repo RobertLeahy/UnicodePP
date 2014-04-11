@@ -89,13 +89,14 @@ namespace Unicode {
 	
 	RegexEngine::RegexEngine (
 		const CodePoint * begin,
+		const CodePoint * loc,
 		const CodePoint * end,
 		bool reversed,
 		const Regex::Pattern & pattern,
 		RegexMatch & match
 	) noexcept
 		:	b(reversed ? end : begin,reversed),
-			l(b),
+			l(loc),
 			e(reversed ? begin : end,reversed),
 			pattern(pattern),
 			CanBacktrack(false),
