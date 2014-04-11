@@ -101,8 +101,8 @@ namespace Unicode {
 		
 			RegexMatch match;
 			RegexEngine engine(
-				begin,
 				loc,
+				begin,
 				end,
 				rtl,
 				last,

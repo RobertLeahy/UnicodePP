@@ -89,8 +89,8 @@ namespace Unicode {
 	
 	
 	RegexEngine::RegexEngine (
-		const CodePoint * begin,
 		const CodePoint * loc,
+		const CodePoint * begin,
 		const CodePoint * end,
 		bool reversed,
 		const CodePoint * last,

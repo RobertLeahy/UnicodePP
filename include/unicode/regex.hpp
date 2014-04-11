@@ -763,14 +763,14 @@ namespace Unicode {
 			/**
 			 *	Creates a new regular expression engine.
 			 *
-			 *	\param [in] begin
-			 *		An iterator to the beginning of a sequence
-			 *		of code points against which the regular
-			 *		expression engine will attempt to match.
 			 *	\param [in] loc
 			 *		An iterator to the location within the sequence
 			 *		of code points at which the regular expression
 			 *		will begin matching.
+			 *	\param [in] begin
+			 *		An iterator to the beginning of a sequence
+			 *		of code points against which the regular
+			 *		expression engine will attempt to match.
 			 *	\param [in] end
 			 *		An iterator to the end of a sequence of
 			 *		code points against which the regular expression
@@ -790,8 +790,8 @@ namespace Unicode {
 			 *		build.
 			 */
 			RegexEngine (
-				const CodePoint * begin,
 				const CodePoint * loc,
+				const CodePoint * begin,
 				const CodePoint * end,
 				bool reversed,
 				const CodePoint * last,
