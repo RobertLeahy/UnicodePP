@@ -97,7 +97,7 @@ namespace Unicode {
 		RegexMatch & match
 	) noexcept
 		:	b(reversed ? end : begin,reversed),
-			l(loc),
+			l(loc,reversed),
 			e(reversed ? begin : end,reversed),
 			last(last),
 			pattern(pattern),
