@@ -253,5 +253,20 @@ namespace Unicode {
 	
 	}
 	
+	
+	void RegexEngine::Set (RegexState & state) const noexcept {
+	
+		state.CanBacktrack=CanBacktrack;
+		state.PreventsBacktracking=PreventsBacktracking;
+	
+	}
+	
+	
+	void RegexEngine::Set (RegexEngine & engine) const noexcept {
+	
+		engine.l=l;
+	
+	}
+	
 
 }

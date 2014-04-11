@@ -967,6 +967,24 @@ namespace Unicode {
 			 *		\em true if a match was found, \em false otherwise.
 			 */
 			bool operator () ();
+			
+			
+			/**
+			 *	Sets state information from this engine on a RegexState
+			 *	object.
+			 *
+			 *	\param [in] state
+			 *		The RegexState object.
+			 */
+			void Set (RegexState & state) const noexcept;
+			/**
+			 *	Sets state information from this engine onto another
+			 *	engine.
+			 *
+			 *	\param [in] engine
+			 *		The RegexEngine object.
+			 */
+			void Set (RegexEngine & engine) const noexcept;
 	
 	
 	};
