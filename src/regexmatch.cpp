@@ -4,6 +4,14 @@
 
 
 namespace Unicode {
+	
+	
+	template <typename T>
+	void complete (std::unordered_map<T,RegexMatch::Type> & map) {
+	
+		for (auto & pair : map) for (auto & capture : pair.second) capture.Complete();
+	
+	}
 
 
 	void RegexMatch::Complete (const CodePoint * begin, const CodePoint * end) {
@@ -11,6 +19,9 @@ namespace Unicode {
 		b=begin;
 		e=end;
 		s=String(begin,end);
+		
+		complete(numbered);
+		complete(named);
 	
 	}
 	
