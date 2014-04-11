@@ -566,7 +566,8 @@ namespace Unicode {
 			bool rtl;
 			
 			
-			std::optional<RegexMatch> match (const CodePoint *, const CodePoint *) const;
+			void advance (const CodePoint * &) const noexcept;
+			bool is_done (const CodePoint *, const CodePoint *, const CodePoint *) const noexcept;
 			
 			
 		public:
@@ -622,19 +623,57 @@ namespace Unicode {
 			
 			
 			/**
+			 *	Attempts to perform a streaming match against a
+			 *	string.
+			 *
+			 *	This method does no normalization internally, for
+			 *	best results insure that the underlying string is
+			 *	in Normal Form Canonical Decomposition (i.e. NFD).
+			 *
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the string.
+			 *	\param [in,out] loc
+			 *		An iterator to the current location within the
+			 *		string, if \em nullptr the location will be
+			 *		appropriately set to the beginning of the
+			 *		string, depending on what that means for the
+			 *		regular expression's options.
+			 *	\param [in] end
+			 *		An iterator to the end of the string.
+			 *	\param [in,out] last
+			 *		An iterator to the location where the last match
+			 *		ended.  If \em loc is \em nullptr, this will be
+			 *		set appropriately to the beginning of the string,
+			 *		depending on what that means for the regular
+			 *		expression's options.
+			 *
+			 *	\return
+			 *		An engaged optional containing the RegexMatch
+			 *		corresponding to the match if the match was
+			 *		successful, a disengaged optional otherwise.
+			 */
+			std::optional<RegexMatch> Match (
+				const CodePoint * begin,
+				const CodePoint * & loc,
+				const CodePoint * end,
+				const CodePoint * & last
+			) const;
+			/**
 			 *	Attempts to perform one match against a string.
 			 *
 			 *	\param [in] begin
 			 *		An iterator to the beginning of the string.
 			 *	\param [in] end
 			 *		An iterator to the end of the string.
+			 *	\param [in] locale
+			 *		The locale to use for normalization.
 			 *
 			 *	\return
 			 *		An engaged optional containing RegexMatch
 			 *		corresponding to the match if the match was
 			 *		successful, a disengaged optional otherwise.
 			 */
-			std::optional<RegexMatch> Match (const CodePoint * begin, const CodePoint * end) const;
+			std::optional<RegexMatch> Match (const CodePoint * begin, const CodePoint * end, const Locale & locale=Locale::Get()) const;
 			/**
 			 *	Attempts to perform one match against a string.
 			 *
