@@ -20,10 +20,12 @@
 //	fixed.
 #include <unicode/regex.hpp>
 #include <unicode/regexoptions.hpp>
+#include <unicode/string.hpp>
 #include <cstddef>
 #include <iterator>
 #include <memory>
 #include <optional>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -68,6 +70,20 @@ namespace Unicode {
 			 *	traverse the underlying pattern.
 			 */
 			typedef const CodePoint * Iterator;
+			/**
+			 *	The type RegexCompilers use to maintain a
+			 *	list of RegexPatternElement's associated with
+			 *	a certain named or numbered capturing group.
+			 */
+			typedef std::vector<const RegexPatternElement *> Groups;
+			/**
+			 *	The type RegexCompilers use to map names or
+			 *	numberes to the RegexPatternElements whole
+			 *	capturing groups are associated with this names
+			 *	or numbers.
+			 */
+			template <typename T>
+			using GroupsMapping=std::unordered_map<T,Groups>;
 	
 	
 		private:
@@ -94,6 +110,11 @@ namespace Unicode {
 			Pattern pattern;
 			const RegexParser * last;
 			const RegexParser * current;
+			
+			
+			std::size_t & automatic;
+			GroupsMapping<std::size_t> & numbered;
+			GroupsMapping<String> & named;
 			
 			
 			void complete ();
@@ -225,30 +246,34 @@ namespace Unicode {
 			 *
 			 *	\param [in] begin
 			 *		The beginning of the pattern.
-			 *	\param [in] end
-			 *		The end of the pattern.
-			 *	\param [in] options
-			 *		The options with which to compile.
-			 *	\param [in] locale
-			 *		The locale with which to compile.
-			 */
-			RegexCompiler (Iterator begin, Iterator end, RegexOptions options, const Unicode::Locale & locale) noexcept;
-			/**
-			 *	Creates a new RegexCompiler.
-			 *
 			 *	\param [in] curr
 			 *		The location within the pattern at which
 			 *		compilation shall begin.
-			 *	\param [in] begin
-			 *		The beginning of the pattern.
 			 *	\param [in] end
 			 *		The end of the pattern.
+			 *	\param [in] automatic
+			 *		A reference to an integer which contains the
+			 *		current automatically-assigned capturing group
+			 *		number.
+			 *	\param [in] numbered
+			 *		A collection of numbered capturing groups.
+			 *	\param [in] named
+			 *		A collection of named capturing groups.
 			 *	\param [in] options
 			 *		The options with which to compile.
 			 *	\param [in] locale
 			 *		The locale with which to compile.
 			 */
-			RegexCompiler (Iterator curr, Iterator begin, Iterator end, RegexOptions options, const Unicode::Locale & locale) noexcept;
+			RegexCompiler (
+				Iterator begin,
+				Iterator curr,
+				Iterator end,
+				std::size_t & automatic,
+				GroupsMapping<std::size_t> & numbered,
+				GroupsMapping<String> & named,
+				RegexOptions options,
+				const Unicode::Locale & locale
+			) noexcept;
 			/**
 			 *	Copies a RegexCompiler, except the pattern it has
 			 *	compiled and related state information.
@@ -527,6 +552,52 @@ namespace Unicode {
 				return Back<T>();
 			
 			}
+			
+			
+			/**
+			 *	Retrieves the next automatic capturing group
+			 *	number.
+			 *
+			 *	\return
+			 *		An automatic capturing group number.
+			 */
+			std::size_t GetCaptureNumber () noexcept;
+			/**
+			 *	Retrieves the RegexPatternElements associated
+			 *	with a named capturing group.
+			 *
+			 *	\param [in] key
+			 *		The name.
+			 *
+			 *	\return
+			 *		The RegexPatternElements associated with
+			 *		\em key.
+			 */
+			Groups & operator [] (const String & key);
+			/**
+			 *	Retrieves the RegexPatternElements associated
+			 *	with a named capturing group.
+			 *
+			 *	\param [in] key
+			 *		The name.
+			 *
+			 *	\return
+			 *		The RegexPatternElements associated with
+			 *		\em key.
+			 */
+			Groups & operator [] (String && key);
+			/**
+			 *	Retrieves the RegexPatternElements associated
+			 *	with a numbered capturing group.
+			 *
+			 *	\param [in] key
+			 *		The number.
+			 *
+			 *	\return
+			 *		The RegexPatternElements associated with
+			 *		\em key.
+			 */
+			Groups & operator [] (std::size_t key);
 			
 			
 			/**

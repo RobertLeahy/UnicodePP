@@ -3,6 +3,7 @@
 #include <unicode/regexerror.hpp>
 #include <algorithm>
 #include <limits>
+#include <type_traits>
 #include <utility>
 
 
@@ -66,7 +67,19 @@ namespace Unicode {
 	
 	RegexCompiler::Pattern RegexCompiler::Compile (Iterator begin, Iterator end, RegexOptions options, const Unicode::Locale & locale) {
 	
-		RegexCompiler c(begin,end,options,locale);
+		std::size_t automatic=0;
+		GroupsMapping<std::size_t> numbered;
+		GroupsMapping<String> named;
+		RegexCompiler c(
+			begin,
+			begin,
+			end,
+			automatic,
+			numbered,
+			named,
+			options,
+			locale
+		);
 		c();
 		
 		return c.Get();
@@ -102,14 +115,21 @@ namespace Unicode {
 	}
 	
 	
-	RegexCompiler::RegexCompiler (Iterator begin, Iterator end, RegexOptions options, const Unicode::Locale & locale) noexcept
-		:	RegexCompiler(begin,begin,end,options,locale)
-	{	}
-	
-	
-	RegexCompiler::RegexCompiler (Iterator curr, Iterator begin, Iterator end, RegexOptions options, const Unicode::Locale & locale) noexcept
+	RegexCompiler::RegexCompiler (
+		Iterator begin,
+		Iterator curr,
+		Iterator end,
+		std::size_t & automatic,
+		GroupsMapping<std::size_t> & numbered,
+		GroupsMapping<String> & named,
+		RegexOptions options,
+		const Unicode::Locale & locale
+	) noexcept
 		:	last(nullptr),
 			current(nullptr),
+			automatic(automatic),
+			numbered(numbered),
+			named(named),
 			Current(curr),
 			Begin(begin),
 			End(end),
@@ -121,15 +141,16 @@ namespace Unicode {
 	
 	
 	RegexCompiler::RegexCompiler (const RegexCompiler & other) noexcept
-		:	last(nullptr),
-			current(nullptr),
-			Current(other.Current),
-			Begin(other.Begin),
-			End(other.End),
-			Options(other.Options),
-			Locale(other.Locale),
-			Successive(false),
-			CharacterClass(false)
+		:	RegexCompiler(
+				other.Begin,
+				other.Current,
+				other.End,
+				other.automatic,
+				other.numbered,
+				other.named,
+				other.Options,
+				other.Locale
+			)
 	{	}
 	
 	
@@ -225,6 +246,34 @@ namespace Unicode {
 		pattern.push_back(std::move(element));
 		
 		last=current;
+	
+	}
+	
+	
+	std::size_t RegexCompiler::GetCaptureNumber () noexcept {
+	
+		return ++automatic;
+	
+	}
+	
+	
+	RegexCompiler::Groups & RegexCompiler::operator [] (const String & key) {
+	
+		return named[key];
+	
+	}
+	
+	
+	RegexCompiler::Groups & RegexCompiler::operator [] (String && key) {
+	
+		return named[std::move(key)];
+	
+	}
+	
+	
+	RegexCompiler::Groups & RegexCompiler::operator [] (std::size_t key) {
+	
+		return numbered[key];
 	
 	}
 	
