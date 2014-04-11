@@ -29,7 +29,13 @@ namespace Unicode {
 				
 				virtual bool operator () (RegexEngine & engine, RegexState & state) const override {
 				
-					return state.PreventsBacktracking=RegexEngine(engine,elements)();
+					RegexEngine e(engine,elements);
+					
+					state.PreventsBacktracking=e();
+					
+					e.Set(engine);
+					
+					return state.PreventsBacktracking;
 				
 				}
 				
