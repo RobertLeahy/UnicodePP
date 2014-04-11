@@ -283,5 +283,20 @@ namespace Unicode {
 	
 	}
 	
+	
+	void RegexEngine::Rewind () {
+	
+		while (states.size()!=0) {
+		
+			auto iter=states.end()-1;
+			
+			iter->Rewind(*this);
+			
+			states.erase(iter);
+		
+		}
+	
+	}
+	
 
 }

@@ -1002,6 +1002,13 @@ namespace Unicode {
 			 *		The RegexEngine object.
 			 */
 			void Set (RegexEngine & engine) const noexcept;
+			
+			
+			/**
+			 *	Rewinds the engine, rewinding each pattern element the
+			 *	engine has matched.
+			 */
+			void Rewind ();
 	
 	
 	};
