@@ -677,6 +677,9 @@ namespace Unicode {
 			RegexIterator e;
 			
 			
+			const CodePoint * last;
+			
+			
 			const Regex::Pattern & pattern;
 			std::vector<RegexState> states;
 			
@@ -740,6 +743,9 @@ namespace Unicode {
 			 *	\param [in] pattern
 			 *		The pattern against which this engine will
 			 *		attempt to match.
+			 *	\param [in] last
+			 *		An iterator to the last point at which a match
+			 *		was found.
 			 *	\param [in] match
 			 *		The match on top of which this engine will
 			 *		build.
@@ -749,6 +755,7 @@ namespace Unicode {
 				const CodePoint * loc,
 				const CodePoint * end,
 				bool reversed,
+				const CodePoint * last,
 				const Regex::Pattern & pattern,
 				RegexMatch & match
 			) noexcept;
@@ -829,6 +836,14 @@ namespace Unicode {
 			 *		An iterator.
 			 */
 			const CodePoint * End () const noexcept;
+			/**
+			 *	Returns an iterator to the point at which the
+			 *	last match ended.
+			 *
+			 *	\return
+			 *		An iterator.
+			 */
+			const CodePoint * Last () const noexcept;
 			/**
 			 *	Obtains a reference to the current code point
 			 *	within the sequence against which the regular

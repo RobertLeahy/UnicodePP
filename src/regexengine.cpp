@@ -92,12 +92,14 @@ namespace Unicode {
 		const CodePoint * loc,
 		const CodePoint * end,
 		bool reversed,
+		const CodePoint * last,
 		const Regex::Pattern & pattern,
 		RegexMatch & match
 	) noexcept
 		:	b(reversed ? end : begin,reversed),
 			l(loc),
 			e(reversed ? begin : end,reversed),
+			last(last),
 			pattern(pattern),
 			CanBacktrack(false),
 			PreventsBacktracking(false),
@@ -154,6 +156,13 @@ namespace Unicode {
 	const CodePoint * RegexEngine::End () const noexcept {
 	
 		return Reversed() ? b.Base() : e.Base();
+	
+	}
+	
+	
+	const CodePoint * RegexEngine::Last () const noexcept {
+	
+		return last;
 	
 	}
 	
