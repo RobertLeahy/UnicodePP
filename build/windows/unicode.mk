@@ -37,6 +37,7 @@ obj/regexengine.o \
 obj/regexerror.o \
 obj/regexiterator.o \
 obj/regexliteral.o \
+obj/regexlookaround.o \
 obj/regexmatch.o \
 obj/regexparser.o \
 obj/regexpatternelement.o \
