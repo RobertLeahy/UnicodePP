@@ -566,8 +566,7 @@ namespace Unicode {
 			bool rtl;
 			
 			
-			void advance (const CodePoint * &) const noexcept;
-			bool is_done (const CodePoint *, const CodePoint *, const CodePoint *) const noexcept;
+			bool is_done (const CodePoint * &, const CodePoint *, const CodePoint *) const noexcept;
 			
 			
 		public:
@@ -630,14 +629,14 @@ namespace Unicode {
 			 *	best results insure that the underlying string is
 			 *	in Normal Form Canonical Decomposition (i.e. NFD).
 			 *
-			 *	\param [in] begin
-			 *		An iterator to the beginning of the string.
 			 *	\param [in,out] loc
 			 *		An iterator to the current location within the
 			 *		string, if \em nullptr the location will be
 			 *		appropriately set to the beginning of the
 			 *		string, depending on what that means for the
 			 *		regular expression's options.
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the string.
 			 *	\param [in] end
 			 *		An iterator to the end of the string.
 			 *	\param [in,out] last
@@ -653,8 +652,8 @@ namespace Unicode {
 			 *		successful, a disengaged optional otherwise.
 			 */
 			std::optional<RegexMatch> Match (
-				const CodePoint * begin,
 				const CodePoint * & loc,
+				const CodePoint * begin,
 				const CodePoint * end,
 				const CodePoint * & last
 			) const;

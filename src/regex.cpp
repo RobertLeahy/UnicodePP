@@ -9,17 +9,23 @@
 namespace Unicode {
 	
 	
-	void Regex::advance (const CodePoint * & loc) const noexcept {
+	bool Regex::is_done (const CodePoint * & loc, const CodePoint * begin, const CodePoint * end) const noexcept {
 	
-		if (rtl) --loc;
-		else ++loc;
-	
-	}
-	
-	
-	bool Regex::is_done (const CodePoint * begin, const CodePoint * loc, const CodePoint * end) const noexcept {
-	
-		return loc==(rtl ? begin : end);
+		if (rtl) {
+		
+			if (loc==begin) return true;
+			
+			--loc;
+			
+			return false;
+		
+		}
+		
+		if (loc==end) return true;
+		
+		++loc;
+		
+		return false;
 	
 	}
 
@@ -85,8 +91,8 @@ namespace Unicode {
 	
 	
 	std::optional<RegexMatch> Regex::Match (
-		const CodePoint * begin,
 		const CodePoint * & loc,
+		const CodePoint * begin,
 		const CodePoint * end,
 		const CodePoint * & last
 	) const {
@@ -97,7 +103,7 @@ namespace Unicode {
 	
 		std::optional<RegexMatch> retr;
 		
-		for (;!is_done(begin,loc,end);advance(loc)) {
+		do {
 		
 			RegexMatch match;
 			RegexEngine engine(
@@ -122,7 +128,7 @@ namespace Unicode {
 			
 			}
 		
-		}
+		} while (!is_done(loc,begin,end));
 		
 		return retr;
 	
@@ -135,10 +141,10 @@ namespace Unicode {
 		const CodePoint * last=nullptr;
 	
 		Normalizer n(locale);
-		if (n.IsNFD(begin,end)) return Match(begin,loc,end,last);
+		if (n.IsNFD(begin,end)) return Match(loc,begin,end,last);
 		
 		auto normalized=n.ToNFD(begin,end);
-		return Match(Begin(normalized),loc,End(normalized),last);
+		return Match(loc,Begin(normalized),End(normalized),last);
 	
 	}
 	
