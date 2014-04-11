@@ -1,4 +1,5 @@
 #include <unicode/regex.hpp>
+#include <utility>
 
 
 namespace Unicode {
@@ -116,6 +117,20 @@ namespace Unicode {
 			PreventsBacktracking(false),
 			Match(other.Match)
 	{	}
+	
+	
+	RegexEngine::RegexEngine (const RegexEngine & other, const Regex::Pattern & pattern, bool reversed)
+		:	RegexEngine(other,pattern)
+	{
+	
+		if (reversed==Reversed()) return;
+	
+		std::swap(b,e);
+		b.Reverse();
+		l.Reverse();
+		e.Reverse();
+	
+	}
 	
 	
 	RegexEngine::operator bool () const noexcept {

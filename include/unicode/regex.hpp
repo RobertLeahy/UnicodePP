@@ -814,6 +814,23 @@ namespace Unicode {
 			
 			
 			/**
+			 *	Creates a new RegexEngine from an existing RegexEngine,
+			 *	which matches a different pattern.
+			 *
+			 *	\param [in] other
+			 *		The RegexEngine from which to build this RegexEngine.
+			 *	\param [in] pattern
+			 *		The pattern against which this engine will
+			 *		attempt to match.
+			 *	\param [in] reversed
+			 *		\em true if the regular expression engine
+			 *		should proceed from end to begin, \em false
+			 *		otherwise.
+			 */
+			RegexEngine (const RegexEngine & other, const Regex::Pattern & pattern, bool reversed);
+			
+			
+			/**
 			 *	Determines if the regular expression engine is
 			 *	at a valid position within the string against which
 			 *	it is matching.
