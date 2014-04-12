@@ -38,6 +38,7 @@ obj/regexcompiler.o \
 obj/regexengine.o \
 obj/regexerror.o \
 obj/regexiterator.o \
+obj/regexlastmatch.o \
 obj/regexliteral.o \
 obj/regexlookaround.o \
 obj/regexmatch.o \
