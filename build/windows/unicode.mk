@@ -28,6 +28,7 @@ obj/locale.o \
 obj/normalizer.o \
 obj/regex.o \
 obj/regexalternation.o \
+obj/regexanchor.o \
 obj/regexatomic.o \
 obj/regexcapture.o \
 obj/regexcharacterclass.o \
