@@ -27,6 +27,7 @@ obj/latin1.o \
 obj/locale.o \
 obj/normalizer.o \
 obj/regex.o \
+obj/regexalternation.o \
 obj/regexatomic.o \
 obj/regexcapture.o \
 obj/regexcharacterclass.o \
