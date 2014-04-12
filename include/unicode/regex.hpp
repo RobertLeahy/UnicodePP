@@ -976,6 +976,20 @@ namespace Unicode {
 			 */
 			explicit operator bool () const noexcept;
 			/**
+			 *	Determines if the regular expression engine is at
+			 *	the beginning of the sequence.
+			 *
+			 *	In the case where the regular expression engine is
+			 *	moving right-to-left, this function returns \em true
+			 *	only when the engine is at the actual end of the
+			 *	sequence.
+			 *
+			 *	\return
+			 *		\em true if there are code points preceding this
+			 *		point in the sequence, \em false otherwise.
+			 */
+			bool AtBeginning () const noexcept;
+			/**
 			 *	Returns an iterator to the regular expression
 			 *	engine's current position within the seequence
 			 *	against which it is matching.

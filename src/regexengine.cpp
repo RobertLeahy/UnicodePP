@@ -140,6 +140,13 @@ namespace Unicode {
 	}
 	
 	
+	bool RegexEngine::AtBeginning () const noexcept {
+	
+		return b==l;
+	
+	}
+	
+	
 	RegexIterator RegexEngine::begin () const noexcept {
 	
 		return l;
