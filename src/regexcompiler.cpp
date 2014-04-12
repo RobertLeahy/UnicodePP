@@ -34,6 +34,14 @@ namespace Unicode {
 	}
 	
 	
+	void RegexCompiler::get_capturing_group (GroupsInfo & info, const RegexPatternElement * & ptr) {
+	
+		if (info.Elements.size()==0) info.Pending.push_back(&ptr);
+		else ptr=info.Elements[0];
+	
+	}
+	
+	
 	constexpr std::size_t default_priority=std::numeric_limits<std::size_t>::max()/2;
 	
 	
@@ -82,6 +90,9 @@ namespace Unicode {
 		);
 		c();
 		
+		c.complete(numbered);
+		c.complete(named);
+		
 		return c.Get();
 	
 	}
@@ -93,6 +104,22 @@ namespace Unicode {
 		
 		last->Complete(*(pattern.back().get()));
 		last=nullptr;
+	
+	}
+	
+	
+	template <typename T>
+	void RegexCompiler::complete (GroupsMapping<T> & map) {
+	
+		for (auto & pair : map) {
+		
+			auto & info=pair.second;
+			if (info.Pending.size()==0) continue;
+			if (info.Elements.size()==0) Raise("Forward referenced capturing group was not declared");
+			
+			for (auto & pending : info.Pending) *pending=info.Elements[0];
+		
+		}
 	
 	}
 	
@@ -154,11 +181,11 @@ namespace Unicode {
 	{	}
 	
 	
-	bool RegexCompiler::IsNext (CodePoint cp) noexcept {
+	bool RegexCompiler::IsNext (CodePoint cp, bool rewind) noexcept {
 	
 		if (*this && (*(*this)==cp)) {
 		
-			++*this;
+			if (!rewind) ++*this;
 			
 			return true;
 			
@@ -192,16 +219,28 @@ namespace Unicode {
 	}
 	
 	
-	bool RegexCompiler::IsNext (const char32_t * str) noexcept {
+	template <typename T>
+	bool is_next (const T * str, RegexCompiler & compiler, bool rewind) noexcept {
 	
-		return is_next(str,*this);
+		auto loc=compiler.Current;
+		auto result=is_next(str,compiler);
+		if (rewind) compiler.Current=loc;
+		
+		return result;
 	
 	}
 	
 	
-	bool RegexCompiler::IsNext (const char * str) noexcept {
+	bool RegexCompiler::IsNext (const char32_t * str, bool rewind) noexcept {
 	
-		return is_next(str,*this);
+		return is_next(str,*this,rewind);
+	
+	}
+	
+	
+	bool RegexCompiler::IsNext (const char * str, bool rewind) noexcept {
+	
+		return is_next(str,*this,rewind);
 	
 	}
 	
@@ -257,23 +296,51 @@ namespace Unicode {
 	}
 	
 	
+	std::size_t RegexCompiler::GetLastCaptureNumber () noexcept {
+	
+		return automatic;
+	
+	}
+	
+	
+	void RegexCompiler::GetCapturingGroup (const String & key, const RegexPatternElement * & ptr) {
+	
+		get_capturing_group(named[key],ptr);
+	
+	}
+	
+	
+	void RegexCompiler::GetCapturingGroup (String && key, const RegexPatternElement * & ptr) {
+	
+		get_capturing_group(named[std::move(key)],ptr);
+	
+	}
+	
+	
+	void RegexCompiler::GetCapturingGroup (std::size_t key, const RegexPatternElement * & ptr) {
+	
+		get_capturing_group(numbered[key],ptr);
+	
+	}
+	
+	
 	RegexCompiler::Groups & RegexCompiler::operator [] (const String & key) {
 	
-		return named[key];
+		return named[key].Elements;
 	
 	}
 	
 	
 	RegexCompiler::Groups & RegexCompiler::operator [] (String && key) {
 	
-		return named[std::move(key)];
+		return named[std::move(key)].Elements;
 	
 	}
 	
 	
 	RegexCompiler::Groups & RegexCompiler::operator [] (std::size_t key) {
 	
-		return numbered[key];
+		return numbered[key].Elements;
 	
 	}
 	

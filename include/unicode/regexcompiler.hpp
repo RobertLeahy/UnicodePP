@@ -76,17 +76,29 @@ namespace Unicode {
 			 *	a certain named or numbered capturing group.
 			 */
 			typedef std::vector<const RegexPatternElement *> Groups;
-			/**
-			 *	The type RegexCompilers use to map names or
-			 *	numberes to the RegexPatternElements whole
-			 *	capturing groups are associated with this names
-			 *	or numbers.
-			 */
-			template <typename T>
-			using GroupsMapping=std::unordered_map<T,Groups>;
 	
 	
 		private:
+		
+
+			typedef std::vector<const RegexPatternElement **> PendingGroups;
+			
+			
+			class GroupsInfo {
+			
+			
+				public:
+				
+				
+					PendingGroups Pending;
+					Groups Elements;
+			
+			
+			};
+			
+			
+			template <typename T>
+			using GroupsMapping=std::unordered_map<T,GroupsInfo>;
 		
 		
 			class RegexParserInfo {
@@ -105,6 +117,7 @@ namespace Unicode {
 			
 			static std::vector<RegexParserInfo> & get_parsers ();
 			static void add_impl (const RegexParser &, std::size_t, std::optional<bool>);
+			static void get_capturing_group (GroupsInfo &, const RegexPatternElement * &);
 		
 		
 			Pattern pattern;
@@ -118,8 +131,22 @@ namespace Unicode {
 			
 			
 			void complete ();
+			template <typename T>
+			void complete (GroupsMapping<T> &);
 			bool should_invoke (const RegexParserInfo &) const noexcept;
 			void rewind (Iterator) noexcept;
+			
+			
+			RegexCompiler (
+				Iterator begin,
+				Iterator curr,
+				Iterator end,
+				std::size_t & automatic,
+				GroupsMapping<std::size_t> & numbered,
+				GroupsMapping<String> & named,
+				RegexOptions options,
+				const Unicode::Locale & locale
+			) noexcept;
 	
 	
 		public:
@@ -240,40 +267,7 @@ namespace Unicode {
 			 */
 			bool CharacterClass;
 			
-			
-			/**
-			 *	Creates a new RegexCompiler.
-			 *
-			 *	\param [in] begin
-			 *		The beginning of the pattern.
-			 *	\param [in] curr
-			 *		The location within the pattern at which
-			 *		compilation shall begin.
-			 *	\param [in] end
-			 *		The end of the pattern.
-			 *	\param [in] automatic
-			 *		A reference to an integer which contains the
-			 *		current automatically-assigned capturing group
-			 *		number.
-			 *	\param [in] numbered
-			 *		A collection of numbered capturing groups.
-			 *	\param [in] named
-			 *		A collection of named capturing groups.
-			 *	\param [in] options
-			 *		The options with which to compile.
-			 *	\param [in] locale
-			 *		The locale with which to compile.
-			 */
-			RegexCompiler (
-				Iterator begin,
-				Iterator curr,
-				Iterator end,
-				std::size_t & automatic,
-				GroupsMapping<std::size_t> & numbered,
-				GroupsMapping<String> & named,
-				RegexOptions options,
-				const Unicode::Locale & locale
-			) noexcept;
+
 			/**
 			 *	Copies a RegexCompiler, except the pattern it has
 			 *	compiled and related state information.
@@ -377,11 +371,15 @@ namespace Unicode {
 			 *
 			 *	\param [in] cp
 			 *		A Unicode code point.
+			 *	\param [in] rewind
+			 *		If \em true the compiler will be rewound after
+			 *		checking, even if the check is successful.  Defaults
+			 *		to \em false.
 			 *
 			 *	\return
 			 *		\em true if \em cp was next, \em false otherwise.
 			 */
-			bool IsNext (CodePoint cp) noexcept;
+			bool IsNext (CodePoint cp, bool rewind=false) noexcept;
 			/**
 			 *	Determines if a certain string is next in the pattern.
 			 *
@@ -391,12 +389,16 @@ namespace Unicode {
 			 *
 			 *	\param [in] str
 			 *		A null-terminated string of Unicode code points.
+			 *	\param [in] rewind
+			 *		If \em true the compiler will be rewound after
+			 *		checking, even if the check is successful.  Defaults
+			 *		to \em false.
 			 *
 			 *	\return
 			 *		\em true if \em str was next in the pattern,
 			 *		\em false otherwise.
 			 */
-			bool IsNext (const char32_t * str) noexcept;
+			bool IsNext (const char32_t * str, bool rewind=false) noexcept;
 			/**
 			 *	Determines if a certain string is next in the pattern.
 			 *
@@ -406,12 +408,16 @@ namespace Unicode {
 			 *
 			 *	\param [in] str
 			 *		A null-terminated string of Unicode code points.
+			 *	\param [in] rewind
+			 *		If \em true the compiler will be rewound after
+			 *		checking, even if the check is successful.  Defaults
+			 *		to \em false.
 			 *
 			 *	\return
 			 *		\em true if \em str was next in the pattern,
 			 *		\em false otherwise.
 			 */
-			bool IsNext (const char * str) noexcept;
+			bool IsNext (const char * str, bool rewind=false) noexcept;
 			
 			
 			/**
@@ -562,6 +568,74 @@ namespace Unicode {
 			 *		An automatic capturing group number.
 			 */
 			std::size_t GetCaptureNumber () noexcept;
+			/**
+			 *	Retrieves the last automatic capturing group
+			 *	number.
+			 *
+			 *	\return
+			 *		The last automatic capturing group number.
+			 */
+			std::size_t GetLastCaptureNumber () noexcept;
+			/**
+			 *	Attempts to obtain a pointer to a RegexPatternElement
+			 *	which captures a certain named capturing group.
+			 *
+			 *	If such a RegexPatternElemest has not yet been compiled,
+			 *	the compiler will set \em ptr if one is compiled in
+			 *	the future.
+			 *
+			 *	If such a RegexPatternElement is not compiled in the
+			 *	future, an exception will be thrown.
+			 *
+			 *	\param [in] key
+			 *		The name.
+			 *	\param [in] ptr
+			 *		A reference to a const pointer to a RegexPatternElement,
+			 *		which will be populated either immediately (if
+			 *		a RegexPatternElement which captures \em key exists)
+			 *		or later.
+			 */
+			void GetCapturingGroup (const String & key, const RegexPatternElement * & ptr);
+			/**
+			 *	Attempts to obtain a pointer to a RegexPatternElement
+			 *	which captures a certain named capturing group.
+			 *
+			 *	If such a RegexPatternElemest has not yet been compiled,
+			 *	the compiler will set \em ptr if one is compiled in
+			 *	the future.
+			 *
+			 *	If such a RegexPatternElement is not compiled in the
+			 *	future, an exception will be thrown.
+			 *
+			 *	\param [in] key
+			 *		The name.
+			 *	\param [in] ptr
+			 *		A reference to a const pointer to a RegexPatternElement,
+			 *		which will be populated either immediately (if
+			 *		a RegexPatternElement which captures \em key exists)
+			 *		or later.
+			 */
+			void GetCapturingGroup (String && key, const RegexPatternElement * & ptr);
+			/**
+			 *	Attempts to obtain a pointer to a RegexPatternElement
+			 *	which captures a certain numbered capturing group.
+			 *
+			 *	If such a RegexPatternElemest has not yet been compiled,
+			 *	the compiler will set \em ptr if one is compiled in
+			 *	the future.
+			 *
+			 *	If such a RegexPatternElement is not compiled in the
+			 *	future, an exception will be thrown.
+			 *
+			 *	\param [in] key
+			 *		The number.
+			 *	\param [in] ptr
+			 *		A reference to a const pointer to a RegexPatternElement,
+			 *		which will be populated either immediately (if
+			 *		a RegexPatternElement which captures \em key exists)
+			 *		or later.
+			 */
+			void GetCapturingGroup (std::size_t key, const RegexPatternElement * & ptr);
 			/**
 			 *	Retrieves the RegexPatternElements associated
 			 *	with a named capturing group.
