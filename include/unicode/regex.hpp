@@ -556,7 +556,92 @@ namespace Unicode {
 		public:
 		
 		
+			/**
+			 *	The type of a regular expression pattern.
+			 */
 			typedef std::vector<std::unique_ptr<RegexPatternElement>> Pattern;
+			
+			
+			/**
+			 *	\cond
+			 */
+			
+			
+			class Iterator : public std::iterator<std::forward_iterator_tag,RegexMatch> {
+			
+			
+				private:
+				
+				
+					const Pattern * pattern;
+					bool rtl;
+					bool at_end;
+					bool finished;
+					const CodePoint * loc;
+					const CodePoint * begin;
+					const CodePoint * end;
+					const CodePoint * last;
+					std::optional<RegexMatch> match;
+					
+					
+					bool is_end () const noexcept;
+					void advance () noexcept;
+					void next ();
+					
+					
+				public:
+				
+				
+					Iterator () noexcept;
+					Iterator (const Pattern &, bool, const CodePoint *, const CodePoint *);
+					
+					
+					RegexMatch & operator * ();
+					RegexMatch * operator -> ();
+					
+					
+					Iterator & operator ++ ();
+					Iterator operator ++ (int);
+					
+					
+					bool operator == (const Iterator &) const noexcept;
+					bool operator != (const Iterator &) const noexcept;
+			
+			
+			};
+			
+			
+			class Iterable {
+			
+			
+				private:
+				
+				
+					const Regex & r;
+					std::optional<String> s;
+					const CodePoint * b;
+					const CodePoint * e;
+			
+			
+				public:
+				
+				
+					Iterable () = delete;
+					Iterable (const Regex &, const CodePoint *, const CodePoint *, const Locale &);
+					Iterable (const Regex &, const String &);
+					Iterable (const Regex &, String &&);
+					
+					
+					Iterator begin () const;
+					Iterator end () const noexcept;
+			
+			
+			};
+			
+			
+			/**
+			 *	\endcond
+			 */
 	
 	
 		private:
@@ -564,9 +649,6 @@ namespace Unicode {
 		
 			Pattern pattern;
 			bool rtl;
-			
-			
-			bool is_done (const CodePoint * &, const CodePoint *, const CodePoint *) const noexcept;
 			
 			
 		public:
@@ -622,42 +704,6 @@ namespace Unicode {
 			
 			
 			/**
-			 *	Attempts to perform a streaming match against a
-			 *	string.
-			 *
-			 *	This method does no normalization internally, for
-			 *	best results insure that the underlying string is
-			 *	in Normal Form Canonical Decomposition (i.e. NFD).
-			 *
-			 *	\param [in,out] loc
-			 *		An iterator to the current location within the
-			 *		string, if \em nullptr the location will be
-			 *		appropriately set to the beginning of the
-			 *		string, depending on what that means for the
-			 *		regular expression's options.
-			 *	\param [in] begin
-			 *		An iterator to the beginning of the string.
-			 *	\param [in] end
-			 *		An iterator to the end of the string.
-			 *	\param [in,out] last
-			 *		An iterator to the location where the last match
-			 *		ended.  If \em loc is \em nullptr, this will be
-			 *		set appropriately to the beginning of the string,
-			 *		depending on what that means for the regular
-			 *		expression's options.
-			 *
-			 *	\return
-			 *		An engaged optional containing the RegexMatch
-			 *		corresponding to the match if the match was
-			 *		successful, a disengaged optional otherwise.
-			 */
-			std::optional<RegexMatch> Match (
-				const CodePoint * & loc,
-				const CodePoint * begin,
-				const CodePoint * end,
-				const CodePoint * & last
-			) const;
-			/**
 			 *	Attempts to perform one match against a string.
 			 *
 			 *	\param [in] begin
@@ -685,6 +731,96 @@ namespace Unicode {
 			 *		successful, a disengaged optional otherwise.
 			 */
 			std::optional<RegexMatch> Match (const String & str) const;
+			
+			
+			/**
+			 *	Obtains a collection of each match of the pattern
+			 *	within a certain string.
+			 *
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the string.
+			 *	\param [in] end
+			 *		An iterator to the end of the string.
+			 *	\param [in] locale
+			 *		The locale to use for normalization.
+			 *
+			 *	\return
+			 *		A collection of matches.
+			 */
+			std::vector<RegexMatch> Matches (const CodePoint * begin, const CodePoint * end, const Locale & locale=Locale::Get()) const;
+			/**
+			 *	Obtains a collection of each match of the pattern
+			 *	within a certain string.
+			 *
+			 *	\param [in] str
+			 *		The string.
+			 *
+			 *	\return
+			 *		A collection of matches.
+			 */
+			std::vector<RegexMatch> Matches (const String & str) const;
+			
+			
+			/**
+			 *	Obtains an object which may be iterated to give each
+			 *	match of the pattern against a certain string, lazily
+			 *	evaluated.
+			 *
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the string.
+			 *	\param [in] end
+			 *		An iterator to the end of the string.
+			 *	\param [in] locale
+			 *		The locale to use for normalization.
+			 *
+			 *	\return
+			 *		An object which is a valid target for a
+			 *		range-based for loop, and iterating on which
+			 *		yields mutable RegexMatch references.
+			 */
+			Iterable Iterate (const CodePoint * begin, const CodePoint * end, const Locale & locale=Locale::Get()) const;
+			/**
+			 *	Obtains an object which may be iterated to give each
+			 *	match of the pattern against a certain string, lazily
+			 *	evaluated.
+			 *
+			 *	\param [in] str
+			 *		The string.
+			 *
+			 *	\return
+			 *		An object which is a valid target for a
+			 *		range-based for loop, and iterating on which
+			 *		yields mutable RegexMatch references.
+			 */
+			Iterable Iterate (const String & str) const;
+			/**
+			 *	Obtains an object which may be iterated to give each
+			 *	match of the pattern against a certain string, lazily
+			 *	evaluated.
+			 *
+			 *	\param [in] str
+			 *		The string.
+			 *
+			 *	\return
+			 *		An object which is a valid target for a
+			 *		range-based for loop, and iterating on which
+			 *		yields mutable RegexMatch references.
+			 */
+			Iterable Iterate (String && str) const;
+			
+			
+			/**
+			 *	\cond
+			 */
+			
+			
+			Iterator Begin (const CodePoint * begin, const CodePoint * end) const;
+			Iterator End () const noexcept;
+			
+			
+			/**
+			 *	\endcond
+			 */
 			
 			
 			/**
