@@ -48,6 +48,7 @@ obj/regexrange.o \
 obj/regexstate.o \
 obj/regexunicodeproperties.o \
 obj/regexwildcard.o \
+obj/regexwordboundary.o \
 obj/string.o \
 obj/ucs2.o \
 obj/utf8.o \
