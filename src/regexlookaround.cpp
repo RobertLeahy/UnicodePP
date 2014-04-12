@@ -80,7 +80,7 @@ namespace Unicode {
 					
 					state.PreventsBacktracking=e.PreventsBacktracking;
 					
-					return result;
+					return result!=inverted;
 				
 				}
 				
