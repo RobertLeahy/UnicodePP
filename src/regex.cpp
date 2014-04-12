@@ -226,9 +226,9 @@ namespace Unicode {
 		
 		}
 		
-		b=e=nullptr;
-		
 		s.emplace(n.ToNFD(begin,end));
+		b=s->begin();
+		e=s->end();
 	
 	}
 	
