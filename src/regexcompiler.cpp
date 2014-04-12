@@ -203,18 +203,13 @@ namespace Unicode {
 		
 		if (!compiler) return *str==0;
 		
-		auto loc=compiler.Current;
 		for (
 			;
-			(*str!='\0') && (*str==*compiler) && ++compiler;
-			++str
+			(*str!='\0') && (*str==*compiler) && compiler;
+			++str,++compiler
 		);
 		
-		if (*str=='\0') return true;
-		
-		compiler.Current=loc;
-		
-		return false;
+		return *str=='\0';
 	
 	}
 	
@@ -224,7 +219,7 @@ namespace Unicode {
 	
 		auto loc=compiler.Current;
 		auto result=is_next(str,compiler);
-		if (rewind) compiler.Current=loc;
+		if (!result || rewind) compiler.Current=loc;
 		
 		return result;
 	
