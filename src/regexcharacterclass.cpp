@@ -168,6 +168,9 @@ namespace Unicode {
 					
 					}
 					
+					//	If there's a state, rewind first
+					if (state) state.Get<type>().State.Rewind(engine);
+					
 					//	Loop over each element and check to see if
 					//	any of them match
 					for (auto begin=get_begin(state),end=elements.end();begin!=end;++begin) {
@@ -175,6 +178,7 @@ namespace Unicode {
 						RegexState s(engine);
 						if ((*(*begin))(engine,s)) {
 						
+							s.Set(state);
 							state.CanBacktrack=begin+1!=end;
 							state.Imbue<type>(
 								std::move(s),
@@ -190,6 +194,9 @@ namespace Unicode {
 					}
 					
 					//	Nothing matched, which means this is a failure
+					
+					state.Clear();
+					
 					return false;
 				
 				}
@@ -270,14 +277,17 @@ namespace Unicode {
 					if (state) {
 					
 						auto & s=state.Get<type>().State;
+						s.Rewind(engine);
 					
 						if ((*subtraction)(engine,s)) {
 						
-							state.CanBacktrack=s.CanBacktrack;
+							s.Set(state);
 							
 							return true;
 						
 						}
+						
+						state.Clear();
 						
 						return false;
 					
@@ -286,7 +296,7 @@ namespace Unicode {
 					RegexState s(engine);
 					if ((*subtraction)(engine,s)) {
 					
-						state.CanBacktrack=s.CanBacktrack;
+						s.Set(state);
 						state.Imbue<type>(std::move(s));
 						
 						return true;
@@ -294,6 +304,8 @@ namespace Unicode {
 					}
 					
 					s.Rewind(engine);
+					
+					state.Clear();
 					
 					return false;
 				

@@ -34,16 +34,9 @@ namespace Unicode {
 				{	}
 				
 				
-				explicit operator bool () const noexcept {
+				virtual void Rewind (RegexEngine &) {
 				
-					return Engine.CanBacktrack || (Begin!=(End-1));
-				
-				}
-				
-				
-				virtual void Rewind (RegexEngine &) override {
-				
-					if (!*this) Engine.Rewind();
+					Engine.Rewind();
 				
 				}
 		
@@ -63,21 +56,22 @@ namespace Unicode {
 				patterns_type patterns;
 				
 				
-				static bool match (RegexEngine & engine, RegexState & state) {
+				bool match (RegexEngine & engine, RegexState & state) const {
 				
 					auto & s=state.Get<type>();
 					
 					if (s.Engine()) {
 					
-						state.CanBacktrack=!!s;
-						
 						s.Engine.Set(engine);
+						s.Engine.Set(state);
+						
+						if ((s.Begin+1)!=patterns.end()) state.CanBacktrack=true;
 						
 						return true;
 					
 					}
 					
-					state.CanBacktrack=false;
+					state.Clear();
 					
 					return false;
 				
@@ -95,15 +89,21 @@ namespace Unicode {
 				
 				virtual bool operator () (RegexEngine & engine, RegexState & state) const override {
 				
-					if (!state) state.Imbue<type>(engine,patterns.begin(),patterns.end());
+					auto end=patterns.end();
+				
+					if (!state) state.Imbue<type>(engine,patterns.begin(),end);
 				
 					for (;;) {
 					
 						if (match(engine,state)) return true;
 						
 						auto & s=state.Get<type>();
-						if (s) state.Imbue<type>(engine,s.Begin+1,patterns.end());
-						else break;
+						auto next=s.Begin+1;
+						if (next==end) break;
+						
+						s.Rewind(engine);
+						
+						state.Imbue<type>(engine,next,end);
 					
 					}
 					

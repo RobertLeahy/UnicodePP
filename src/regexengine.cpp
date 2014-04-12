@@ -11,12 +11,12 @@ namespace Unicode {
 		for (;;) {
 		
 			auto iter=states.end()-1;
-		
-			iter->Rewind(*this);
+			
+			if (iter->PreventsBacktracking) return false;
 			
 			if (iter->CanBacktrack) return true;
 			
-			if (iter->PreventsBacktracking) return false;
+			iter->Rewind(*this);
 			
 			states.erase(iter);
 			
@@ -262,12 +262,40 @@ namespace Unicode {
 			pattern.end()
 		);
 		
-		for (auto & state : states) {
+		//	Set flags as appropriate
+		//
+		//	We move through the collection of states backwards
+		//
+		//	If a state prevents backtracking, and it occurs before
+		//	a state which can backtrack, that state will never get
+		//	an opportunity to backtrack, and therefore the entire
+		//	pattern should be treated as preventing backtracking
+		//
+		//	Similarly, if there's a state that can backtrack before
+		//	a state that prevents backtracking, it's possible that
+		//	backtracking to that state will yield a new match, and
+		//	that the engine won't have to backtrack and fail at the
+		//	pattern element which can't be backtracked over.
+		//
+		//	Therefore, we find the last state with one of these flags
+		//	set, set that flag, and end.
+		for (auto begin=states.rbegin(),end=states.rend();begin!=end;++begin) {
 		
-			if (state.CanBacktrack) CanBacktrack=true;
-			if (state.PreventsBacktracking) PreventsBacktracking=true;
+			if (begin->PreventsBacktracking) {
 			
-			if (CanBacktrack && PreventsBacktracking) break;
+				PreventsBacktracking=true;
+				
+				break;
+			
+			}
+			
+			if (begin->CanBacktrack) {
+			
+				CanBacktrack=true;
+				
+				break;
+			
+			}
 		
 		}
 		
