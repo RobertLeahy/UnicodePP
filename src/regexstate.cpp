@@ -18,6 +18,22 @@ namespace Unicode {
 		engine.begin(loc);
 	
 	}
+	
+	
+	void RegexState::Set (RegexState & state) const noexcept {
+	
+		state.CanBacktrack=CanBacktrack;
+		state.PreventsBacktracking=PreventsBacktracking;
+	
+	}
+	
+	
+	void RegexState::Clear () noexcept {
+	
+		CanBacktrack=false;
+		PreventsBacktracking=false;
+	
+	}
 
 
 }

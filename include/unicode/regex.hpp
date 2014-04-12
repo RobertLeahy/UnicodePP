@@ -480,6 +480,19 @@ namespace Unicode {
 			 *		The regular expression engine.
 			 */
 			void Rewind (RegexEngine & engine);
+			
+			
+			/**
+			 *	Copies flags from this state to another.
+			 *
+			 *	\param [in,out] state
+			 *		The state to copy to.
+			 */
+			void Set (RegexState & state) const noexcept;
+			/**
+			 *	Clears this state's flags.
+			 */
+			void Clear () noexcept;
 		
 		
 			/**
