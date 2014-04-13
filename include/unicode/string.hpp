@@ -1076,6 +1076,29 @@ namespace Unicode {
 			 *		A reference to this string.
 			 */
 			String & operator << (CodePoint cp) &;
+			/**
+			 *	Appends an object of any type convertible to a
+			 *	string to this string.
+			 *
+			 *	\tparam T
+			 *		The type of the object to append to the
+			 *		string.
+			 *
+			 *	\param [in] obj
+			 *		The object to append to the string.
+			 *
+			 *	\return
+			 *		A reference to this string.
+			 */
+			template <typename T>
+			typename std::enable_if<
+				IsConvertible<typename std::decay<T>::type>::Value,
+				String &
+			>::type operator << (T && obj) & {
+			
+				return *this << Converter<typename std::decay<T>::type>(GetLocale())(std::forward<T>(obj));
+			
+			}
 	
 	
 	};
