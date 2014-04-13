@@ -3780,6 +3780,35 @@ SCENARIO("Strings may be appended to other strings","[string]") {
 }
 
 
+SCENARIO("Objects convertible to String may be appended to strings","[string]") {
+
+	GIVEN("An empty string") {
+	
+		String s;
+		
+		GIVEN("An integer") {
+		
+			CodePoint::Type i=14;
+			
+			WHEN("It is appended to the string") {
+			
+				s << i;
+				
+				THEN("The result is the string representation of the integer") {
+				
+					CHECK(s=="14");
+				
+				}
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
 SCENARIO("Strings may be hashed","[string]") {
 	
 	GIVEN("A string") {
