@@ -6,6 +6,7 @@
 #pragma once
 
 
+#include <unicode/caseconverter.hpp>
 #include <unicode/codepoint.hpp>
 #include <unicode/error.hpp>
 #include <unicode/locale.hpp>
@@ -120,12 +121,21 @@ namespace Unicode {
 				auto cpi=cp.GetInfo(locale);
 				
 				if (
-					(cpi==nullptr) ||
-					(!cpi->Numeric) ||
-					(cpi->Numeric->Type!=NumericType::Decimal)
-				) invalid_digit();
+					(cpi!=nullptr) &&
+					(cpi->Numeric) &&
+					(cpi->Numeric->Type==NumericType::Decimal)
+				) return static_cast<T>(cpi->Numeric->Value);
 				
-				return static_cast<T>(cpi->Numeric->Value);
+				CaseConverter cc(locale,false);
+				auto folded=cc.Fold(&cp,&cp,&cp+1)[0];
+				for (std::size_t i=0;i<locale.Digits.Size;++i) {
+				
+					auto cp=locale.Digits[i];
+					if (cc.Fold(&cp,&cp,&cp+1)[0]==folded) return static_cast<T>(i);
+				
+				}
+				
+				invalid_digit();
 			
 			}
 			
