@@ -21,6 +21,7 @@ namespace Unicode {
 			private:
 			
 			
+				const CodePoint * last;
 				String str;
 				
 				
@@ -104,7 +105,18 @@ namespace Unicode {
 			public:
 			
 			
-				RegexLiteral (RegexOptions options, const Unicode::Locale & locale) noexcept : RegexPatternElement(options,locale) {
+				RegexLiteral (RegexOptions options, const Unicode::Locale & locale) noexcept : RegexPatternElement(options,locale), last(nullptr) {
+				
+					str.SetLocale(locale);
+				
+				}
+				
+				
+				RegexLiteral (String str, RegexOptions options, const Unicode::Locale & locale) noexcept
+					:	RegexPatternElement(options,locale),
+						last(nullptr),
+						str(std::move(str))
+				{
 				
 					str.SetLocale(locale);
 				
@@ -141,7 +153,11 @@ namespace Unicode {
 				
 				void Add (CodePoint cp) {
 				
+					auto s=str.Size();
+				
 					str << cp;
+					
+					last=str.begin()+s;
 				
 				}
 				
@@ -151,6 +167,28 @@ namespace Unicode {
 					str.ToNFD();
 					
 					if (Check(RegexOptions::IgnoreCase)) str.ToCaseFold();
+				
+				}
+				
+				
+				RegexCompiler::Element GetLast () {
+				
+					if ((last==nullptr) || (last==str.begin())) return RegexCompiler::Element{};
+					
+					String s(last,static_cast<const CodePoint *>(str.end()));
+					str.CodePoints().resize(last-str.begin());
+					last=nullptr;
+					
+					auto ptr=new RegexLiteral(
+						std::move(s),
+						Options,
+						Locale
+					);
+					auto retr=RegexCompiler::Element(ptr);
+					
+					ptr->Complete();
+					
+					return retr;
 				
 				}
 		
@@ -329,6 +367,13 @@ namespace Unicode {
 				virtual void Complete (RegexPatternElement & element) const override {
 				
 					reinterpret_cast<RegexLiteral &>(element).Complete();
+				
+				}
+				
+				
+				virtual RegexCompiler::Element GetLast (RegexPatternElement & element) const override {
+				
+					return reinterpret_cast<RegexLiteral &>(element).GetLast();
 				
 				}
 		
