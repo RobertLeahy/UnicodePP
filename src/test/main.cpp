@@ -2097,6 +2097,24 @@ SCENARIO("Strings may be converted to integers","[converter]") {
 		
 		}
 		
+		GIVEN("A string containing a hexadecimal integer") {
+		
+			String s("A");
+			
+			GIVEN("The integer that string represents") {
+			
+				int i=10;
+				
+				THEN("The former converts to the latter") {
+				
+					REQUIRE(c(s.begin(),s.end(),16)==i);
+				
+				}
+			
+			}
+		
+		}
+		
 		GIVEN("A string which is partially numeric") {
 		
 			String s("hello123");
