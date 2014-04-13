@@ -263,10 +263,16 @@ namespace Unicode {
 	
 	RegexCompiler::Element RegexCompiler::Pop () {
 	
+		auto back=pattern.end()-1;
+		
+		auto extracted=last->GetLast(*(*back));
+		
 		complete();
 		
-		auto retr=std::move(pattern.back());
-		pattern.erase(pattern.end()-1);
+		if (extracted) return std::move(extracted);
+		
+		auto retr=std::move(*back);
+		pattern.erase(back);
 		
 		return retr;
 	

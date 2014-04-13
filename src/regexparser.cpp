@@ -9,6 +9,13 @@ namespace Unicode {
 	
 	
 	void RegexParser::Complete (RegexPatternElement &) const {	}
+	
+	
+	RegexCompiler::Element RegexParser::GetLast (RegexPatternElement &) const {
+	
+		return RegexCompiler::Element{};
+	
+	}
 
 
 }

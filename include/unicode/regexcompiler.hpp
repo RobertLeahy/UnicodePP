@@ -753,6 +753,22 @@ namespace Unicode {
 			 *		A reference to the element to complete.
 			 */
 			virtual void Complete (RegexPatternElement & element) const;
+			
+			
+			/**
+			 *	Attempts to split a smaller pattern element out of another
+			 *	pattern element.
+			 *
+			 *	Default implementation always fails.
+			 *
+			 *	\param [in] element
+			 *		The element to split.
+			 *
+			 *	\return
+			 *		A std::unique_ptr to a RegexPatternElement on success,
+			 *		a null std::unique_ptr on failure.
+			 */
+			virtual RegexCompiler::Element GetLast (RegexPatternElement & element) const;
 	
 	
 	};
