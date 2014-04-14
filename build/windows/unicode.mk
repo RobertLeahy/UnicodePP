@@ -45,7 +45,6 @@ obj/regexmatch.o \
 obj/regexparser.o \
 obj/regexpatternelement.o \
 obj/regexprivatestate.o \
-obj/regexrange.o \
 obj/regexstate.o \
 obj/regexunicodeproperties.o \
 obj/regexwildcard.o \
