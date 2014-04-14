@@ -42,6 +42,7 @@ obj/regexlastmatch.o \
 obj/regexliteral.o \
 obj/regexlookaround.o \
 obj/regexmatch.o \
+obj/regexmultiple.o \
 obj/regexparser.o \
 obj/regexpatternelement.o \
 obj/regexprivatestate.o \
