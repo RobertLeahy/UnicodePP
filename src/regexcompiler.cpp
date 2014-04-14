@@ -86,7 +86,7 @@ namespace Unicode {
 			numbered,
 			named,
 			options,
-			locale
+			Unicode::Check(options,RegexOptions::CultureInvariant) ? DefaultLocale : locale
 		);
 		c();
 		
