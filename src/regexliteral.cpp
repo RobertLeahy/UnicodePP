@@ -320,6 +320,17 @@ namespace Unicode {
 					return retr;
 				
 				}
+				
+				
+				bool CanContinue (RegexCompiler & compiler) const noexcept {
+				
+					//	We cannot continue parsing the same pattern element if
+					//	IgnoreCase has been set or unset -- that changes the
+					//	behaviour of this pattern element, and therefore a new
+					//	pattern element is required
+					return Unicode::Check(compiler.Options,RegexOptions::IgnoreCase)==Check(RegexOptions::IgnoreCase);
+				
+				}
 		
 		
 		};
@@ -350,11 +361,21 @@ namespace Unicode {
 				
 					if (ignore(compiler)) return true;
 					
-					(
-						(compiler.Successive && !compiler.CharacterClass)
-							?	compiler.Back<RegexLiteral>()
-							:	compiler.Add<RegexLiteral>()
-					).Add(get(compiler.Current,compiler.End));
+					if (compiler.Successive && !compiler.CharacterClass) {
+					
+						auto & back=compiler.Back<RegexLiteral>();
+						
+						if (back.CanContinue(compiler)) {
+						
+							back.Add(get(compiler.Current,compiler.End));
+							
+							return true;
+						
+						}
+					
+					}
+					
+					compiler.Add<RegexLiteral>().Add(get(compiler.Current,compiler.End));
 					
 					return true;
 				
