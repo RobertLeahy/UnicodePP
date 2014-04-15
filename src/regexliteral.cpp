@@ -274,6 +274,7 @@ namespace Unicode {
 				
 					RegexToString retr;
 					retr.Parent << "The literal string: \"" << str << "\"";
+					if (Check(RegexOptions::IgnoreCase)) retr.Parent << " (case insensitive)";
 					
 					return retr;
 				
