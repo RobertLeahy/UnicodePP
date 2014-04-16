@@ -47,7 +47,7 @@ namespace Unicode {
 		if (backtracked) {
 		
 			//	Advance to last state
-			begin+=states.size();
+			begin+=states.size()-1;
 			
 			//	Attempt to backtrack, if that fails,
 			//	fail, there are no other substrings that
