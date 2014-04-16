@@ -273,7 +273,7 @@ namespace Unicode {
 					//	-	We get the maximum allowed number of
 					//		matches (if there is such a maximum)
 					//	-	We fail at matching
-					while (!(max && (s.States.size()==*max))) {
+					while (backtracked || !max || (s.States.size()!=*max)) {
 					
 						//	Create a fresh state unless we
 						//	backtracked to this location
