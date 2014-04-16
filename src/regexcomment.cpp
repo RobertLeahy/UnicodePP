@@ -76,7 +76,7 @@ namespace Unicode {
 	}
 	
 	
-	static const RegexParserInstaller<RegexCommentParser> installer;
+	static const RegexParserInstaller<RegexCommentParser> installer(false);
 
 
 }
