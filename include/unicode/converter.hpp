@@ -40,6 +40,50 @@ namespace Unicode {
 	};
 	
 	
+	/**
+	 *	\cond
+	 */
+	
+	
+	template <typename T, typename=std::true_type>
+	class IsNegative {
+		
+		
+		public:
+			
+			
+			constexpr static bool Check (T num) noexcept {
+				
+				return num<0;
+				
+			}
+		
+		
+	};
+	
+	
+	template <typename T>
+	class IsNegative<T,typename std::is_unsigned<T>::type> {
+		
+		
+		public:
+			
+			
+			constexpr static bool Check (T) noexcept {
+				
+				return false;
+				
+			}
+		
+		
+	};
+	
+	
+	/**
+	 *	\endcond
+	 */
+	
+	
 	template <typename, typename=std::true_type>
 	class ConverterImpl;
 	
@@ -77,7 +121,7 @@ namespace Unicode {
 			
 				auto result=a%b;
 				
-				if (result<0) result*=-1;
+				if (IsNegative<T>::Check(result)) result*=-1;
 				
 				return static_cast<std::size_t>(result);
 			
@@ -164,8 +208,8 @@ namespace Unicode {
 			//	-	b is the base (and is thus always
 			//		positive)
 			static T shift (T i, T b) {
-			
-				if (i<0) {
+				
+				if (IsNegative<T>::Check(i)) {
 				
 					if ((std::numeric_limits<T>::min()/b)>i) throw std::underflow_error(
 						"Multiply underflowed"
@@ -184,8 +228,8 @@ namespace Unicode {
 			//
 			//	Both operands always have the same sign
 			static T add (T a, T b) {
-			
-				if (a<0) {
+				
+				if (IsNegative<T>::Check(a)) {
 				
 					if ((std::numeric_limits<T>::min()-a)>b) throw std::underflow_error(
 						"Addition underflowed"
@@ -250,7 +294,7 @@ namespace Unicode {
 				}
 				
 				//	Detect negative integers
-				bool negative=i<0;
+				bool negative=IsNegative<T>::Check(i);
 				
 				//	Extract all digits
 				do {
