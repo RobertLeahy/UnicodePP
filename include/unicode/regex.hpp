@@ -472,6 +472,16 @@ namespace Unicode {
 			
 			
 			/**
+			 *	Retrieves an iterator to the regular expression's
+			 *	location at the time this RegexState was created.
+			 *
+			 *	\return
+			 *		An iterator.
+			 */
+			RegexIterator Begin () const noexcept;
+			
+			
+			/**
 			 *	Rewinds the regular expression engine to the
 			 *	it was at before the associated pattern element
 			 *	was invoked.

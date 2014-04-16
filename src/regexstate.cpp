@@ -9,6 +9,13 @@ namespace Unicode {
 			CanBacktrack(false),
 			PreventsBacktracking(false)
 	{	}
+	
+	
+	RegexIterator RegexState::Begin () const noexcept {
+	
+		return loc;
+	
+	}
 
 
 	void RegexState::Rewind (RegexEngine & engine) {
