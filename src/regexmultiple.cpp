@@ -14,17 +14,18 @@ namespace Unicode {
 		class RegexMultipleState : public RegexPrivateState {
 		
 		
-			public:
+			private:
 			
 			
-				std::vector<RegexState> States;
+				std::vector<RegexState> states;
+				bool first;
 				
 				
-				bool Backtrack (RegexEngine & engine, std::optional<std::size_t> min=std::nullopt) {
+				bool backtrack (RegexEngine & engine, std::size_t min) {
 				
-					for (bool first=true;States.size()!=0;first=false) {
+					while (states.size()!=0) {
 					
-						auto iter=States.end()-1;
+						auto iter=states.end()-1;
 						
 						//	If the pattern element prevented backtracking
 						//	when it formed this match, backtracking fails
@@ -33,33 +34,18 @@ namespace Unicode {
 						
 						//	If this pattern element can possibly form a
 						//	different match, return at this point
-						if (iter->CanBacktrack) {
+						if (iter->CanBacktrack) return true;
 						
-							//	If this is the first element we've
-							//	considered, have it attempt a different
-							//	match, otherwise only consider a different
-							//	match if we need more matches
-							return !min || first || (States.size()<*min);
-							
-						}
-						
-						//	Otherwise cleanup and delete the state to
-						//	keep moving backwards
+						//	Otherwise clean up and keep moving backwards
 						
 						iter->Rewind(engine);
 						
-						States.erase(iter);
+						states.erase(iter);
 						
-						//	With greedy matching, we always make the
-						//	longest match first, this means that simply
-						//	backing off one match is an acceptable way
-						//	to form a new match.
-						//
-						//	Accordingly if backing off on this one has
-						//	yielded a number of matches that is greater
-						//	than or equal to the minimum, we can just
-						//	terminate right away
-						if (min && (States.size()>=*min)) return false;
+						//	Simply backing off is an acceptable way to
+						//	form a different match, provided we've formed
+						//	the minimal number of matches
+						if (states.size()>=min) return false;
 					
 					}
 					
@@ -71,9 +57,9 @@ namespace Unicode {
 				}
 				
 				
-				void Set (RegexState & state) const noexcept {
+				void set (RegexState & state) const noexcept {
 				
-					for (auto begin=States.rbegin(),end=States.rend();begin!=end;++begin) {
+					for (auto begin=states.rbegin(),end=states.rend();begin!=end;++begin) {
 					
 						if (begin->PreventsBacktracking) {
 						
@@ -96,7 +82,7 @@ namespace Unicode {
 				}
 				
 				
-				void Set (RegexState & state, std::size_t min, bool possessive) const noexcept {
+				void set (RegexState & state, std::size_t min, bool possessive) const noexcept {
 				
 					state.Clear();
 					
@@ -108,9 +94,9 @@ namespace Unicode {
 					
 					}
 					
-					if (States.size()>min) {
+					if (states.size()>min) {
 					
-						auto & back=States.back();
+						auto & back=states.back();
 						
 						if (back.PreventsBacktracking) {
 						
@@ -126,22 +112,121 @@ namespace Unicode {
 					
 					}
 					
-					Set(state);
+					set(state);
 				
 				}
 				
 				
+				bool execute (
+					RegexEngine & engine,
+					RegexState & state,
+					const RegexPatternElement & element,
+					std::size_t min,
+					std::optional<std::size_t> max,
+					bool possessive
+				) {
+				
+					//	Backtrack unless this the first time
+					bool backtracked=!first;
+					if (backtracked) {
+					
+						auto prev=states.size();
+						if (!backtrack(engine,min)) {
+						
+							//	If backtracking fails, we can only succeed if:
+							//
+							//	-	Backtracking actually changes the match
+							//		(i.e. removes at least one state)
+							//	-	We still have a sufficient number of matches
+							auto curr=states.size();
+							return (curr!=prev) && (curr>=min);
+						
+						}
+					
+					}
+					
+					//	Loop until:
+					//
+					//	-	We get the maximum allowed number of matches
+					//		(if there is such a maximum)
+					//	-	We fail at matching
+					while (backtracked || !max || (states.size()!=*max)) {
+					
+						//	Create a fresh state for this match, unless
+						//	we just backtracked, in which case we need to
+						//	re-run the last state
+						if (backtracked) backtracked=false;
+						else states.emplace_back(engine);
+						
+						auto & back=states.back();
+						if (!element(engine,back)) {
+						
+							//	Match failed
+							
+							//	If we have the minimum number of matches,
+							//	we can simply succeed with that
+							if ((states.size()-1)>=min) {
+							
+								//	Rewind, erase, and succeed
+								back.Rewind(engine);
+								states.erase(states.end()-1);
+								return true;
+							
+							}
+							
+							//	Insufficient matches, attempt backtracking
+							//
+							//	If that fails, fail
+							if (!backtrack(engine,min)) return false;
+						
+						}
+					
+					}
+					
+					return states.size()>=min;
+				
+				}
+		
+		
+			public:
+			
+			
+				RegexMultipleState () : first(true) {	}
+				
+
 				virtual void Rewind (RegexEngine & engine) override {
 				
-					while (States.size()!=0) {
+					while (states.size()!=0) {
 					
-						auto iter=States.end()-1;
+						auto iter=states.end()-1;
 						
 						iter->Rewind(engine);
 						
-						States.erase(iter);
+						states.erase(iter);
 					
 					}
+					
+					first=true;
+				
+				}
+				
+				
+				bool operator () (
+					RegexEngine & engine,
+					RegexState & state,
+					const RegexCompiler::Element & element,
+					std::size_t min,
+					std::optional<std::size_t> max,
+					bool possessive
+				) {
+				
+					auto retr=execute(engine,state,*element,min,max,possessive);
+					first=false;
+					
+					if (retr) set(state,min,possessive);
+					else state.Clear();
+					
+					return retr;
 				
 				}
 		
@@ -153,9 +238,6 @@ namespace Unicode {
 		
 		
 			protected:
-			
-			
-				typedef RegexMultipleState type;
 			
 			
 				RegexCompiler::Element element;
@@ -226,6 +308,12 @@ namespace Unicode {
 		
 		
 		class RegexGreedyMultiple : public RegexMultiple {
+		
+		
+			private:
+			
+			
+				typedef RegexMultipleState type;
 			
 			
 			public:
@@ -236,90 +324,7 @@ namespace Unicode {
 				
 				virtual bool operator () (RegexEngine & engine, RegexState & state) const override {
 				
-					//	If this state has been invoked before, start by
-					//	backtracking, otherwise create the state
-					bool backtracked=!!state;
-					if (backtracked) {
-					
-						auto & s=state.Get<type>();
-						
-						//	Backtrack
-						//
-						//	If backtracking couldn't contract the match, we
-						//	fail.
-						//
-						//	If backtracking didn't find an element that could
-						//	match differently, we succeed only if we still have
-						//	enough matches to qualify
-						auto prev=s.States.size();
-						if (!s.Backtrack(engine,min)) {
-						
-							auto curr=s.States.size();
-							s.Set(state,min,possessive);
-							return (curr!=prev) && (prev>=min);
-						
-						}
-					
-					} else {
-					
-						state.Imbue<type>();
-					
-					}
-					
-					auto & s=state.Get<type>();
-					
-					//	Loop until either:
-					//
-					//	-	We get the maximum allowed number of
-					//		matches (if there is such a maximum)
-					//	-	We fail at matching
-					while (backtracked || !max || (s.States.size()!=*max)) {
-					
-						//	Create a fresh state unless we
-						//	backtracked to this location
-						if (backtracked) backtracked=false;
-						else s.States.emplace_back(engine);
-						
-						//	Attempt to match
-						auto & back=s.States.back();
-						if (!(*element)(engine,back)) {
-						
-							//	Failure
-							
-							//	Do we have enough matches?
-							if (s.States.size()>=min) {
-							
-								//	YES
-								
-								//	Rewind/erase/succeed
-								back.Rewind(engine);
-								s.States.erase(s.States.end()-1);
-								break;
-							
-							}
-							
-							//	NO
-							
-							//	Backtrack
-							if (!s.Backtrack(engine,min)) break;
-						
-						}
-					
-					}
-					
-					//	If we didn't make enough matches, we fail
-					//	and there's no backtracking etc.
-					if (s.States.size()<min) {
-					
-						state.Clear();
-						
-						return false;
-					
-					}
-					
-					//	Otherwise set the state information and succeed
-					s.Set(state,min,possessive);
-					return true;
+					return (state ? state.Get<type>() : state.Imbue<type>())(engine,state,element,min,max,possessive);
 				
 				}
 				
@@ -328,6 +333,131 @@ namespace Unicode {
 				
 					auto retr=RegexMultiple::ToString();
 					if (!(max && (min==*max))) retr.Parent << " (greedy)";
+					
+					return retr;
+				
+				}
+		
+		
+		};
+		
+		
+		class RegexLazyMultipleState : public RegexMultipleState {
+		
+		
+			public:
+			
+			
+				std::size_t Current;
+				bool RewindRequired;
+				
+				
+				RegexLazyMultipleState (std::size_t curr) : Current(curr), RewindRequired(false) {	}
+				
+				
+				virtual void Rewind (RegexEngine & engine) override {
+				
+					RewindRequired=false;
+					
+					RegexMultipleState::Rewind(engine);
+				
+				}
+		
+		
+		};
+		
+		
+		class RegexLazyMultiple : public RegexMultiple {
+		
+		
+			private:
+			
+			
+				typedef RegexLazyMultipleState type;
+				
+				
+				bool is_done (RegexEngine & engine, RegexState & state) const {
+				
+					state.Rewind(engine);
+					
+					auto & s=state.Get<type>();
+					
+					++s.Current;
+					
+					return max ? (s.Current<=*max) : false;
+				
+				}
+				
+				
+			public:
+			
+			
+				using RegexMultiple::RegexMultiple;
+			
+			
+				virtual bool operator () (RegexEngine & engine, RegexState & state) const override {
+				
+					auto & s=state ? state.Get<type>() : state.Imbue<type>(min);
+					
+					bool first=true;
+					
+					//	If the last match ended with us preemptively increasing the
+					//	target match count, we have to rewind before attempting any
+					//	matches
+					if (s.RewindRequired) {
+					
+						state.Rewind(engine);
+						
+						first=false;
+						
+					}
+					
+					for (;;first=false) {
+					
+						//	Attempt to match
+						if (s(engine,state,element,s.Current,s.Current,possessive)) {
+						
+							//	SUCCESS
+						
+							//	If the match formed prevents backtracking, suceed
+							//	at once without further processing
+							if (state.PreventsBacktracking) return true;
+							
+							//	If the match formed cannot match a different substring,
+							//	we need to decide whether this pattern element can match
+							//	a different substring.
+							//
+							//	If we can simply expand the number of matches we'll allow
+							//	to be performed, then we can backtrack
+							if (!state.CanBacktrack) {
+							
+								++s.Current;
+								s.RewindRequired=true;
+								
+								state.CanBacktrack=!max || (s.Current<*max);
+							
+							}
+							
+							return true;
+						
+						}
+						
+						//	If we failed on a fresh match, we fail at once, it isn't
+						//	possible to match n+1 times without the first n matches
+						if (!first || is_done(engine,state)) break;
+					
+					}
+					
+					state.Clear();
+					return false;
+				
+				}
+				
+				
+				virtual RegexToString ToString () const override {
+				
+					auto retr=RegexMultiple::ToString();
+					retr.Parent << " (lazy)";
 					
 					return retr;
 				
@@ -403,8 +533,17 @@ namespace Unicode {
 							result.Maximum,
 							result.Possessive
 						);
+						
+						return;
 					
 					}
+					
+					compiler.Add<RegexLazyMultiple>(
+						pop(compiler),
+						result.Minimum,
+						result.Maximum,
+						result.Possessive
+					);
 				
 				}
 				
