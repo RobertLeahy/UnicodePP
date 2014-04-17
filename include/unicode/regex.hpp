@@ -8,8 +8,10 @@
 
 #include <unicode/codepoint.hpp>
 #include <unicode/locale.hpp>
+#include <unicode/makereverseiterator.hpp>
 #include <unicode/regexoptions.hpp>
 #include <unicode/string.hpp>
+#include <algorithm>
 #include <cstddef>
 #include <iterator>
 #include <memory>
@@ -678,6 +680,63 @@ namespace Unicode {
 			bool rtl;
 			
 			
+			template <typename T>
+			static String forward_replace (const Iterable & i, T && callback) {
+			
+				String retr;
+				auto begin=i.Begin();
+				auto curr=begin;
+				auto end=i.End();
+				
+				for (auto & match : i) {
+				
+					auto b=match.begin();
+					for (;curr!=b;++curr) retr << *curr;
+					curr=match.end();
+					
+					retr << String(callback(match,begin,end));
+				
+				}
+				
+				for (;curr!=end;++curr) retr << *curr;
+				
+				return retr;
+			
+			}
+			
+			
+			template <typename T>
+			static String reverse_replace (const Iterable & i, T && callback) {
+			
+				String retr;
+				auto begin=i.Begin();
+				auto end=i.End();
+				auto curr=MakeReverseIterator(end);
+				
+				for (auto & match : i) {
+				
+					auto b=match.end();
+					for (;curr.base()!=b;++curr) retr << *curr;
+					curr=MakeReverseIterator(match.begin());
+					
+					String repl(callback(match,begin,end));
+					for (
+						auto begin=MakeReverseIterator(repl.end()),end=MakeReverseIterator(repl.begin());
+						begin!=end;
+						++begin
+					) retr << *begin;
+				
+				}
+				
+				for (auto rend=MakeReverseIterator(begin);curr!=rend;++curr) retr << *curr;
+				
+				std::reverse(retr.begin(),retr.end());
+				
+				return retr;
+			
+			}
+			
+			
 		public:
 		
 		
@@ -848,6 +907,39 @@ namespace Unicode {
 			/**
 			 *	\endcond
 			 */
+			 
+			
+			/**
+			 *	Replaces each match of this regular expression in some
+			 *	string with the result of invoking some callback.
+			 *
+			 *	\tparam T1
+			 *		The type of the string being passed in.  It will be
+			 *		forwarded through to an appropriate overload of the
+			 *		Iterate method.
+			 *	\tparam T2
+			 *		The type of the callback to invoke.  The callback takes
+			 *		a RegexMatch as its first parameter, and const CodePoint *s
+			 *		as its second and third parameter.  The first parameter
+			 *		giving the result of the match, the second and third
+			 *		parameters giving the entire string being matched against.
+			 *
+			 *	\param [in] str
+			 *		The string against which to match.
+			 *	\param [in] callback
+			 *		The callback to invoke to obtain replacements.
+			 *
+			 *	\return
+			 *		\em str with each match of this regular expression replaced
+			 *		with the result of invoking \em callback.
+			 */
+			template <typename T1, typename T2>
+			String Replace (T1 && str, T2 && callback) const {
+			
+				auto i=Iterate(std::forward<T1>(str));
+				return rtl ? reverse_replace(i,std::forward<T2>(callback)) : forward_replace(i,std::forward<T2>(callback));
+			
+			}
 			
 			
 			/**
