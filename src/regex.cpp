@@ -263,6 +263,20 @@ namespace Unicode {
 	}
 	
 	
+	const CodePoint * Regex::Iterable::Begin () const noexcept {
+	
+		return b;
+	
+	}
+	
+	
+	const CodePoint * Regex::Iterable::End () const noexcept {
+	
+		return e;
+	
+	}
+	
+	
 	//
 	//	Regex
 	//

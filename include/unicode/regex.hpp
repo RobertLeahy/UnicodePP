@@ -657,6 +657,10 @@ namespace Unicode {
 					
 					Iterator begin () const;
 					Iterator end () const noexcept;
+					
+					
+					const CodePoint * Begin () const noexcept;
+					const CodePoint * End () const noexcept;
 			
 			
 			};
