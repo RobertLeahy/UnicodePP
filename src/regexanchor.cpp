@@ -216,6 +216,7 @@ namespace Unicode {
 							compiler.Add<RegexBegin>();
 							break;
 						case 'Z':
+							compiler.Add<RegexEndNewline>();
 							break;
 						case 'z':
 							compiler.Add<RegexEnd>();
