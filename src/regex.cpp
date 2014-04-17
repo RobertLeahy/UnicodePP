@@ -238,12 +238,13 @@ namespace Unicode {
 	
 	Regex::Iterable::Iterable (const Regex & r, String && str)
 		:	r(r),
-			s(std::move(str)),
-			b(nullptr),
-			e(nullptr)
+			s(std::move(str))
 	{
 	
 		s->ToNFD();
+		
+		b=s->begin();
+		e=s->end();
 	
 	}
 	
