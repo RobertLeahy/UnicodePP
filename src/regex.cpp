@@ -277,6 +277,210 @@ namespace Unicode {
 	}
 	
 	
+	bool Regex::Iterable::IsRightToLeft () const noexcept {
+	
+		return r.IsRightToLeft();
+	
+	}
+	
+	
+	//
+	//	Regex::SplitIterator
+	//
+	
+	
+	bool Regex::SplitIterator::is_end () const noexcept {
+	
+		return !iter;
+	
+	}
+	
+	
+	bool Regex::SplitIterator::skip () const noexcept {
+	
+		return skip_empty && (s.Size()==0);
+	
+	}
+	
+	
+	void Regex::SplitIterator::rtl_get () {
+	
+		auto & i=*iter;
+		
+		s=String((i==Iterator{}) ? begin : i->end(),end);
+	
+	}
+	
+	
+	void Regex::SplitIterator::ltr_get () {
+	
+		auto & i=*iter;
+		
+		s=String(begin,(i==Iterator{}) ? end : i->begin());
+	
+	}
+	
+	
+	void Regex::SplitIterator::get () {
+	
+		if (rtl) rtl_get();
+		else ltr_get();
+	
+	}
+	
+	
+	void Regex::SplitIterator::rtl_next_impl () noexcept {
+	
+		end=(*iter)->begin();
+	
+	}
+	
+	
+	void Regex::SplitIterator::ltr_next_impl () noexcept {
+	
+		begin=(*iter)->end();
+	
+	}
+	
+	
+	void Regex::SplitIterator::next_impl () {
+	
+		if (is_end()) return;
+		
+		if (*iter==Iterator{}) {
+		
+			iter=std::nullopt;
+			
+			return;
+			
+		}
+		
+		if (rtl) rtl_next_impl();
+		else ltr_next_impl();
+		
+		++(*iter);
+		
+		get();
+	
+	}
+	
+	
+	void Regex::SplitIterator::next () {
+	
+		do next_impl();
+		while (!is_end() && skip());
+	
+	}
+	
+	
+	Regex::SplitIterator::SplitIterator (const Iterable & obj, bool skip_empty)
+		:	skip_empty(skip_empty),
+			rtl(obj.IsRightToLeft()),
+			begin(obj.Begin()),
+			end(obj.End()),
+			iter(obj.begin())
+	{
+	
+		get();
+		if (skip()) next();
+	
+	}
+	
+	
+	String & Regex::SplitIterator::operator * () noexcept {
+	
+		return s;
+	
+	}
+	
+	
+	String * Regex::SplitIterator::operator -> () noexcept {
+	
+		return &s;
+	
+	}
+	
+	
+	Regex::SplitIterator & Regex::SplitIterator::operator ++ () {
+	
+		next();
+		
+		return *this;
+	
+	}
+	
+	
+	Regex::SplitIterator Regex::SplitIterator::operator ++ (int) {
+	
+		auto retr=*this;
+		
+		next();
+		
+		return retr;
+	
+	}
+	
+	
+	bool Regex::SplitIterator::operator == (const SplitIterator & other) const noexcept {
+	
+		return is_end()==other.is_end();
+	
+	}
+	
+	
+	bool Regex::SplitIterator::operator != (const SplitIterator & other) const noexcept {
+	
+		return !(*this==other);
+	
+	}
+	
+	
+	//
+	//	Regex::SplitIterable
+	//
+	
+	
+	Regex::SplitIterable::SplitIterable (Iterable obj, bool skip_empty) noexcept
+		:	obj(std::move(obj)),
+			skip_empty(skip_empty)
+	{	}
+	
+	
+	Regex::SplitIterator Regex::SplitIterable::begin () const {
+	
+		return SplitIterator(obj,skip_empty);
+	
+	}
+	
+	
+	Regex::SplitIterator Regex::SplitIterable::end () const noexcept {
+	
+		return SplitIterator{};
+	
+	}
+	
+	
+	const CodePoint * Regex::SplitIterable::Begin () const noexcept {
+	
+		return obj.Begin();
+	
+	}
+	
+	
+	const CodePoint * Regex::SplitIterable::End () const noexcept {
+	
+		return obj.End();
+	
+	}
+	
+	
+	bool Regex::SplitIterable::IsRightToLeft () const noexcept {
+	
+		return obj.IsRightToLeft();
+	
+	}
+	
+	
 	//
 	//	Regex
 	//
@@ -394,6 +598,58 @@ namespace Unicode {
 	}
 	
 	
+	std::vector<String> Regex::Split (const CodePoint * begin, const CodePoint * end, const Locale & locale, bool skip_empty) const {
+	
+		std::vector<String> retr;
+		for (auto & s : SplitIterate(begin,end,locale,skip_empty)) retr.push_back(std::move(s));
+		
+		return retr;
+	
+	}
+	
+	
+	std::vector<String> Regex::Split (const CodePoint * begin, const CodePoint * end, bool skip_empty) const {
+	
+		return Split(begin,end,Locale::Get(),skip_empty);
+	
+	}
+	
+	
+	std::vector<String> Regex::Split (const String & str, bool skip_empty) const {
+	
+		return Split(str.begin(),str.end(),str.GetLocale(),skip_empty);
+	
+	}
+	
+	
+	Regex::SplitIterable Regex::SplitIterate (const CodePoint * begin, const CodePoint * end, const Locale & locale, bool skip_empty) const {
+	
+		return SplitIterable(Iterate(begin,end,locale),skip_empty);
+	
+	}
+	
+	
+	Regex::SplitIterable Regex::SplitIterate (const CodePoint * begin, const CodePoint * end, bool skip_empty) const {
+	
+		return SplitIterable(Iterate(begin,end),skip_empty);
+	
+	}
+	
+	
+	Regex::SplitIterable Regex::SplitIterate (const String & str, bool skip_empty) const {
+	
+		return SplitIterable(Iterate(str),skip_empty);
+	
+	}
+	
+	
+	Regex::SplitIterable Regex::SplitIterate (String && str, bool skip_empty) const {
+	
+		return SplitIterable(Iterate(std::move(str)),skip_empty);
+	
+	}
+	
+	
 	Regex::Iterator Regex::Begin (const CodePoint * begin, const CodePoint * end) const {
 	
 		return Iterator(pattern,rtl,begin,end);
@@ -428,6 +684,13 @@ namespace Unicode {
 		for (auto & element : pattern) retr.push_back(element->ToString());
 		
 		return retr;
+	
+	}
+	
+	
+	bool Regex::IsRightToLeft () const noexcept {
+	
+		return rtl;
 	
 	}
 

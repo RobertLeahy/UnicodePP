@@ -778,6 +778,90 @@ namespace Unicode {
 					
 					const CodePoint * Begin () const noexcept;
 					const CodePoint * End () const noexcept;
+					
+					
+					bool IsRightToLeft () const noexcept;
+			
+			
+			};
+			
+			
+			class SplitIterator {
+			
+			
+				private:
+				
+				
+					bool skip_empty;
+					bool rtl;
+					const CodePoint * begin;
+					const CodePoint * end;
+					std::optional<Iterator> iter;
+					String s;
+					
+					
+					bool is_end () const noexcept;
+					bool skip () const noexcept;
+					
+					
+					void rtl_get ();
+					void ltr_get ();
+					void get ();
+					
+					
+					void rtl_next_impl () noexcept;
+					void ltr_next_impl () noexcept;
+					void next_impl ();
+					void next ();
+					
+					
+				public:
+				
+				
+					SplitIterator () = default;
+					SplitIterator (const Iterable &, bool);
+					
+					
+					String & operator * () noexcept;
+					String * operator -> () noexcept;
+					
+					
+					SplitIterator & operator ++ ();
+					SplitIterator operator ++ (int);
+					
+					
+					bool operator == (const SplitIterator &) const noexcept;
+					bool operator != (const SplitIterator &) const noexcept;
+			
+			
+			};
+			
+			
+			class SplitIterable {
+			
+			
+				private:
+				
+				
+					Iterable obj;
+					bool skip_empty;
+					
+					
+				public:
+				
+				
+					SplitIterable (Iterable, bool) noexcept;
+					
+					
+					SplitIterator begin () const;
+					SplitIterator end () const noexcept;
+					
+					
+					const CodePoint * Begin () const noexcept;
+					const CodePoint * End () const noexcept;
+					
+					
+					bool IsRightToLeft () const noexcept;
 			
 			
 			};
@@ -1022,7 +1106,140 @@ namespace Unicode {
 			/**
 			 *	\endcond
 			 */
-			 
+			
+			
+			/**
+			 *	Splits the string, obtaining all substrings bounded either
+			 *	by the beginning and end of the string, or by matches of
+			 *	this regular expression.
+			 *
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the string.
+			 *	\param [in] end
+			 *		An iterator to the end of the string.
+			 *	\param [in] locale
+			 *		The locale to use for normalization.
+			 *	\param [in] skip_empty
+			 *		Whether empty substrings should be skipped.
+			 *		Defaults to \em false.
+			 *		
+			 *	\return
+			 *		A vector returning all substrings bounded either by
+			 *		the beginning and end of the string, or by matches of
+			 *		this regular expression.
+			 */
+			std::vector<String> Split (const CodePoint * begin, const CodePoint * end, const Locale & locale=Locale::Get(), bool skip_empty=false) const;
+			/**
+			 *	Splits the string, obtaining all substrings bounded either
+			 *	by the beginning and end of the string, or by matches of
+			 *	this regular expression.
+			 *
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the string.
+			 *	\param [in] end
+			 *		An iterator to the end of the string.
+			 *	\param [in] skip_empty
+			 *		Whether empty substrings should be skipped.
+			 *		Defaults to \em false.
+			 *		
+			 *	\return
+			 *		A vector returning all substrings bounded either by
+			 *		the beginning and end of the string, or by matches of
+			 *		this regular expression.
+			 */
+			std::vector<String> Split (const CodePoint * begin, const CodePoint * end, bool skip_empty) const;
+			/**
+			 *	Splits the string, obtaining all substrings bounded either
+			 *	by the beginning and end of the string, or by matches of
+			 *	this regular expression.
+			 *
+			 *	\param [in] str
+			 *		The string to split.
+			 *	\param [in] skip_empty
+			 *		Whether empty substrings should be skipped.
+			 *		Defaults to \em false.
+			 *		
+			 *	\return
+			 *		A vector returning all substrings bounded either by
+			 *		the beginning and end of the string, or by matches of
+			 *		this regular expression.
+			 */
+			std::vector<String> Split (const String & str, bool skip_empty=false) const;
+			/**
+			 *	Obtains an object which may be iterated to give each substring
+			 *	in a certain string which is bounded either by the beginning
+			 *	and end of that string, or by matches of this regular expression.
+			 *
+			 *	This object evaluates said substrings lazily.
+			 *
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the string.
+			 *	\param [in] end
+			 *		An iterator to the end of the string.
+			 *	\param [in] locale
+			 *		The locale to use for normalization.
+			 *	\param [in] skip_empty
+			 *		Whether empty substrings should be skipped.
+			 *		Defaults to \em false.
+			 *
+			 *	\return
+			 *		An iterable object.
+			 */
+			SplitIterable SplitIterate (const CodePoint * begin, const CodePoint * end, const Locale & locale=Locale::Get(), bool skip_empty=false) const;
+			/**
+			 *	Obtains an object which may be iterated to give each substring
+			 *	in a certain string which is bounded either by the beginning
+			 *	and end of that string, or by matches of this regular expression.
+			 *
+			 *	This object evaluates said substrings lazily.
+			 *
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the string.
+			 *	\param [in] end
+			 *		An iterator to the end of the string.
+			 *	\param [in] skip_empty
+			 *		Whether empty substrings should be skipped.
+			 *		Defaults to \em false.
+			 *
+			 *	\return
+			 *		An iterable object.
+			 */
+			SplitIterable SplitIterate (const CodePoint * begin, const CodePoint * end, bool skip_empty) const;
+			/**
+			 *	Obtains an object which may be iterated to give each substring
+			 *	in a certain string which is bounded either by the beginning
+			 *	and end of that string, or by matches of this regular expression.
+			 *
+			 *	This object evaluates said substrings lazily.
+			 *
+			 *	\param [in] str
+			 *		The string.
+			 *	\param [in] skip_empty
+			 *		Whether empty substrings should be skipped.
+			 *		Defaults to \em false.
+			 *
+			 *	\return
+			 *		An iterable object.
+			 */
+			SplitIterable SplitIterate (const String & str, bool skip_empty=false) const;
+			/**
+			 *	Obtains an object which may be iterated to give each substring
+			 *	in a certain string which is bounded either by the beginning
+			 *	and end of that string, or by matches of this regular expression.
+			 *
+			 *	This object evaluates said substrings lazily.
+			 *
+			 *	\param [in] str
+			 *		The string.
+			 *	\param [in] skip_empty
+			 *		Whether empty substrings should be skipped.
+			 *		Defaults to \em false.
+			 *
+			 *	\return
+			 *		An iterable object.
+			 */
+			SplitIterable SplitIterate (String && str, bool skip_empty=false) const;
+			
 			
 			/**
 			 *	Replaces each match of this regular expression in some
@@ -1094,6 +1311,17 @@ namespace Unicode {
 			 *		A vector of RegexToString objects.
 			 */
 			std::vector<RegexToString> ToString () const;
+			
+			
+			/**
+			 *	Determines whether this regular expression was compiled
+			 *	in right-to-left mode.
+			 *
+			 *	\return
+			 *		\em true if this regular expression was compiled with
+			 *		RegexOptions::RightToLeft set, \em false otherwise.
+			 */
+			bool IsRightToLeft () const noexcept;
 	
 	
 	};
