@@ -66,6 +66,20 @@ namespace Unicode {
 		return numbered[key];
 	
 	}
+	
+	
+	const RegexMatch::Map<std::size_t> & RegexMatch::Numbered () const noexcept {
+	
+		return numbered;
+	
+	}
+	
+	
+	const RegexMatch::Map<String> & RegexMatch::Named () const noexcept {
+	
+		return named;
+	
+	}
 
 
 }

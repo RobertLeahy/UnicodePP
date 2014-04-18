@@ -121,6 +121,8 @@ namespace Unicode {
 		
 		
 			typedef std::vector<RegexCapture> Type;
+			template <typename T>
+			using Map=std::unordered_map<T,Type>;
 	
 	
 		private:
@@ -129,8 +131,8 @@ namespace Unicode {
 			const CodePoint * b;
 			const CodePoint * e;
 			String s;
-			std::unordered_map<std::size_t,Type> numbered;
-			std::unordered_map<String,Type> named;
+			Map<std::size_t> numbered;
+			Map<String> named;
 			
 			
 		public:
@@ -213,6 +215,22 @@ namespace Unicode {
 			 *		A reference to the capturing group.
 			 */
 			Type & operator [] (std::size_t key);
+			
+			
+			/**
+			 *	Retrieves a map of numbers to captures.
+			 *
+			 *	\return
+			 *		A map.
+			 */
+			const Map<std::size_t> & Numbered () const noexcept;
+			/**
+			 *	Retrieves a map of names to captures.
+			 *
+			 *	\return
+			 *		A map.
+			 */
+			const Map<String> & Named () const noexcept;
 	
 	};
 	 
