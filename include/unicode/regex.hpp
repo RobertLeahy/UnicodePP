@@ -754,7 +754,7 @@ namespace Unicode {
 			 *	\return
 			 *		The escaped string.
 			 */
-			static String Escape (String str);
+			static String Escape (const String & str);
 		
 		
 			Regex () = delete;

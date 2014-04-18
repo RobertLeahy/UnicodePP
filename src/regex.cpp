@@ -282,7 +282,7 @@ namespace Unicode {
 	//
 
 
-	String Regex::Escape (String str) {
+	String Regex::Escape (const String & str) {
 	
 		String retr;
 		for (auto cp : str) {
