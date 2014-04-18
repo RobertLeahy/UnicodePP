@@ -736,8 +736,8 @@ namespace Unicode {
 					Iterator (const Pattern &, bool, const CodePoint *, const CodePoint *);
 					
 					
-					RegexMatch & operator * ();
-					RegexMatch * operator -> ();
+					RegexMatch & operator * () noexcept;
+					RegexMatch * operator -> () noexcept;
 					
 					
 					Iterator & operator ++ ();

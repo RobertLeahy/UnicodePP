@@ -161,14 +161,14 @@ namespace Unicode {
 	}
 	
 	
-	RegexMatch & Regex::Iterator::operator * () {
+	RegexMatch & Regex::Iterator::operator * () noexcept {
 	
 		return *match;
 	
 	}
 	
 	
-	RegexMatch * Regex::Iterator::operator -> () {
+	RegexMatch * Regex::Iterator::operator -> () noexcept {
 	
 		return &(*match);
 	
