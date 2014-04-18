@@ -16,6 +16,7 @@
 #include <iterator>
 #include <memory>
 #include <optional>
+#include <type_traits>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -591,6 +592,102 @@ namespace Unicode {
 	
 	
 	/**
+	 *	A single element, zero or more of which make
+	 *	up a replacement.
+	 */
+	class RegexReplacementElement {
+	
+	
+		public:
+		
+		
+			/**
+			 *	When overriden in a derived class, produces the
+			 *	replacement which this element represents.
+			 *
+			 *	\param [in] match
+			 *		The match for which the replacement should be
+			 *		made.
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the input string.
+			 *	\param [in] end
+			 *		An iterator to the end of the input string.
+			 *
+			 *	\return
+			 *		The contribution of this element to the replacement.
+			 */
+			virtual String operator () (RegexMatch & match, const CodePoint * begin, const CodePoint * end) const = 0;
+	
+	
+	};
+	
+	
+	/**
+	 *	A compiled replacement for a match formed by
+	 *	a regular expression.
+	 */
+	class RegexReplacement {
+	
+	
+		public:
+		
+		
+			typedef std::unique_ptr<RegexReplacementElement> Element;
+	
+	
+		private:
+		
+		
+			std::vector<Element> elements;
+			
+			
+		public:
+		
+		
+			/**
+			 *	Escapes a string such that when it is used to compile a
+			 *	regular expression replacement, all of its code points will
+			 *	be substituted directly -- i.e. they will not be interpreted
+			 *	as metacharacters.
+			 *
+			 *	\param [in] str
+			 *		The string to escape.
+			 *
+			 *	\return
+			 *		The escaped string.
+			 */
+			static String Escape (const String & str);
+		
+		
+			RegexReplacement () = delete;
+			
+			
+			/**
+			 *	Creates a compiles a new RegexReplacement from a string.
+			 *
+			 *	\param [in] str
+			 *		A string containing the replacement.
+			 */
+			RegexReplacement (const String & str);
+			
+			
+			/**
+			 *	\cond
+			 */
+			
+			
+			String operator () (RegexMatch &, const CodePoint *, const CodePoint *) const;
+			
+			
+			/**
+			 *	\endcond
+			 */
+	
+	
+	};
+	
+	
+	/**
 	 *	A compiled regular expression.
 	 */
 	class Regex {
@@ -952,12 +1049,40 @@ namespace Unicode {
 			 *		with the result of invoking \em callback.
 			 */
 			template <typename T1, typename T2>
-			String Replace (T1 && str, T2 && callback) const {
+			typename std::enable_if<!std::is_convertible<T2,String>::value,String>::type Replace (T1 && str, T2 && callback) const {
 			
 				auto i=Iterate(std::forward<T1>(str));
 				return rtl ? reverse_replace(i,std::forward<T2>(callback)) : forward_replace(i,std::forward<T2>(callback));
 			
 			}
+			/**
+			 *	Replaces each match of this regular expression with the result
+			 *	of some replacement string.
+			 *
+			 *	\param [in] str
+			 *		The string against which to match.
+			 *	\param [in] replacement
+			 *		The replacement string.
+			 *
+			 *	\return
+			 *		\em str with each match of this regular expression replaced
+			 *		with the result of evaluating \em replacement.
+			 */
+			String Replace (const String & str, const String & replacement) const;
+			/**
+			 *	Replaces each match of this regular expression with the result
+			 *	of some replacement string.
+			 *
+			 *	\param [in] str
+			 *		The string against which to match.
+			 *	\param [in] replacement
+			 *		The replacement string.
+			 *
+			 *	\return
+			 *		\em str with each match of this regular expression replaced
+			 *		with the result of evaluating \em replacement.
+			 */
+			String Replace (String && str, const String & replacement) const;
 			
 			
 			/**

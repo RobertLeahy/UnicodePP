@@ -408,6 +408,20 @@ namespace Unicode {
 	}
 	
 	
+	String Regex::Replace (const String & str, const String & replacement) const {
+	
+		return Replace(str,RegexReplacement(replacement));
+	
+	}
+	
+	
+	String Regex::Replace (String && str, const String & replacement) const {
+	
+		return Replace(std::move(str),RegexReplacement(replacement));
+	
+	}
+	
+	
 	std::vector<RegexToString> Regex::ToString () const {
 	
 		std::vector<RegexToString> retr;

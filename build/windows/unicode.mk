@@ -47,6 +47,14 @@ obj/regexmultiple.o \
 obj/regexparser.o \
 obj/regexpatternelement.o \
 obj/regexprivatestate.o \
+obj/regexreplacement.o \
+obj/regexreplacementbackreference.o \
+obj/regexreplacementcompiler.o \
+obj/regexreplacemententirematch.o \
+obj/regexreplacementinput.o \
+obj/regexreplacementlastgroup.o \
+obj/regexreplacementliteral.o \
+obj/regexreplacementparser.o \
 obj/regexstate.o \
 obj/regexunicodeproperties.o \
 obj/regexwildcard.o \
