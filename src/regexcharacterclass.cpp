@@ -25,7 +25,7 @@ namespace Unicode {
 			protected:
 			
 			
-				RegexCompiler::Pattern elements;
+				RegexCompiler::Elements elements;
 				RegexCompiler::Element subtraction;
 				
 				
@@ -63,7 +63,7 @@ namespace Unicode {
 			
 			
 				RegexCharacterClassBase (
-					RegexCompiler::Pattern elements,
+					RegexCompiler::Elements elements,
 					RegexCompiler::Element subtraction,
 					RegexOptions options,
 					const Unicode::Locale & locale
@@ -104,7 +104,7 @@ namespace Unicode {
 			private:
 			
 			
-				typedef RegexCompiler::Pattern::const_iterator type;
+				typedef RegexCompiler::Elements::const_iterator type;
 		
 		
 			public:
@@ -131,7 +131,7 @@ namespace Unicode {
 				typedef RegexCharacterClassState type;
 			
 			
-				RegexCompiler::Pattern::const_iterator get_begin (RegexState & state) const noexcept {
+				RegexCompiler::Elements::const_iterator get_begin (RegexState & state) const noexcept {
 				
 					if (!state) return elements.begin();
 					

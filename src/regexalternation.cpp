@@ -10,7 +10,7 @@ namespace Unicode {
 	namespace {
 	
 	
-		typedef std::vector<RegexCompiler::Pattern> patterns_type;
+		typedef std::vector<RegexCompiler::Elements> patterns_type;
 	
 	
 		class RegexAlternationState : public RegexPrivateState {

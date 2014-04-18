@@ -15,13 +15,13 @@ namespace Unicode {
 			private:
 			
 			
-				RegexCompiler::Pattern elements;
+				RegexCompiler::Elements elements;
 				
 				
 			public:
 			
 			
-				RegexAtomic (RegexCompiler::Pattern elements, RegexOptions options, const Unicode::Locale & locale) noexcept
+				RegexAtomic (RegexCompiler::Elements elements, RegexOptions options, const Unicode::Locale & locale) noexcept
 					:	RegexPatternElement(options,locale),
 						elements(std::move(elements))
 				{	}

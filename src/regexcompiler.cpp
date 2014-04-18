@@ -8,25 +8,39 @@
 
 
 namespace Unicode {
+
+
+	constexpr std::size_t default_priority=std::numeric_limits<std::size_t>::max()/2;
 	
 	
-	std::vector<RegexCompiler::RegexParserInfo> & RegexCompiler::get_parsers () {
+	typedef RegexCompilerAcquisitionPolicy::Type parser_info;
 	
-		static std::vector<RegexParserInfo> parsers;
+	
+	static std::vector<parser_info> & get_impl () {
+	
+		static std::vector<parser_info> vec;
 		
-		return parsers;
+		return vec;
 	
 	}
 	
 	
-	void RegexCompiler::add_impl (const RegexParser & parser, std::size_t priority, std::optional<bool> character_class) {
+	static void add_impl (
+		const RegexParser & parser,
+		std::size_t priority=default_priority,
+		std::optional<bool> character_class=std::nullopt
+	) {
 	
-		auto & parsers=get_parsers();
+		auto & parsers=get_impl();
 		parsers.insert(
 			std::find_if(
 				parsers.begin(),
 				parsers.end(),
-				[&] (const RegexParserInfo & info) noexcept {	return info.Priority>=priority;	}
+				[&] (const parser_info & t) noexcept {
+				
+					return priority<=t.Priority;
+				
+				}
 			),
 			{&parser,priority,character_class}
 		);
@@ -34,46 +48,61 @@ namespace Unicode {
 	}
 	
 	
-	void RegexCompiler::get_capturing_group (GroupsInfo & info, const RegexPatternElement * & ptr) {
+	void RegexCompilerAcquisitionPolicy::Add (const RegexParser & parser) {
 	
-		if (info.Elements.size()==0) info.Pending.push_back(&ptr);
-		else ptr=info.Elements[0];
-	
-	}
-	
-	
-	constexpr std::size_t default_priority=std::numeric_limits<std::size_t>::max()/2;
-	
-	
-	void RegexCompiler::Add (const RegexParser & parser) {
-	
-		Add(parser,default_priority);
+		add_impl(parser);
 	
 	}
 	
 	
-	void RegexCompiler::Add (const RegexParser & parser, std::size_t priority) {
+	void RegexCompilerAcquisitionPolicy::Add (const RegexParser & parser, std::size_t priority) {
 	
-		add_impl(parser,priority,std::nullopt);
+		add_impl(parser,priority);
 	
 	}
 	
 	
-	void RegexCompiler::Add (const RegexParser & parser, bool character_class) {
+	void RegexCompilerAcquisitionPolicy::Add (const RegexParser & parser, bool character_class) {
 	
 		add_impl(parser,default_priority,character_class);
 	
 	}
 	
 	
-	void RegexCompiler::Add (const RegexParser & parser, std::size_t priority, bool character_class) {
+	void RegexCompilerAcquisitionPolicy::Add (const RegexParser & parser, std::size_t priority, bool character_class) {
 	
 		add_impl(parser,priority,character_class);
 	
 	}
 	
 	
-	RegexCompiler::Pattern RegexCompiler::Compile (Iterator begin, Iterator end, RegexOptions options, const Unicode::Locale & locale) {
+	const std::vector<RegexCompilerAcquisitionPolicy::Type> & RegexCompilerAcquisitionPolicy::Get () {
+	
+		return get_impl();
+	
+	}
+	
+	
+	bool RegexCompilerInvocationPolicy::Invoke (RegexCompilerBaseType & compiler, const parser_info & info) {
+	
+		auto & c=reinterpret_cast<RegexCompiler &>(compiler);
+	
+		if (info.CharacterClass && (*info.CharacterClass!=c.CharacterClass)) return false;
+		
+		return (*info.Parser)(c);
+	
+	}
+	
+	
+	void RegexCompiler::get_capturing_group (GroupsInfo & info, const RegexPatternElement * & ptr) {
+		
+		if (info.Elements.size()==0) info.Pending.push_back(&ptr);
+		else ptr=info.Elements[0];
+		
+	}
+	
+	
+	RegexCompiler::Elements RegexCompiler::Compile (Iterator begin, Iterator end, RegexOptions options, const Unicode::Locale & locale) {
 	
 		std::size_t automatic=0;
 		GroupsMapping<std::size_t> numbered;
@@ -98,16 +127,6 @@ namespace Unicode {
 	}
 	
 	
-	void RegexCompiler::complete () {
-	
-		if (last==nullptr) return;
-		
-		last->Complete(*(pattern.back().get()));
-		last=nullptr;
-	
-	}
-	
-	
 	template <typename T>
 	void RegexCompiler::complete (GroupsMapping<T> & map) {
 	
@@ -124,27 +143,9 @@ namespace Unicode {
 	}
 	
 	
-	bool RegexCompiler::should_invoke (const RegexParserInfo & info) const noexcept {
-	
-		if (!info.CharacterClass) return true;
-		
-		return *info.CharacterClass==CharacterClass;
-	
-	}
-	
-	
-	void RegexCompiler::rewind (Iterator loc) noexcept {
-	
-		Current=loc;
-		current=nullptr;
-		Successive=false;
-	
-	}
-	
-	
 	RegexCompiler::RegexCompiler (
-		Iterator begin,
 		Iterator curr,
+		Iterator begin,
 		Iterator end,
 		std::size_t & automatic,
 		GroupsMapping<std::size_t> & numbered,
@@ -152,25 +153,20 @@ namespace Unicode {
 		RegexOptions options,
 		const Unicode::Locale & locale
 	) noexcept
-		:	last(nullptr),
-			current(nullptr),
+		:	RegexCompilerBase(curr,begin,end),
 			automatic(automatic),
 			numbered(numbered),
 			named(named),
-			Current(curr),
-			Begin(begin),
-			End(end),
 			Options(options),
 			Locale(locale),
-			Successive(false),
 			CharacterClass(false)
 	{	}
 	
 	
 	RegexCompiler::RegexCompiler (const RegexCompiler & other) noexcept
 		:	RegexCompiler(
-				other.Begin,
 				other.Current,
+				other.Begin,
 				other.End,
 				other.automatic,
 				other.numbered,
@@ -179,115 +175,6 @@ namespace Unicode {
 				other.Locale
 			)
 	{	}
-	
-	
-	bool RegexCompiler::IsNext (CodePoint cp, bool rewind) noexcept {
-	
-		if (*this && (*(*this)==cp)) {
-		
-			if (!rewind) ++*this;
-			
-			return true;
-			
-		}
-		
-		return false;
-	
-	}
-	
-	
-	template <typename T>
-	bool is_next (const T * str, RegexCompiler & compiler) noexcept {
-	
-		if (str==nullptr) return true;
-		
-		if (!compiler) return *str==0;
-		
-		for (
-			;
-			(*str!='\0') && (*str==*compiler) && compiler;
-			++str,++compiler
-		);
-		
-		return *str=='\0';
-	
-	}
-	
-	
-	template <typename T>
-	bool is_next (const T * str, RegexCompiler & compiler, bool rewind) noexcept {
-	
-		auto loc=compiler.Current;
-		auto result=is_next(str,compiler);
-		if (!result || rewind) compiler.Current=loc;
-		
-		return result;
-	
-	}
-	
-	
-	bool RegexCompiler::IsNext (const char32_t * str, bool rewind) noexcept {
-	
-		return is_next(str,*this,rewind);
-	
-	}
-	
-	
-	bool RegexCompiler::IsNext (const char * str, bool rewind) noexcept {
-	
-		return is_next(str,*this,rewind);
-	
-	}
-	
-	
-	RegexCompiler::Pattern RegexCompiler::Get () {
-	
-		complete();
-		
-		auto retr=std::move(pattern);
-		pattern=Pattern{};
-		last=nullptr;
-		
-		return retr;
-	
-	}
-	
-	
-	void RegexCompiler::Set (Pattern pattern) {
-	
-		this->pattern=std::move(pattern);
-		last=nullptr;
-	
-	}
-	
-	
-	RegexCompiler::Element RegexCompiler::Pop () {
-	
-		auto back=pattern.end()-1;
-		
-		auto extracted=last->GetLast(*(*back));
-		
-		complete();
-		
-		if (extracted) return std::move(extracted);
-		
-		auto retr=std::move(*back);
-		pattern.erase(back);
-		
-		return retr;
-	
-	}
-	
-	
-	void RegexCompiler::Add (Element element) {
-	
-		complete();
-		
-		pattern.push_back(std::move(element));
-		
-		last=current;
-	
-	}
 	
 	
 	std::size_t RegexCompiler::GetCaptureNumber () noexcept {
@@ -342,78 +229,6 @@ namespace Unicode {
 	RegexCompiler::Groups & RegexCompiler::operator [] (std::size_t key) {
 	
 		return numbered[key].Elements;
-	
-	}
-	
-	
-	void RegexCompiler::Raise (const char * what) const {
-	
-		throw RegexError(what,Current);
-	
-	}
-	
-	
-	bool RegexCompiler::Done () {
-	
-		return !static_cast<bool>(*this);
-	
-	}
-	
-	
-	void RegexCompiler::operator () () {
-	
-		auto & parsers=get_parsers();
-	
-		//	Loop until done
-		while (!Done()) {
-		
-			//	Track start position so that we
-			//	can rewind to it on failure
-			auto start=Current;
-			
-			//	Loop over each parser
-			for (auto & info : parsers) {
-			
-				//	Skip parsers that shouldn't be invoked
-				if (!should_invoke(info)) continue;
-				
-				current=info.Parser;
-				Successive=current==last;
-				try {
-				
-					if ((*info.Parser)(*this)) {
-					
-						//	SUCCESS
-						
-						//	If the parser didn't advance the
-						//	iterator, do it for it
-						if (Current==start) ++Current;
-						
-						goto success;
-					
-					}
-				
-				} catch (...) {
-				
-					rewind(start);
-					
-					throw;
-				
-				}
-				
-				rewind(start);
-			
-			}
-		
-			//	If no parser was found, throw
-			Raise("No matching parser");
-			
-			success:;
-		
-		}
-		
-		//	Make sure everything is wrapped up
-		complete();
 	
 	}
 

@@ -19,7 +19,7 @@ namespace Unicode {
 				RegexEngine Engine;
 				
 				
-				RegexLookAroundState (RegexEngine & engine, const RegexCompiler::Pattern & elements, bool behind)
+				RegexLookAroundState (RegexEngine & engine, const RegexCompiler::Elements & elements, bool behind)
 					:	Engine(engine,elements,behind)
 				{	}
 				
@@ -40,7 +40,7 @@ namespace Unicode {
 			private:
 			
 			
-				RegexCompiler::Pattern elements;
+				RegexCompiler::Elements elements;
 				bool inverted;
 				bool behind;
 				
@@ -65,7 +65,7 @@ namespace Unicode {
 			public:
 			
 			
-				RegexLookAround (RegexCompiler::Pattern elements, bool inverted, bool behind, RegexOptions options, const Unicode::Locale & locale) noexcept
+				RegexLookAround (RegexCompiler::Elements elements, bool inverted, bool behind, RegexOptions options, const Unicode::Locale & locale) noexcept
 					:	RegexPatternElement(options,locale),
 						elements(std::move(elements)),
 						inverted(inverted),

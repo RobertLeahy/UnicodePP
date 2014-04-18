@@ -49,7 +49,7 @@ namespace Unicode {
 				RegexEngine Engine;
 				
 				
-				RegexGroupState (const RegexEngine & engine, const RegexCompiler::Pattern & pattern) : Engine(engine,pattern) {	}
+				RegexGroupState (const RegexEngine & engine, const RegexCompiler::Elements & pattern) : Engine(engine,pattern) {	}
 				
 				
 				virtual void Rewind (RegexEngine & engine) override {
@@ -74,13 +74,13 @@ namespace Unicode {
 			protected:
 			
 			
-				RegexCompiler::Pattern pattern;
+				RegexCompiler::Elements pattern;
 				
 				
 			public:
 			
 			
-				RegexGroup (RegexCompiler::Pattern pattern, RegexOptions options, const Unicode::Locale & locale)
+				RegexGroup (RegexCompiler::Elements pattern, RegexOptions options, const Unicode::Locale & locale)
 					:	RegexPatternElement(options,locale),
 						pattern(std::move(pattern))
 				{	}
@@ -138,7 +138,7 @@ namespace Unicode {
 				
 				RegexCapturingGroupState (
 					const RegexEngine & engine,
-					const RegexCompiler::Pattern & pattern,
+					const RegexCompiler::Elements & pattern,
 					T key
 				) noexcept(std::is_nothrow_move_constructible<T>::value)
 					:	RegexGroupState(engine,pattern),
@@ -186,7 +186,7 @@ namespace Unicode {
 			
 			
 				RegexCapturingGroup (
-					RegexCompiler::Pattern pattern,
+					RegexCompiler::Elements pattern,
 					T key,
 					RegexOptions options,
 					const Unicode::Locale & locale
@@ -357,7 +357,7 @@ namespace Unicode {
 				}
 				
 				
-				static RegexCompiler::Pattern compile (RegexCompiler & compiler) {
+				static RegexCompiler::Elements compile (RegexCompiler & compiler) {
 				
 					RegexGroupCompiler c(compiler);
 					c();
