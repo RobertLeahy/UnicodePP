@@ -372,7 +372,12 @@ namespace Unicode {
 				template <typename T>
 				static bool capturing_group (RegexCompiler & compiler, T && key) {
 				
-					compiler.Add<RegexCapturingGroup<typename std::decay<T>::type>>(compile(compiler),std::forward<T>(key));
+					auto & group=compiler[key];
+					group.push_back(
+						&compiler.Add<RegexCapturingGroup<
+							typename std::decay<T>::type>
+						>(compile(compiler),std::forward<T>(key))
+					);
 					
 					return true;
 				
