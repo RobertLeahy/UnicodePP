@@ -13,6 +13,7 @@ obj/test/main.o \
 obj/test/regex/anchor.o \
 obj/test/regex/characterclasses.o \
 obj/test/regex/misc.o \
+obj/test/regex/multiple.o \
 obj/test/regex/replace.o \
 obj/test/regex/split.o | \
 bin/unicode.dll
