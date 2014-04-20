@@ -47,6 +47,7 @@ obj/regexmultiple.o \
 obj/regexparser.o \
 obj/regexpatternelement.o \
 obj/regexprivatestate.o \
+obj/regexrecurse.o \
 obj/regexreplacement.o \
 obj/regexreplacementbackreference.o \
 obj/regexreplacementcompiler.o \
