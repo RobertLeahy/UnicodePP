@@ -84,7 +84,7 @@ SCENARIO("* matches greedily at least zero times","[multiple][regex][greedy]") {
 }
 
 
-SCENARIO("Repetition constructs backtrack when greedy behaviour causes over-matching","[multiple][regex][greedy]") {
+SCENARIO("Repetition constructs backtrack when greedy behaviour causes over-matching","[multiple][regex][backtracking][greedy]") {
 
 	GIVEN("a*a") {
 	

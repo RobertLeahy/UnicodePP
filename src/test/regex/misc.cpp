@@ -6,7 +6,7 @@
 using namespace Unicode;
 
 
-SCENARIO("RFC 5322 e-mail regex successfully validates e-mails","[misc]") {
+SCENARIO("RFC 5322 e-mail regex successfully validates e-mails","[misc][regex][email]") {
 
 	GIVEN("RFC 5322 e-mail regex which allows leading and trailing white space") {
 	

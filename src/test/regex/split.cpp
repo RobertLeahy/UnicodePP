@@ -6,7 +6,7 @@
 using namespace Unicode;
 
 
-SCENARIO("Strings may be split","[split]") {
+SCENARIO("Strings may be split","[split][regex]") {
 
 	GIVEN("A regular expression which matches between each word") {
 	

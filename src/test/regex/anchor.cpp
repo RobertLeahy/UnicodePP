@@ -6,7 +6,7 @@
 using namespace Unicode;
 
 
-SCENARIO("^ matches at the beginning of input and the beginning of lines (as appropriate)","[anchors]") {
+SCENARIO("^ matches at the beginning of input and the beginning of lines (as appropriate)","[anchors][regex]") {
 
 	GIVEN("^") {
 	
@@ -133,7 +133,7 @@ SCENARIO("^ matches at the beginning of input and the beginning of lines (as app
 }
 
 
-SCENARIO("$ matches at the end of input, before a final \\n at the end of input, at the end of lines (as appropriate), and before a final \\n at the end of a line (as appropriate","[anchors]") {
+SCENARIO("$ matches at the end of input, before a final \\n at the end of input, at the end of lines (as appropriate), and before a final \\n at the end of a line (as appropriate","[anchors][regex]") {
 
 	GIVEN("$") {
 	
@@ -298,7 +298,7 @@ SCENARIO("$ matches at the end of input, before a final \\n at the end of input,
 }
 
 
-SCENARIO("\\A matches at the beginning of input","[anchors]") {
+SCENARIO("\\A matches at the beginning of input","[anchors][regex]") {
 
 	GIVEN("\\A") {
 	
@@ -415,7 +415,7 @@ SCENARIO("\\A matches at the beginning of input","[anchors]") {
 }
 
 
-SCENARIO("\\Z matches at the end of input, and before a final \\n at the end of input","[anchors]") {
+SCENARIO("\\Z matches at the end of input, and before a final \\n at the end of input","[anchors][regex]") {
 
 	GIVEN("\\Z") {
 	
@@ -522,7 +522,7 @@ SCENARIO("\\Z matches at the end of input, and before a final \\n at the end of 
 }
 
 
-SCENARIO("\\z matches at the end of input","[anchors]") {
+SCENARIO("\\z matches at the end of input","[anchors][regex]") {
 
 	GIVEN("\\z") {
 	
@@ -623,7 +623,7 @@ SCENARIO("\\z matches at the end of input","[anchors]") {
 }
 
 
-SCENARIO("\\G matches at the point where the last match ended, or where the engine began attempting to match","[anchors]") {
+SCENARIO("\\G matches at the point where the last match ended, or where the engine began attempting to match","[anchors][regex]") {
 
 	GIVEN("\\G") {
 	
@@ -926,7 +926,7 @@ SCENARIO("\\G matches at the point where the last match ended, or where the engi
 }
 
 
-SCENARIO("\\b matches between a word and non-word code point","[anchors]") {
+SCENARIO("\\b matches between a word and non-word code point","[anchors][regex]") {
 
 	GIVEN("\\b") {
 	
@@ -989,7 +989,7 @@ SCENARIO("\\b matches between a word and non-word code point","[anchors]") {
 }
 
 
-SCENARIO("\\B matches everywhere but between a word and non-word code point","[anchors]") {
+SCENARIO("\\B matches everywhere but between a word and non-word code point","[anchors][regex]") {
 
 	GIVEN("\\B") {
 	

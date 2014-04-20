@@ -6,7 +6,7 @@
 using namespace Unicode;
 
 
-SCENARIO("Custom callbacks may be used to replace matches in a string","[replace]") {
+SCENARIO("Custom callbacks may be used to replace matches in a string","[replace][regex]") {
 
 	GIVEN("A regular expression which matches each word") {
 	
@@ -164,7 +164,7 @@ SCENARIO("Custom callbacks may be used to replace matches in a string","[replace
 }
 
 
-SCENARIO("Replacement strings containing only literals may be used to replace matches in a string","[replace]") {
+SCENARIO("Replacement strings containing only literals may be used to replace matches in a string","[replace][regex]") {
 
 	GIVEN("A regular expression which matches each word") {
 	
@@ -253,7 +253,7 @@ SCENARIO("Replacement strings containing only literals may be used to replace ma
 }
 
 
-SCENARIO("Numbered or named capturing groups may be substituted by a replacement string using backreferences","[replace]") {
+SCENARIO("Numbered or named capturing groups may be substituted by a replacement string using backreferences","[replace][regex]") {
 
 	GIVEN("A regular expression which does not capture") {
 	
@@ -432,7 +432,7 @@ SCENARIO("Numbered or named capturing groups may be substituted by a replacement
 }
 
 
-SCENARIO("The last group captured may be substituted","[replace]") {
+SCENARIO("The last group captured may be substituted","[replace][regex]") {
 
 	GIVEN("A replacement which substitutes the last group captured") {
 	
@@ -533,7 +533,7 @@ SCENARIO("The last group captured may be substituted","[replace]") {
 }
 
 
-SCENARIO("The entire match may be substituted","[replace]") {
+SCENARIO("The entire match may be substituted","[replace][regex]") {
 
 	GIVEN("A replacement which substitutes the entire match") {
 	
@@ -582,7 +582,7 @@ SCENARIO("The entire match may be substituted","[replace]") {
 }
 
 
-SCENARIO("The entire input may be substituted","[replace]") {
+SCENARIO("The entire input may be substituted","[replace][regex]") {
 
 	GIVEN("A replacement which substitutes the entire input") {
 	
@@ -630,7 +630,7 @@ SCENARIO("The entire input may be substituted","[replace]") {
 }
 
 
-SCENARIO("The input before each match may be substituted","[replace]") {
+SCENARIO("The input before each match may be substituted","[replace][regex]") {
 
 	GIVEN("A replacement which substitutes the input preceding the match") {
 	
@@ -677,7 +677,7 @@ SCENARIO("The input before each match may be substituted","[replace]") {
 }
 
 
-SCENARIO("The input after each match may be substituted","[replace]") {
+SCENARIO("The input after each match may be substituted","[replace][regex]") {
 
 	GIVEN("A replacement which substitutes the input following the match") {
 	
