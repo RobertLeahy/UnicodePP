@@ -17,6 +17,7 @@ obj/test/regex/misc.o \
 obj/test/regex/multiple.o \
 obj/test/regex/replace.o \
 obj/test/regex/split.o \
+obj/test/regex/validunicode.o \
 obj/test/regex/wildcard.o | \
 bin/unicode.dll
 	$(GPP) -o $@ $^ bin/unicode.dll

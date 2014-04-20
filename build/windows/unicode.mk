@@ -57,6 +57,7 @@ obj/regexreplacementliteral.o \
 obj/regexreplacementparser.o \
 obj/regexstate.o \
 obj/regexunicodeproperties.o \
+obj/regexvalidunicode.o \
 obj/regexwildcard.o \
 obj/regexwordboundary.o \
 obj/string.o \
