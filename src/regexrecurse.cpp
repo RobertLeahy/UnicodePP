@@ -1,5 +1,6 @@
 #include <unicode/regex.hpp>
 #include <unicode/regexcompiler.hpp>
+#include <cstddef>
 #include <optional>
 #include <type_traits>
 #include <utility>
@@ -28,23 +29,46 @@ namespace Unicode {
 	namespace {
 	
 	
-		template <typename T>
 		class RegexRecurseGroup : public RegexPatternElement {
 		
 		
-			private:
+			protected:
 			
 			
-				T id;
 				const RegexPatternElement * ptr;
 				
 				
 			public:
 			
 			
-				RegexRecurseGroup (RegexCompiler & compiler, T id, RegexOptions options, const Unicode::Locale & locale) noexcept(
-					std::is_nothrow_move_constructible<T>::value
-				)	:	RegexPatternElement(options,locale),
+				using RegexPatternElement::RegexPatternElement;
+				
+				
+				virtual bool operator () (RegexEngine & engine, RegexState & state) const override {
+				
+					return (*ptr)(engine,state);
+				
+				}
+		
+		
+		};
+	
+	
+		template <typename T>
+		class RegexRecurseAbsoluteGroup : public RegexRecurseGroup {
+		
+		
+			private:
+			
+			
+				T id;
+				
+				
+			public:
+			
+			
+				RegexRecurseAbsoluteGroup (RegexCompiler & compiler, T id, RegexOptions options, const Unicode::Locale & locale)
+					:	RegexRecurseGroup(options,locale),
 						id(std::move(id))
 				{
 				
@@ -53,9 +77,37 @@ namespace Unicode {
 				}
 				
 				
-				virtual bool operator () (RegexEngine & engine, RegexState & state) const override {
+				virtual RegexToString ToString () const override {
 				
-					return (*ptr)(engine,state);
+					RegexToString retr;
+					retr.Parent << "Group " << format(id) << " recursively";
+					
+					return retr;
+				
+				}
+		
+		
+		};
+		
+		
+		class RegexRecurseRelativeGroup : public RegexRecurseGroup {
+		
+		
+			private:
+			
+			
+				std::ptrdiff_t offset;
+				
+				
+			public:
+			
+			
+				RegexRecurseRelativeGroup (RegexCompiler & compiler, std::ptrdiff_t offset, RegexOptions options, const Unicode::Locale & locale)
+					:	RegexRecurseGroup(options,locale),
+						offset(offset)
+				{
+				
+					compiler.GetRelativeCapturingGroup(this->offset,ptr);
 				
 				}
 				
@@ -63,7 +115,7 @@ namespace Unicode {
 				virtual RegexToString ToString () const override {
 				
 					RegexToString retr;
-					retr.Parent << "Group " << format(id) << " recursively";
+					//	TODO: Implement
 					
 					return retr;
 				
@@ -100,7 +152,7 @@ namespace Unicode {
 					auto number=s.To<std::size_t>();
 					if (!number) return false;
 					
-					compiler.Add<RegexRecurseGroup<std::size_t>>(compiler,*number);
+					compiler.Add<RegexRecurseAbsoluteGroup<std::size_t>>(compiler,*number);
 					
 					return true;
 				
@@ -109,7 +161,19 @@ namespace Unicode {
 			
 				static bool get_numbered (RegexCompiler & compiler) {
 				
-					if (!make_numbered(compiler,get(compiler))) return false;
+					return make_numbered(compiler,get(compiler));
+				
+				}
+				
+				
+				static bool get_relative (RegexCompiler & compiler, bool prev) {
+				
+					auto number=get(compiler).To<std::ptrdiff_t>();
+					if (!number) return false;
+					
+					if (prev) *number*=-1;
+					
+					compiler.Add<RegexRecurseRelativeGroup>(compiler,*number);
 					
 					return true;
 				
@@ -122,7 +186,7 @@ namespace Unicode {
 					
 					if (make_numbered(compiler,s)) return true;
 					
-					compiler.Add<RegexRecurseGroup<String>>(compiler,std::move(s));
+					compiler.Add<RegexRecurseAbsoluteGroup<String>>(compiler,std::move(s));
 					
 					return true;
 				
@@ -140,6 +204,10 @@ namespace Unicode {
 						compiler.IsNext('&') ||
 						compiler.IsNext("P>")
 					) return get_named(compiler);
+					
+					if (compiler.IsNext('-')) return get_relative(compiler,true);
+					
+					if (compiler.IsNext('+')) return get_relative(compiler,false);
 					
 					return get_numbered(compiler);
 				
