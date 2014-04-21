@@ -94,6 +94,12 @@ namespace Unicode {
 	}
 	
 	
+	RegexCompiler::GroupInfo::GroupInfo () : Element(nullptr) {	}
+	
+	
+	RegexCompiler::GroupInfo::GroupInfo (const RegexPatternElement & element) : Element(&element) {	}
+	
+	
 	void RegexCompiler::get_capturing_group (GroupsInfo & info, const RegexPatternElement * & ptr) {
 		
 		if (info.Elements.size()==0) info.Pending.push_back(&ptr);
@@ -102,9 +108,85 @@ namespace Unicode {
 	}
 	
 	
+	template <typename T>
+	const RegexPatternElement * RegexCompiler::get_capturing_group (const GroupsMapping<T> & map, const T & key) {
+	
+		auto iter=map.find(key);
+		if (iter==map.end()) return nullptr;
+		auto & elements=iter->second.Elements;
+		return (elements.size()==0) ? nullptr : elements[0];
+	
+	}
+	
+	
+	std::vector<RegexCompiler::GroupInfo>::iterator RegexCompiler::find_groups_end () noexcept {
+	
+		return std::find_if(
+			groups.begin(),
+			groups.end(),
+			[] (const GroupInfo & info) noexcept {	return info.Element==nullptr;	}
+		);
+	
+	}
+	
+	
+	void RegexCompiler::add_capturing_group (const RegexPatternElement & element) {
+	
+		auto iter=find_groups_end();
+		if (iter==groups.end()) {
+		
+			groups.emplace_back(element);
+			
+			return;
+		
+		}
+		
+		iter->Element=&element;
+	
+	}
+	
+	
+	template <typename T>
+	void RegexCompiler::add_capturing_group (T && key, GroupsMapping<typename std::decay<T>::type> & map, const RegexPatternElement & element) {
+	
+		add_capturing_group(element);
+		
+		map[std::forward<T>(key)].Elements.push_back(&element);
+	
+	}
+	
+	
+	std::vector<RegexCompiler::GroupInfo>::iterator RegexCompiler::find_relative_capturing_group (std::ptrdiff_t dist) {
+	
+		auto iter=find_groups_end();
+		
+		if (dist==0) Raise("Cannot retrieve 0th relative capturing group");
+		
+		if (dist>0) {
+		
+			--dist;
+			
+			auto diff=dist-(groups.end()-iter);
+			
+			if (diff<0) return iter+dist;
+			
+			groups.resize(groups.size()+diff+1);
+			
+			return groups.end()-1;
+		
+		}
+		
+		if ((groups.begin()-iter)>dist) Raise("Cannot reference capturing group before beginning of pattern");
+		
+		return iter+dist;
+	
+	}
+	
+	
 	RegexCompiler::Elements RegexCompiler::Compile (Iterator begin, Iterator end, RegexOptions options, const Unicode::Locale & locale) {
 	
 		std::size_t automatic=0;
+		std::vector<GroupInfo> groups;
 		GroupsMapping<std::size_t> numbered;
 		GroupsMapping<String> named;
 		RegexCompiler c(
@@ -112,6 +194,7 @@ namespace Unicode {
 			begin,
 			end,
 			automatic,
+			groups,
 			numbered,
 			named,
 			options,
@@ -119,10 +202,16 @@ namespace Unicode {
 		);
 		c();
 		
-		c.complete(numbered);
-		c.complete(named);
+		c.complete();
 		
 		return c.Get();
+	
+	}
+	
+	
+	void RegexCompiler::group_undeclared () const {
+	
+		Raise("Forward referenced capturing group was not declared");
 	
 	}
 	
@@ -134,9 +223,26 @@ namespace Unicode {
 		
 			auto & info=pair.second;
 			if (info.Pending.size()==0) continue;
-			if (info.Elements.size()==0) Raise("Forward referenced capturing group was not declared");
+			if (info.Elements.size()==0) group_undeclared();
 			
 			for (auto & pending : info.Pending) *pending=info.Elements[0];
+		
+		}
+	
+	}
+	
+	
+	void RegexCompiler::complete () {
+	
+		complete(named);
+		complete(numbered);
+		
+		for (auto & info : groups) {
+		
+			if (info.Pending.size()==0) continue;
+			if (info.Element==nullptr) group_undeclared();
+			
+			for (auto & pending : info.Pending) *pending=info.Element;
 		
 		}
 	
@@ -148,6 +254,7 @@ namespace Unicode {
 		Iterator begin,
 		Iterator end,
 		std::size_t & automatic,
+		std::vector<GroupInfo> & groups,
 		GroupsMapping<std::size_t> & numbered,
 		GroupsMapping<String> & named,
 		RegexOptions options,
@@ -155,6 +262,7 @@ namespace Unicode {
 	) noexcept
 		:	RegexCompilerBase(curr,begin,end),
 			automatic(automatic),
+			groups(groups),
 			numbered(numbered),
 			named(named),
 			Options(options),
@@ -169,6 +277,7 @@ namespace Unicode {
 				other.Begin,
 				other.End,
 				other.automatic,
+				other.groups,
 				other.numbered,
 				other.named,
 				other.Options,
@@ -212,23 +321,46 @@ namespace Unicode {
 	}
 	
 	
-	RegexCompiler::Groups & RegexCompiler::operator [] (const String & key) {
+	void RegexCompiler::GetRelativeCapturingGroup (std::ptrdiff_t dist, const RegexPatternElement * & ptr) {
 	
-		return named[key].Elements;
-	
-	}
-	
-	
-	RegexCompiler::Groups & RegexCompiler::operator [] (String && key) {
-	
-		return named[std::move(key)].Elements;
+		auto iter=find_relative_capturing_group(dist);
+		if (iter->Element==nullptr) iter->Pending.push_back(&ptr);
+		else ptr=iter->Element;
 	
 	}
 	
 	
-	RegexCompiler::Groups & RegexCompiler::operator [] (std::size_t key) {
+	const RegexPatternElement * RegexCompiler::GetCapturingGroup (const String & key) const {
 	
-		return numbered[key].Elements;
+		return get_capturing_group(named,key);
+	
+	}
+	
+	
+	const RegexPatternElement * RegexCompiler::GetCapturingGroup (std::size_t key) const {
+	
+		return get_capturing_group(numbered,key);
+	
+	}
+	
+	
+	void RegexCompiler::AddCapturingGroup (const String & key, const RegexPatternElement & element) {
+	
+		add_capturing_group(key,named,element);
+	
+	}
+	
+	
+	void RegexCompiler::AddCapturingGroup (String && key, const RegexPatternElement & element) {
+	
+		add_capturing_group(std::move(key),named,element);
+	
+	}
+	
+	
+	void RegexCompiler::AddCapturingGroup (std::size_t key, const RegexPatternElement & element) {
+	
+		add_capturing_group(key,numbered,element);
 	
 	}
 

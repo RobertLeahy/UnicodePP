@@ -25,6 +25,7 @@
 #include <cstddef>
 #include <iterator>
 #include <optional>
+#include <type_traits>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -155,18 +156,48 @@ namespace Unicode {
 			};
 			
 			
+			class GroupInfo {
+			
+			
+				public:
+				
+				
+					const RegexPatternElement * Element;
+					PendingGroups Pending;
+					
+					
+					GroupInfo ();
+					GroupInfo (const RegexPatternElement &);
+			
+			
+			};
+			
+			
 			template <typename T>
 			using GroupsMapping=std::unordered_map<T,GroupsInfo>;
 			static void get_capturing_group (GroupsInfo &, const RegexPatternElement * &);
+			template <typename T>
+			static const RegexPatternElement * get_capturing_group (const GroupsMapping<T> &, const T &);
+			std::vector<GroupInfo>::iterator find_groups_end () noexcept;
+			void add_capturing_group (const RegexPatternElement &);
+			template <typename T>
+			void add_capturing_group (T &&, GroupsMapping<typename std::decay<T>::type> &, const RegexPatternElement &);
+			std::vector<GroupInfo>::iterator find_relative_capturing_group (std::ptrdiff_t);
 			
 			
 			std::size_t & automatic;
+			std::vector<GroupInfo> & groups;
 			GroupsMapping<std::size_t> & numbered;
 			GroupsMapping<String> & named;
 			
 			
+			[[noreturn]]
+			void group_undeclared () const;
+			
+			
 			template <typename T>
 			void complete (GroupsMapping<T> &);
+			void complete ();
 			
 			
 			RegexCompiler (
@@ -174,6 +205,7 @@ namespace Unicode {
 				Iterator curr,
 				Iterator end,
 				std::size_t & automatic,
+				std::vector<GroupInfo> & groups,
 				GroupsMapping<std::size_t> & numbered,
 				GroupsMapping<String> & named,
 				RegexOptions options,
@@ -267,7 +299,7 @@ namespace Unicode {
 			 *	Attempts to obtain a pointer to a RegexPatternElement
 			 *	which captures a certain named capturing group.
 			 *
-			 *	If such a RegexPatternElemest has not yet been compiled,
+			 *	If such a RegexPatternElement has not yet been compiled,
 			 *	the compiler will set \em ptr if one is compiled in
 			 *	the future.
 			 *
@@ -287,7 +319,7 @@ namespace Unicode {
 			 *	Attempts to obtain a pointer to a RegexPatternElement
 			 *	which captures a certain named capturing group.
 			 *
-			 *	If such a RegexPatternElemest has not yet been compiled,
+			 *	If such a RegexPatternElement has not yet been compiled,
 			 *	the compiler will set \em ptr if one is compiled in
 			 *	the future.
 			 *
@@ -307,7 +339,7 @@ namespace Unicode {
 			 *	Attempts to obtain a pointer to a RegexPatternElement
 			 *	which captures a certain numbered capturing group.
 			 *
-			 *	If such a RegexPatternElemest has not yet been compiled,
+			 *	If such a RegexPatternElement has not yet been compiled,
 			 *	the compiler will set \em ptr if one is compiled in
 			 *	the future.
 			 *
@@ -324,41 +356,79 @@ namespace Unicode {
 			 */
 			void GetCapturingGroup (std::size_t key, const RegexPatternElement * & ptr);
 			/**
-			 *	Retrieves the RegexPatternElements associated
-			 *	with a named capturing group.
+			 *	Attempts to obtain a pointer to a RegexPatternElement which
+			 *	captures a group relative to the current location.
+			 *
+			 *	For example, if \em dist is -1, a pointer to the last capturing
+			 *	group will be retrieved.
+			 *
+			 *	If such a RegexPatternElement has not yet been compiled,
+			 *	the compiler will set \em ptr if one is compiled in
+			 *	the future.
+			 *
+			 *	If such a RegexPatternElement is not compiled in the
+			 *	future, an exception will be thrown.
+			 *
+			 *	\param [in] dist
+			 *		The offset of the capturing group to retrieve.
+			 *	\param [in] ptr
+			 *		A reference to a const pointer to a RegexPatternElement,
+			 *		which will be populated either immediately (if
+			 *		a RegexPatternElement which captures \em key exists)
+			 *		or later.
+			 */
+			void GetRelativeCapturingGroup (std::ptrdiff_t dist, const RegexPatternElement * & ptr);
+			/**
+			 *	Retrieves a capturing group associated with a certain name if
+			 *	one exists.
+			 *
+			 *	\param [in] key
+			 *		The name of the capturing group to retrieve.
+			 *
+			 *	\return
+			 *		A pointer to a RegexPatternElement if there is a RegexPatternElement
+			 *		associated with \em key, \em nullptr otherwise.
+			 */
+			const RegexPatternElement * GetCapturingGroup (const String & key) const;
+			/**
+			 *	Retrieves a capturing group associated with a certain number if
+			 *	one exists.
+			 *
+			 *	\param [in] key
+			 *		The number of the capturing group to retrieve.
+			 *
+			 *	\return
+			 *		A pointer to a RegexPatternElement if there is a RegexPatternElement
+			 *		associated with \em key, \em nullptr otherwise.
+			 */
+			const RegexPatternElement * GetCapturingGroup (std::size_t key) const;
+			/**
+			 *	Adds a pattern element as capturing under a certain name.
 			 *
 			 *	\param [in] key
 			 *		The name.
-			 *
-			 *	\return
-			 *		The RegexPatternElements associated with
-			 *		\em key.
+			 *	\param [in] element
+			 *		The pattern element.
 			 */
-			Groups & operator [] (const String & key);
+			void AddCapturingGroup (const String & key, const RegexPatternElement & element);
 			/**
-			 *	Retrieves the RegexPatternElements associated
-			 *	with a named capturing group.
+			 *	Adds a pattern element as capturing under a certain name.
 			 *
 			 *	\param [in] key
 			 *		The name.
-			 *
-			 *	\return
-			 *		The RegexPatternElements associated with
-			 *		\em key.
+			 *	\param [in] element
+			 *		The pattern element.
 			 */
-			Groups & operator [] (String && key);
+			void AddCapturingGroup (String && key, const RegexPatternElement & element);
 			/**
-			 *	Retrieves the RegexPatternElements associated
-			 *	with a numbered capturing group.
+			 *	Adds a pattern element as capturing under a certain number.
 			 *
 			 *	\param [in] key
 			 *		The number.
-			 *
-			 *	\return
-			 *		The RegexPatternElements associated with
-			 *		\em key.
+			 *	\param [in] element
+			 *		The pattern element.
 			 */
-			Groups & operator [] (std::size_t key);
+			void AddCapturingGroup (std::size_t key, const RegexPatternElement & element);
 	
 	
 	};

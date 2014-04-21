@@ -228,6 +228,13 @@ namespace Unicode {
 					return retr;
 				
 				}
+				
+				
+				const T & Key () const noexcept {
+				
+					return key;
+				
+				}
 		
 		
 		};
@@ -372,11 +379,14 @@ namespace Unicode {
 				template <typename T>
 				static bool capturing_group (RegexCompiler & compiler, T && key) {
 				
-					auto & group=compiler[key];
-					group.push_back(
-						&compiler.Add<RegexCapturingGroup<
-							typename std::decay<T>::type>
-						>(compile(compiler),std::forward<T>(key))
+					auto & element=compiler.Add<RegexCapturingGroup<typename std::decay<T>::type>>(
+						compile(compiler),
+						std::forward<T>(key)
+					);
+					
+					compiler.AddCapturingGroup(
+						element.Key(),
+						element
 					);
 					
 					return true;
