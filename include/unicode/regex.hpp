@@ -1377,6 +1377,14 @@ namespace Unicode {
 			 *	The match that is being built.
 			 */
 			RegexMatch & Match;
+			/**
+			 *	The pattern the outermost RegexEngine is matching.
+			 *
+			 *	When a new RegexEngine is initialized using an existing
+			 *	RegexEngine and a new pattern, this reference continues
+			 *	to refer to the same pattern.
+			 */
+			const Regex::Pattern & Pattern;
 			
 			
 			RegexEngine (const RegexEngine &) = delete;

@@ -104,7 +104,8 @@ namespace Unicode {
 			pattern(pattern),
 			CanBacktrack(false),
 			PreventsBacktracking(false),
-			Match(match)
+			Match(match),
+			Pattern(pattern)
 	{	}
 	
 	
@@ -115,7 +116,8 @@ namespace Unicode {
 			pattern(pattern),
 			CanBacktrack(false),
 			PreventsBacktracking(false),
-			Match(other.Match)
+			Match(other.Match),
+			Pattern(other.Pattern)
 	{	}
 	
 	
