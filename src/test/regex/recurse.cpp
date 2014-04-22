@@ -392,3 +392,53 @@ SCENARIO("Relative groups may be recursed","[regex][recursion]") {
 	}
 
 }
+
+
+SCENARIO("The entire pattern may be recursed","[regex][recursion]") {
+
+	GIVEN("a(?:b|(?R))") {
+	
+		Regex r("a(?:b|(?R))");
+		
+		WHEN("It is matched against the empty string") {
+		
+			auto matches=r.Matches(String{});
+			
+			THEN("It does not match") {
+			
+				CHECK(matches.size()==0);
+			
+			}
+		
+		}
+		
+		WHEN("It is matched against \"a\"") {
+		
+			auto matches=r.Matches("a");
+			
+			THEN("It does not match") {
+			
+				CHECK(matches.size()==0);
+			
+			}
+		
+		}
+		
+		WHEN("It is matched against \"aaaab\"") {
+		
+			String s("aaaab");
+			auto matches=r.Matches(s);
+			
+			THEN("It matches the entire input") {
+			
+				REQUIRE(matches.size()==1);
+				CHECK(matches[0].begin()==s.begin());
+				CHECK(matches[0].Get()==s);
+			
+			}
+		
+		}
+	
+	}
+
+}
