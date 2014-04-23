@@ -19,6 +19,9 @@ namespace Unicode {
 			
 				std::vector<RegexState> states;
 				bool first;
+				//	Set if the last pattern element matched was
+				//	zero width
+				bool zero_width;
 				
 				
 				bool backtrack (RegexEngine & engine, std::size_t min) {
@@ -159,7 +162,20 @@ namespace Unicode {
 						else states.emplace_back(engine);
 						
 						auto & back=states.back();
-						if (!element(engine,back)) {
+						//	Record where the match began to detect zero
+						//	width matches
+						auto begin=back.Begin();
+						if (element(engine,back)) {
+						
+							zero_width=begin==engine.begin();
+							
+							if (zero_width && (states.size()>=min)) {
+							
+								return true;
+							
+							}
+						
+						} else {
 						
 							//	Match failed
 							
@@ -191,7 +207,7 @@ namespace Unicode {
 			public:
 			
 			
-				RegexMultipleState () : first(true) {	}
+				RegexMultipleState () : first(true), zero_width(false) {	}
 				
 
 				virtual void Rewind (RegexEngine & engine) override {
@@ -227,6 +243,13 @@ namespace Unicode {
 					else state.Clear();
 					
 					return retr;
+				
+				}
+				
+				
+				bool ZeroWidth () const noexcept {
+				
+					return zero_width;
 				
 				}
 		
@@ -350,14 +373,16 @@ namespace Unicode {
 			
 				std::size_t Current;
 				bool RewindRequired;
+				bool ZeroWidth;
 				
 				
-				RegexLazyMultipleState (std::size_t curr) : Current(curr), RewindRequired(false) {	}
+				RegexLazyMultipleState (std::size_t curr) : Current(curr), RewindRequired(false), ZeroWidth(true) {	}
 				
 				
 				virtual void Rewind (RegexEngine & engine) override {
 				
 					RewindRequired=false;
+					ZeroWidth=true;
 					
 					RegexMultipleState::Rewind(engine);
 				
@@ -406,6 +431,17 @@ namespace Unicode {
 					//	matches
 					if (s.RewindRequired) {
 					
+						//	If all matches between the previous rewind and now
+						//	were zero length, we're never going to make a longer
+						//	match, so fail
+						if (s.ZeroWidth) {
+						
+							state.Clear();
+							
+							return false;
+						
+						}
+					
 						state.Rewind(engine);
 						
 						first=false;
@@ -418,6 +454,9 @@ namespace Unicode {
 						if (s(engine,state,element,s.Current,s.Current,possessive)) {
 						
 							//	SUCCESS
+							
+							//	Maintain zero width flag
+							if (!s.RegexMultipleState::ZeroWidth()) s.ZeroWidth=false;
 						
 							//	If the match formed prevents backtracking, suceed
 							//	at once without further processing

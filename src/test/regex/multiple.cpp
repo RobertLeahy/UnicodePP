@@ -84,6 +84,76 @@ SCENARIO("* matches greedily at least zero times","[multiple][regex][greedy]") {
 }
 
 
+SCENARIO("Greedy matching does not succumb to an infinite loop when repeating a zero-width match","[greedy][multiple][regex]") {
+
+	GIVEN("A pattern which repeats a zero-width match") {
+	
+		Regex r("()*");
+		
+		WHEN("It is matched against some string") {
+		
+			auto matches=r.Matches(String{});
+			
+			THEN("It does not loop infinitely") {
+			
+				CHECK(matches.size()==1);
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("In the presence of a zero-width match, greedy matching still matches the minimum number of times","[greedy][multiple][regex]") {
+
+	GIVEN("A pattern which matches a zero-width match some minimum number of times") {
+	
+		Regex r("(){4,}");
+		
+		WHEN("It is matched against some string") {
+		
+			auto matches=r.Matches(String{});
+			
+			THEN("The match is repeated exactly the minimum number of times") {
+			
+				REQUIRE(matches.size()==1);
+				CHECK(matches[0][1].size()==4);
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Lazy matching does not succumb to an infinite loop when repeating a zero-width match","[lazy][multiple][regex]") {
+
+	GIVEN("A pattern which lazily repeats a zero-width match") {
+	
+		Regex r("()*?a");
+		
+		WHEN("It is matched against some string") {
+		
+			auto matches=r.Matches("ba");
+			
+			THEN("It does not loop infinitely") {
+			
+				CHECK(matches.size()==1);
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
 SCENARIO("Repetition constructs backtrack when greedy behaviour causes over-matching","[multiple][regex][backtracking][greedy]") {
 
 	GIVEN("a*a") {
