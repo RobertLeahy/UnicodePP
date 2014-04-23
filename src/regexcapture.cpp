@@ -1,4 +1,5 @@
 #include <unicode/regex.hpp>
+#include <utility>
 
 
 namespace Unicode {
@@ -6,7 +7,11 @@ namespace Unicode {
 
 	RegexCapture::RegexCapture (const CodePoint * begin, const CodePoint * end) noexcept
 		:	b(begin), e(end)
-	{	}
+	{
+	
+		if (b>e) std::swap(b,e);
+	
+	}
 	
 	
 	void RegexCapture::Complete () {

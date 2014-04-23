@@ -204,10 +204,7 @@ namespace Unicode {
 					
 					if (RegexGroup::operator ()(engine,state)) {
 					
-						auto end=engine.begin().Base();
-						if (begin>end) std::swap(begin,end);
-						
-						engine.Match[key].emplace_back(begin,end);
+						engine.Match[key].emplace_back(begin,engine.begin().Base());
 						
 						s.Captured=true;
 						
