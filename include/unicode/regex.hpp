@@ -51,7 +51,8 @@ namespace Unicode {
 		
 			const CodePoint * b;
 			const CodePoint * e;
-			std::optional<String> s;
+			bool completed;
+			String s;
 			
 			
 		public:
@@ -66,7 +67,7 @@ namespace Unicode {
 			 *	\param [in] end
 			 *		The end of the substring to capture.
 			 */
-			RegexCapture (const CodePoint * begin, const CodePoint * end) noexcept;
+			RegexCapture (const CodePoint * begin, const CodePoint * end);
 			
 			
 			/**
@@ -83,6 +84,13 @@ namespace Unicode {
 			 *		A reference to the captured substring.
 			 */
 			String & Get ();
+			/**
+			 *	Retrieves the captured substring.
+			 *
+			 *	\return
+			 *		A reference to the captured substring.
+			 */
+			const String & Get () const noexcept;
 			
 			
 			/** 
@@ -160,6 +168,14 @@ namespace Unicode {
 			 *		A reference to a string.
 			 */
 			String & Get () noexcept;
+			/**
+			 *	Retrieves the substring against which the pattern
+			 *	matched.
+			 *
+			 *	\return
+			 *		A reference to a string.
+			 */
+			const String & Get () const noexcept;
 			
 			
 			/**
@@ -216,6 +232,32 @@ namespace Unicode {
 			 *		A reference to the capturing group.
 			 */
 			Type & operator [] (std::size_t key);
+			/**
+			 *	Obtains a collection of captures which correspond to a
+			 *	named capturing group.
+			 *
+			 *	If \em key does not exist, std::out_of_range is thrown.
+			 *
+			 *	\param [in] key
+			 *		The name of the capturing group.
+			 *
+			 *	\return
+			 *		A reference to the capturing group.
+			 */
+			const Type & operator [] (const String & key) const;
+			/**
+			 *	Obtains a collection of captures which correspond to a
+			 *	numbered capturing group.
+			 *
+			 *	If \em key does not exist, std::out_of_range is thrown.
+			 *
+			 *	\param [in] key
+			 *		The number of the capturing group.
+			 *
+			 *	\return
+			 *		A reference to the capturing group.
+			 */
+			const Type & operator [] (std::size_t key) const;
 			
 			
 			/**

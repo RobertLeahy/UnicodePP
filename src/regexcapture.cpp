@@ -5,8 +5,8 @@
 namespace Unicode {
 
 
-	RegexCapture::RegexCapture (const CodePoint * begin, const CodePoint * end) noexcept
-		:	b(begin), e(end)
+	RegexCapture::RegexCapture (const CodePoint * begin, const CodePoint * end)
+		:	b(begin), e(end), completed(false)
 	{
 	
 		if (b>e) std::swap(b,e);
@@ -16,7 +16,13 @@ namespace Unicode {
 	
 	void RegexCapture::Complete () {
 	
-		if (!s) s.emplace(b,e);
+		if (!completed) {
+		
+			s=String(b,e);
+			
+			completed=true;
+			
+		}
 	
 	}
 	
@@ -25,7 +31,14 @@ namespace Unicode {
 	
 		Complete();
 		
-		return *s;
+		return s;
+	
+	}
+	
+	
+	const String & RegexCapture::Get () const noexcept {
+	
+		return s;
 	
 	}
 	
