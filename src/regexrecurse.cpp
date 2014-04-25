@@ -97,7 +97,7 @@ namespace Unicode {
 	}
 	
 	
-	static const RegexParserInstaller<RegexRecurseParser> installer;
+	static const RegexParserInstaller<RegexRecurseParser> installer(false);
 
 
 }

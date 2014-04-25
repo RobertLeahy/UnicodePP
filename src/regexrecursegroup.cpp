@@ -220,7 +220,7 @@ namespace Unicode {
 	}
 	
 	
-	static const RegexParserInstaller<RegexRecurseGroupParser> installer;
+	static const RegexParserInstaller<RegexRecurseGroupParser> installer(false);
 
 
 }
