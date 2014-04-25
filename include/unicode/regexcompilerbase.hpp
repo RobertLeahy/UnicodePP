@@ -86,9 +86,7 @@ namespace Unicode {
 				
 				auto & self=*this;
 				
-				if (!self) return *str==0;
-				
-				for (;(*str!=0) && (*str==*self) && self;++str,++self);
+				for (;(*str!=0) && self && (*str==*self);++str,++self);
 				
 				return *str==0;
 			

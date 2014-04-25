@@ -150,6 +150,7 @@ namespace Unicode {
 				void Release (RegexEngine & engine) noexcept {
 				
 					if (!Captured) return;
+					Captured=false;
 					
 					auto & captures=engine.Match[key];
 					captures.erase(captures.end()-1);

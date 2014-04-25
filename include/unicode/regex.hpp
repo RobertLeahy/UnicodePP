@@ -532,6 +532,10 @@ namespace Unicode {
 			 *		The engine from which to create the state.
 			 */
 			RegexState (const RegexEngine & engine) noexcept;
+			RegexState (const RegexState &) = default;
+			RegexState (RegexState &&) = default;
+			RegexState & operator = (const RegexState &) = default;
+			RegexState & operator = (RegexState &&) = default;
 			
 			
 			/**
