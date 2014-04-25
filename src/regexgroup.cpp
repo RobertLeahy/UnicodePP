@@ -237,6 +237,167 @@ namespace Unicode {
 		};
 		
 		
+		template <typename T1, typename T2>
+		class RegexBalancingState : public RegexGroupState {
+		
+		
+			private:
+			
+			
+				T1 name1;
+				T2 name2;
+				RegexCapture capture;
+				
+				
+			public:
+			
+			
+				RegexEngine Engine;
+			
+			
+				RegexBalancingState (
+					const RegexEngine & engine,
+					const RegexCompiler::Elements & pattern,
+					T1 name1,
+					T2 name2,
+					RegexCapture capture
+				)	:	RegexGroupState(engine,pattern),
+						name1(std::move(name1)),
+						name2(std::move(name2)),
+						capture(std::move(capture)),
+						Engine(engine,pattern)
+				{	}
+				
+				
+				virtual void Rewind (RegexEngine & engine) override {
+				
+					RegexGroupState::Rewind(engine);
+					
+					//	Remove the capture that we formed
+					auto & ours=engine.Match[name1];
+					ours.erase(ours.end()-1);
+					
+					//	Restore the capture that we popped
+					engine.Match[name2].push_back(std::move(capture));
+				
+				}
+		
+		
+		};
+		
+		
+		template <typename T1, typename T2>
+		class RegexBalancing : public RegexPatternElement {
+		
+		
+			private:
+			
+			
+				typedef RegexBalancingState<T1,T2> type;
+			
+			
+				T1 name1;
+				T2 name2;
+				RegexCompiler::Elements subexpression;
+				
+				
+				static std::size_t distance (const CodePoint * a, const CodePoint * b) noexcept {
+				
+					return static_cast<std::size_t>((a<b) ? (b-a) : (a-b));
+				
+				}
+				
+				
+				static RegexCapture capture (const RegexEngine & engine, const RegexCapture & capture) noexcept {
+				
+					auto loc=engine.begin().Base();
+					auto begin=capture.begin();
+					auto end=capture.end();
+					return RegexCapture(
+						loc,
+						(distance(loc,begin)<distance(loc,end)) ? begin : end
+					);
+				
+				}
+				
+				
+				bool capture (RegexEngine & engine, RegexState & state) const {
+				
+					//	Fetch the capturing group we're balancing with,
+					//	if it hasn't captured, fail
+					auto & captures=engine.Match[name2];
+					if (captures.size()==0) return false;
+					
+					//	Pop the last capture
+					auto c=std::move(captures.back());
+					captures.erase(captures.end()-1);
+					
+					//	Add our capture
+					engine.Match[name1].push_back(capture(engine,c));
+					
+					//	Create state
+					state.Imbue<type>(engine,subexpression,name1,name2,std::move(c));
+					
+					return true;
+				
+				}
+				
+				
+			public:
+			
+			
+				RegexBalancing (
+					T1 name1,
+					T2 name2,
+					RegexCompiler::Elements subexpression,
+					RegexOptions options,
+					const Unicode::Locale & locale
+				)	:	RegexPatternElement(options,locale),
+						name1(std::move(name1)),
+						name2(std::move(name2)),
+						subexpression(std::move(subexpression))
+				{	}
+				
+				
+				virtual bool operator () (RegexEngine & engine, RegexState & state) const override {
+				
+					if (!(state || capture(engine,state))) return false;
+					
+					auto & e=state.Get<type>().Engine;
+					if (e()) {
+					
+						e.Set(engine);
+						e.Set(state);
+						
+						return true;
+					
+					}
+					
+					state.Clear();
+					
+					return false;
+				
+				}
+				
+				
+				virtual RegexToString ToString () const override {
+				
+					RegexToString retr;
+					retr.Parent	<< "The subpattern (capturing group "
+								<< format(name1)
+								<< ", balances against capturing group "
+								<< format(name2)
+								<< ")";
+					for (auto & element : subexpression) retr.Children.push_back(element->ToString());
+
+					return retr;
+				
+				}
+		
+		
+		};
+		
+		
 		class RegexGroupCompiler : public RegexCompiler {
 		
 		
@@ -443,6 +604,81 @@ namespace Unicode {
 				}
 				
 				
+				static bool balancing (RegexCompiler & compiler, const String & name) {
+				
+					//	Get the first name, which is separated from
+					//	the second name by a hyphen
+					String name1;
+					auto begin=name.begin();
+					auto end=name.end();
+					for (;begin!=end;++begin) {
+					
+						if (*begin=='-') {
+						
+							++begin;
+							break;
+						
+						}
+						
+						name1 << *begin;
+					
+					}
+					
+					//	If there's only one name, this isn't a balancing
+					//	group, so fail
+					if (begin==end) return false;
+					
+					//	Get the second name, which is all the way from the
+					//	hyphen to the end
+					String name2;
+					for (;begin!=end;++begin) name2 << *begin;
+					
+					//	Attempt to convert the group names to numbers
+					//
+					//	name1 may be empty, in which case we use an automatically
+					//	assigned number
+					std::optional<std::size_t> number1;
+					if (name1.Size()==0) number1=compiler.GetCaptureNumber();
+					else number1=name1.To<std::size_t>();
+					auto number2=name2.To<std::size_t>();
+					
+					//	Compile
+					if (number1) {
+					
+						if (number2) compiler.Add<RegexBalancing<std::size_t,std::size_t>>(
+							*number1,
+							*number2,
+							compile(compiler)
+						);
+						else compiler.Add<RegexBalancing<std::size_t,String>>(
+							*number1,
+							std::move(name2),
+							compile(compiler)
+						);
+					
+					} else if (number2) {
+					
+						compiler.Add<RegexBalancing<String,std::size_t>>(
+							std::move(name1),
+							*number2,
+							compile(compiler)
+						);
+					
+					} else {
+					
+						compiler.Add<RegexBalancing<String,String>>(
+							std::move(name1),
+							std::move(name2),
+							compile(compiler)
+						);
+					
+					}
+					
+					return true;
+				
+				}
+				
+				
 				static bool named_capturing_group (RegexCompiler & compiler, CodePoint delimiter) {
 				
 					auto name=get(compiler,(delimiter=='<') ? '>' : '\'');
@@ -456,6 +692,9 @@ namespace Unicode {
 					
 					//	Move past the delimiter
 					++compiler;
+					
+					//	Check to see if this is a balancing construct
+					if (balancing(compiler,*name)) return true;
 					
 					//	Check to see if this is a numbered capturing group
 					auto number=name->To<std::size_t>();
