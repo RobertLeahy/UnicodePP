@@ -50,6 +50,7 @@ obj/%.o:
 	
 	
 include data.mk
+include testshared.mk
 include test.mk
 include unicodeshared.mk
 include unicode.mk
