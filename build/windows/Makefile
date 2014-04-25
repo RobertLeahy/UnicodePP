@@ -51,5 +51,6 @@ obj/%.o:
 	
 include data.mk
 include test.mk
+include unicodeshared.mk
 include unicode.mk
 include unicodedata.mk
