@@ -262,8 +262,11 @@ namespace Unicode {
 					}
 					
 					//	If there's no subtraction, we match automatically,
-					//	consuming exactly one code point
+					//	consuming exactly one code point, provided there's
+					//	a code point to consume
 					if (!subtraction) {
+						
+						if (!engine) return false;
 					
 						++engine;
 						
