@@ -289,7 +289,6 @@ namespace Unicode {
 					
 						c();
 						no=c.Get();
-						
 					
 					}
 					
