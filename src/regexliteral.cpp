@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <limits>
 #include <optional>
+#include <type_traits>
 #include <utility>
 
 
@@ -140,30 +141,39 @@ namespace Unicode {
 	
 	}
 
-
+	
+	static String format (std::size_t number) {
+	
+		return String(number);
+	
+	}
+	
+	
+	static String format (const String & name) {
+	
+		String retr;
+		retr << "\"" << name << "\"";
+		
+		return retr;
+	
+	}
+	
+	
 	namespace {
 	
 	
-		class RegexLiteral : public RegexPatternElement {
+		class RegexLiteralBase : public RegexPatternElement {
 		
 		
 			private:
 			
 			
-				const CodePoint * last;
-				String str;
-				
-				
 				template <typename Iterator>
 				static bool case_sensitive_check (Iterator begin, Iterator end, RegexEngine & engine) noexcept {
 				
-					for (;begin!=end;++begin,++engine) {
+					for (;(begin!=end) && engine;++engine,++begin) if (*begin!=*engine) return false;
 					
-						if (!(engine && (*engine==*begin))) return false;
-					
-					}
-					
-					return true;
+					return begin==end;
 				
 				}
 				
@@ -171,11 +181,7 @@ namespace Unicode {
 				template <typename Iterator1, typename Iterator2>
 				static bool check (Iterator1 & begin_a, Iterator1 & end_a, Iterator2 begin_b, Iterator2 end_b) noexcept {
 				
-					for (;(begin_a!=end_a) && (begin_b!=end_b);++begin_a,++begin_b) {
-					
-						if (*begin_a!=*begin_b) return false;
-						
-					}
+					for (;!((begin_a==end_a) || (begin_b==end_b));++begin_a,++begin_b) if (*begin_a!=*begin_b) return false;
 					
 					return begin_b==end_b;
 				
@@ -188,33 +194,33 @@ namespace Unicode {
 					auto b=engine.Begin();
 					auto e=engine.End();
 					CaseConverter cc(Locale);
-					for (;begin!=end;++engine) {
+					for (;(begin!=end) && engine;++engine) {
 					
-						if (!engine) return false;
-					
-						auto folded=cc.Fold(&(*engine),b,e);
-						
+						auto folding=cc.Fold(&(*engine),b,e);
 						if (!(
 							engine.Reversed() ? check(
 								begin,
 								end,
-								MakeReverseIterator(folded.end()),
-								MakeReverseIterator(folded.begin())
+								MakeReverseIterator(folding.end()),
+								MakeReverseIterator(folding.begin())
 							) : check(
 								begin,
 								end,
-								folded.begin(),
-								folded.end()
+								folding.begin(),
+								folding.end()
 							)
 						)) return false;
 					
 					}
 					
-					return true;
+					return begin==end;	
 				
 				}
-				
-				
+		
+		
+			protected:
+			
+			
 				template <typename Iterator>
 				bool check (Iterator begin, Iterator end, RegexEngine & engine) const noexcept {
 				
@@ -229,12 +235,31 @@ namespace Unicode {
 					);
 				
 				}
+				
+				
+			public:
+			
+			
+				using RegexPatternElement::RegexPatternElement;
+		
+		
+		};
+	
+	
+		class RegexLiteral : public RegexLiteralBase {
+		
+		
+			private:
+			
+			
+				const CodePoint * last;
+				String str;
 		
 		
 			public:
 			
 			
-				RegexLiteral (RegexOptions options, const Unicode::Locale & locale) noexcept : RegexPatternElement(options,locale), last(nullptr) {
+				RegexLiteral (RegexOptions options, const Unicode::Locale & locale) noexcept : RegexLiteralBase(options,locale), last(nullptr) {
 				
 					str.SetLocale(locale);
 				
@@ -242,7 +267,7 @@ namespace Unicode {
 				
 				
 				RegexLiteral (String str, RegexOptions options, const Unicode::Locale & locale) noexcept
-					:	RegexPatternElement(options,locale),
+					:	RegexLiteralBase(options,locale),
 						last(nullptr),
 						str(std::move(str))
 				{
@@ -252,7 +277,7 @@ namespace Unicode {
 				}
 			
 			
-				using RegexPatternElement::RegexPatternElement;
+				using RegexLiteralBase::RegexLiteralBase;
 				
 				
 				virtual bool operator () (RegexEngine & engine, RegexState &) const override {
@@ -400,6 +425,162 @@ namespace Unicode {
 		};
 	
 	
+		template <typename T>
+		class RegexBackreference : public RegexLiteralBase {
+		
+		
+			private:
+			
+			
+				T name;
+				
+				
+				template <typename Iterator>
+				bool check (Iterator begin, Iterator end, RegexEngine & engine) const noexcept {
+				
+					return engine.Reversed() ? RegexLiteralBase::check(
+						MakeReverseIterator(std::move(end)),
+						MakeReverseIterator(std::move(begin)),
+						engine
+					) : RegexLiteralBase::check(
+						std::move(begin),
+						std::move(end),
+						engine
+					);
+				
+				}
+				
+				
+			public:
+			
+			
+				RegexBackreference (T name, RegexOptions options, const Unicode::Locale & locale) noexcept(
+					std::is_nothrow_move_constructible<T>::value
+				)	:	RegexLiteralBase(options,locale),
+						name(std::move(name))
+				{	}
+				
+				
+				virtual bool operator () (RegexEngine & engine, RegexState &) const override {
+				
+					//	Check to see if the referenced capture has,
+					//	any captures.  If it doesn't, always fail
+					auto & captures=engine.Match[name];
+					if (captures.size()==0) return false;
+					
+					//	Extract the begin and end iterators for the
+					//	capture.  Due to the way RegexCapture objects
+					//	are structured, extracting the begin and end
+					//	iterators does not trigger evaluation (i.e.
+					//	creation of an internal String object), and
+					//	therefore is much less expensive
+					auto & capture=captures.back();
+					auto begin=capture.begin();
+					auto end=capture.end();
+					
+					//	If case is being ignored, we must perform case
+					//	folding before comparing
+					if (Check(RegexOptions::IgnoreCase)) {
+					
+						auto folded=CaseConverter(Locale).Fold(begin,end);
+						return check(folded.begin(),folded.end(),engine);
+						
+					}
+					
+					return check(begin,end,engine);
+				
+				}
+				
+				
+				virtual RegexToString ToString () const override {
+				
+					RegexToString retr;
+					retr.Parent << "The value of capturing group " << format(name);
+					if (Check(RegexOptions::IgnoreCase)) retr.Parent << " with case differences ignored";
+					
+					return retr;
+				
+				}
+		
+		
+		};
+		
+		
+		class RegexBackreferenceParser : public RegexParser {
+		
+		
+			private:
+			
+			
+				static bool k (RegexCompiler & compiler) {
+				
+					String name;
+					for (;compiler && (*compiler!='>');++compiler) name << *compiler;
+					
+					if (!compiler) compiler.Raise("Unterminated backreference");
+					
+					++compiler;
+					
+					auto number=name.To<std::size_t>();
+					if (number) compiler.Add<RegexBackreference<std::size_t>>(*number);
+					else compiler.Add<RegexBackreference<String>>(std::move(name));
+					
+					return true;
+				
+				}
+				
+				
+				static bool number (RegexCompiler & compiler) {
+				
+					String str;
+					for (bool first=true;compiler;++compiler,first=false) {
+					
+						auto cpi=compiler->GetInfo(compiler.Locale);
+						if (
+							(cpi==nullptr) ||
+							(!cpi->Numeric) ||
+							(cpi->Numeric->Type!=NumericType::Decimal)
+						) break;
+						
+						//	Leading zeroes lead to immediate failure
+						if (first && (cpi->Numeric->Value==0.0)) return false;
+						
+						str << *compiler;
+					
+					}
+					
+					//	If there were no digits, fail
+					if (str.Size()==0) return false;
+					
+					auto number=str.Convert<std::size_t>();
+					
+					//	If this capturing group doesn't exist, fail
+					if (compiler.GetCapturingGroup(number)==nullptr) return false;
+					
+					compiler.Add<RegexBackreference<std::size_t>>(number);
+					
+					return true;
+				
+				}
+		
+		
+			public:
+			
+			
+				virtual bool operator () (RegexCompiler & compiler) const override {
+				
+					if (!compiler.IsNext('\\')) return false;
+					
+					if (compiler.IsNext("k<")) return k(compiler);
+					
+					return number(compiler);
+				
+				}
+		
+		
+		};
+	
+	
 		class RegexRange : public RegexPatternElement {
 		
 		
@@ -517,7 +698,8 @@ namespace Unicode {
 	
 	
 	static const RegexParserInstaller<RegexLiteralParser> installer_1(priority);
-	static const RegexParserInstaller<RegexRangeParser> installer_2(priority-1);
+	static const RegexParserInstaller<RegexBackreferenceParser> installer_2(false);
+	static const RegexParserInstaller<RegexRangeParser> installer_3(priority-1);
 
 
 }
