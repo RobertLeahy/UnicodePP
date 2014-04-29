@@ -147,17 +147,26 @@ namespace Unicode {
 		public:
 		
 		
+			RegexMatch () = delete;
+			/**
+			 *	Creates a new RegexMatch, starting at a certain
+			 *	location.
+			 *
+			 *	\param [in] begin
+			 *		An iterator to the point in the subject string
+			 *		at which this match should begin.
+			 */
+			RegexMatch (const CodePoint * begin) noexcept;
+		
+		
 			/**
 			 *	Completes the match.
 			 *
-			 *	\param [in] begin
-			 *		An iterator to the beginning of the substring
-			 *		where the pattern matched.
 			 *	\param [in] end
 			 *		An iterator to the end of the substring where
 			 *		the pattern matched.
 			 */
-			void Complete (const CodePoint * begin, const CodePoint * end);
+			void Complete (const CodePoint * end);
 		
 		
 			/**
@@ -178,6 +187,15 @@ namespace Unicode {
 			const String & Get () const noexcept;
 			
 			
+			/**
+			 *	Sets the iterator to the beginning of the substring against
+			 *	which the pattern is matching.
+			 *
+			 *	\param [in] begin
+			 *		An iterator to the beginning of the substring against which
+			 *		the pattern is matching.
+			 */
+			void begin (const CodePoint * begin) noexcept;
 			/**
 			 *	Retrieves an iterator to the beginning of the substring
 			 *	against which the pattern matched.

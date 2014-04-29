@@ -27,15 +27,6 @@ namespace Unicode {
 		else ++loc;
 	
 	}
-	
-	
-	static void complete (RegexMatch & match, const CodePoint * begin, const CodePoint * end) {
-	
-		if (begin>end) std::swap(begin,end);
-		
-		match.Complete(begin,end);
-	
-	}
 
 
 	void Regex::Iterator::next () {
@@ -63,7 +54,7 @@ namespace Unicode {
 		
 			//	Attempt match
 		
-			RegexMatch match;
+			RegexMatch match(loc);
 			RegexEngine engine(
 				loc,
 				begin,
@@ -80,7 +71,7 @@ namespace Unicode {
 			
 				//	Complete the match and update the state
 				auto l=engine.begin().Base();
-				complete(match,loc,l);
+				match.Complete(l);
 				loc=last=l;
 				this->match=std::move(match);
 				

@@ -2,6 +2,7 @@
 #include <new>
 #include <stdexcept>
 #include <type_traits>
+#include <utility>
 
 
 namespace Unicode {
@@ -13,13 +14,18 @@ namespace Unicode {
 		for (auto & pair : map) for (auto & capture : pair.second) capture.Complete();
 	
 	}
-
-
-	void RegexMatch::Complete (const CodePoint * begin, const CodePoint * end) {
 	
-		b=begin;
+	
+	RegexMatch::RegexMatch (const CodePoint * begin) noexcept : b(begin) {	}
+
+
+	void RegexMatch::Complete (const CodePoint * end) {
+	
 		e=end;
-		s=String(begin,end);
+		
+		if (b>e) std::swap(b,e);
+		
+		s=String(b,e);
 		
 		complete(numbered);
 		complete(named);
@@ -37,6 +43,13 @@ namespace Unicode {
 	const String & RegexMatch::Get () const noexcept {
 	
 		return s;
+	
+	}
+	
+	
+	void RegexMatch::begin (const CodePoint * begin) noexcept {
+	
+		b=begin;
 	
 	}
 	
