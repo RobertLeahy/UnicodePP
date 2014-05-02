@@ -68,16 +68,27 @@ namespace Unicode {
 	}
 	
 	
+	template <typename T>
+	RegexMatch::Type & get (RegexMatch::Map<String> & named, RegexMatch::Map<std::size_t> & numbered, T && key) {
+	
+		auto number=key.template To<std::size_t>();
+		if (number) return numbered[*number];
+		
+		return named[std::forward<T>(key)];
+	
+	}
+	
+	
 	RegexMatch::Type & RegexMatch::operator [] (const String & key) {
 	
-		return named[key];
+		return get(named,numbered,key);
 	
 	}
 	
 	
 	RegexMatch::Type & RegexMatch::operator [] (String && key) {
 	
-		return named[std::move(key)];
+		return get(named,numbered,std::move(key));
 	
 	}
 	
@@ -101,6 +112,9 @@ namespace Unicode {
 	
 	
 	const RegexMatch::Type & RegexMatch::operator [] (const String & key) const {
+	
+		auto number=key.To<std::size_t>();
+		if (number) return operator [](*number);
 	
 		return get(named,key);
 	
