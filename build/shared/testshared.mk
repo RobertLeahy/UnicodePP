@@ -10,6 +10,7 @@ obj/test/main.o \
 obj/test/regex/anchor.o \
 obj/test/regex/backreference.o \
 obj/test/regex/characterclasses.o \
+obj/test/regex/group.o\
 obj/test/regex/lookaround.o \
 obj/test/regex/misc.o \
 obj/test/regex/multiple.o \

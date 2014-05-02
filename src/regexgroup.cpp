@@ -80,6 +80,9 @@ namespace Unicode {
 			public:
 			
 			
+				RegexGroup (RegexOptions options, const Unicode::Locale & locale) : RegexPatternElement(options,locale) {	}
+			
+			
 				RegexGroup (RegexCompiler::Elements pattern, RegexOptions options, const Unicode::Locale & locale)
 					:	RegexPatternElement(options,locale),
 						pattern(std::move(pattern))
@@ -113,6 +116,13 @@ namespace Unicode {
 					for (auto & element : pattern) retr.Children.push_back(element->ToString());
 					
 					return retr;
+				
+				}
+				
+				
+				void Pattern (RegexCompiler::Elements pattern) {
+				
+					this->pattern=std::move(pattern);
 				
 				}
 		
@@ -187,11 +197,10 @@ namespace Unicode {
 			
 			
 				RegexCapturingGroup (
-					RegexCompiler::Elements pattern,
 					T key,
 					RegexOptions options,
 					const Unicode::Locale & locale
-				)	:	RegexGroup(std::move(pattern),options,locale),
+				)	:	RegexGroup(options,locale),
 						key(std::move(key))
 				{	}
 				
@@ -288,7 +297,7 @@ namespace Unicode {
 		
 		
 		template <typename T1, typename T2>
-		class RegexBalancing : public RegexPatternElement {
+		class RegexBalancing : public RegexGroup {
 		
 		
 			private:
@@ -299,7 +308,6 @@ namespace Unicode {
 			
 				T1 name1;
 				T2 name2;
-				RegexCompiler::Elements subexpression;
 				
 				
 				static std::size_t distance (const CodePoint * a, const CodePoint * b) noexcept {
@@ -337,7 +345,7 @@ namespace Unicode {
 					engine.Match[name1].push_back(capture(engine,c));
 					
 					//	Create state
-					state.Imbue<type>(engine,subexpression,name1,name2,std::move(c));
+					state.Imbue<type>(engine,pattern,name1,name2,std::move(c));
 					
 					return true;
 				
@@ -350,13 +358,11 @@ namespace Unicode {
 				RegexBalancing (
 					T1 name1,
 					T2 name2,
-					RegexCompiler::Elements subexpression,
 					RegexOptions options,
 					const Unicode::Locale & locale
-				)	:	RegexPatternElement(options,locale),
+				)	:	RegexGroup(options,locale),
 						name1(std::move(name1)),
-						name2(std::move(name2)),
-						subexpression(std::move(subexpression))
+						name2(std::move(name2))
 				{	}
 				
 				
@@ -364,19 +370,7 @@ namespace Unicode {
 				
 					if (!(state || capture(engine,state))) return false;
 					
-					auto & e=state.Get<type>().Engine;
-					if (e()) {
-					
-						e.Set(engine);
-						e.Set(state);
-						
-						return true;
-					
-					}
-					
-					state.Clear();
-					
-					return false;
+					return RegexGroup::operator ()(engine,state);
 				
 				}
 				
@@ -389,9 +383,16 @@ namespace Unicode {
 								<< ", balances against capturing group "
 								<< format(name2)
 								<< ")";
-					for (auto & element : subexpression) retr.Children.push_back(element->ToString());
+					for (auto & element : pattern) retr.Children.push_back(element->ToString());
 
 					return retr;
+				
+				}
+				
+				
+				const T2 & Key () const noexcept {
+				
+					return name2;
 				
 				}
 		
@@ -475,57 +476,72 @@ namespace Unicode {
 				};
 				
 				
-				static std::optional<Options> parse_options (RegexCompiler & compiler) {
+				static RegexOptions get_option (CodePoint cp) noexcept {
 				
-					auto start=compiler.Current;
-				
-					Options retr;
+					switch (cp) {
 					
-					bool disable=false;
-					for (;compiler;++compiler) {
-					
-						switch (*compiler) {
-						
-							case '-':
-								disable=true;
-								break;
-							case ':':
-							case ')':
-								return retr;
-							case 'i':
-								retr.Add(RegexOptions::IgnoreCase,disable);
-								break;
-							case 'm':
-								retr.Add(RegexOptions::Multiline,disable);
-								break;
-							case 's':
-								retr.Add(RegexOptions::Singleline,disable);
-								break;
-							case 'n':
-								retr.Add(RegexOptions::ExplicitCapture,disable);
-								break;
-							case 'x':
-								retr.Add(RegexOptions::IgnorePatternWhiteSpace,disable);
-								break;
-							default:
-								compiler.Current=start;
-								return std::nullopt;
-						
-						}
+						case 'i':
+							return RegexOptions::IgnoreCase;
+						case 'm':
+							return RegexOptions::Multiline;
+						case 'n':
+							return RegexOptions::ExplicitCapture;
+						case 's':
+							return RegexOptions::Singleline;
+						case 'x':
+							return RegexOptions::IgnorePatternWhiteSpace;
+						default:
+							return RegexOptions::None;
 					
 					}
+				
+				}
+				
+				
+				static RegexOptions get_option (RegexCompiler & compiler) {
+				
+					if (!compiler) raise(compiler);
 					
-					//	We ran out of string, return what we've got,
-					//	the fact that this is invalid will be caught
-					//	elsewhere
+					auto retr=get_option(*compiler);
+					if (retr==RegexOptions::None) compiler.Raise("Unrecognized option");
+					
+					++compiler;
+					
 					return retr;
 				
 				}
 				
 				
-				static RegexCompiler::Elements compile (RegexCompiler & compiler) {
+				static Options parse_options (RegexCompiler & compiler) {
+				
+					Options options;
+					bool disable=false;
+					for (;;) {
+					
+						if (!compiler) raise(compiler);
+						
+						if ((*compiler==':') || (*compiler==')')) return options;
+						
+						if (!disable && (*compiler=='-')) {
+						
+							disable=true;
+							
+							if (!++compiler) raise(compiler);
+							
+						}
+						
+						options.Add(get_option(compiler),disable);
+					
+					}
+				
+				}
+				
+				
+				static RegexCompiler::Elements compile (RegexCompiler & compiler, Options options=Options{}) {
 				
 					RegexGroupCompiler c(compiler);
+					options.Apply(c.Options);
+					
 					c();
 					
 					compiler.Current=c.Current;
@@ -535,144 +551,46 @@ namespace Unicode {
 				}
 				
 				
-				template <typename T>
-				static bool capturing_group (RegexCompiler & compiler, T && key) {
+				static bool non_capturing_group (RegexCompiler & compiler, Options options=Options{}) {
 				
-					auto & element=compiler.Add<RegexCapturingGroup<typename std::decay<T>::type>>(
-						compile(compiler),
-						std::forward<T>(key)
-					);
-					
-					compiler.AddCapturingGroup(
-						element.Key(),
-						element
-					);
+					compiler.Add<RegexGroup>(compile(compiler,std::move(options)));
 					
 					return true;
 				
 				}
 				
 				
-				static bool non_capturing_group (RegexCompiler & compiler, const Options & options) {
+				static bool parse_non_capturing_group (RegexCompiler & compiler) {
 				
-					if (!compiler) return false;
-					
-					//	Whether or not this is simply changing the
-					//	options
-					bool opts=*compiler==')';
+					auto options=parse_options(compiler);
 					++compiler;
 					
-					//	Simply changing the options
-					if (opts) {
+					return non_capturing_group(compiler,std::move(options));
+				
+				}
+				
+				
+				template <typename T>
+				static void capturing_group (RegexCompiler & compiler, T && name) {
+				
+					auto & element=compiler.Add<RegexCapturingGroup<typename std::decay<T>::type>>(std::forward<T>(name));
+					compiler.AddCapturingGroup(element.Key(),element);
 					
-						options.Apply(compiler.Options);
-						
-						return true;
-					
-					}
-					
-					//	Handle a non-capturing group
-					compiler.Add<RegexGroup>(compile(compiler));
-					
-					return true;
+					element.Pattern(compile(compiler));
 				
 				}
 				
 				
 				static bool automatic_capturing_group (RegexCompiler & compiler) {
 				
-					return compiler.Check(RegexOptions::ExplicitCapture)
-						?	non_capturing_group(compiler,Options{})
-						:	capturing_group(compiler,compiler.GetCaptureNumber());
-				
-				}
-				
-				
-				static std::optional<String> get (RegexCompiler & compiler, CodePoint delimiter) {
-				
-					String str;
-					for (;compiler;++compiler) {
+					if (Check(compiler.Options,RegexOptions::ExplicitCapture)) {
 					
-						if (*compiler==')') return std::nullopt;
-						if (*compiler==delimiter) return str;
-						
-						str << *compiler;
-					
-					}
-					
-					return std::nullopt;
-				
-				}
-				
-				
-				static bool balancing (RegexCompiler & compiler, const String & name) {
-				
-					//	Get the first name, which is separated from
-					//	the second name by a hyphen
-					String name1;
-					auto begin=name.begin();
-					auto end=name.end();
-					for (;begin!=end;++begin) {
-					
-						if (*begin=='-') {
-						
-							++begin;
-							break;
-						
-						}
-						
-						name1 << *begin;
-					
-					}
-					
-					//	If there's only one name, this isn't a balancing
-					//	group, so fail
-					if (begin==end) return false;
-					
-					//	Get the second name, which is all the way from the
-					//	hyphen to the end
-					String name2;
-					for (;begin!=end;++begin) name2 << *begin;
-					
-					//	Attempt to convert the group names to numbers
-					//
-					//	name1 may be empty, in which case we use an automatically
-					//	assigned number
-					std::optional<std::size_t> number1;
-					if (name1.Size()==0) number1=compiler.GetCaptureNumber();
-					else number1=name1.To<std::size_t>();
-					auto number2=name2.To<std::size_t>();
-					
-					//	Compile
-					if (number1) {
-					
-						if (number2) compiler.Add<RegexBalancing<std::size_t,std::size_t>>(
-							*number1,
-							*number2,
-							compile(compiler)
-						);
-						else compiler.Add<RegexBalancing<std::size_t,String>>(
-							*number1,
-							std::move(name2),
-							compile(compiler)
-						);
-					
-					} else if (number2) {
-					
-						compiler.Add<RegexBalancing<String,std::size_t>>(
-							std::move(name1),
-							*number2,
-							compile(compiler)
-						);
+						compiler.Add<RegexGroup>(compile(compiler));
 					
 					} else {
 					
-						compiler.Add<RegexBalancing<String,String>>(
-							std::move(name1),
-							std::move(name2),
-							compile(compiler)
-						);
-					
+						capturing_group(compiler,compiler.GetCaptureNumber());
+						
 					}
 					
 					return true;
@@ -680,29 +598,120 @@ namespace Unicode {
 				}
 				
 				
-				static bool named_capturing_group (RegexCompiler & compiler, CodePoint delimiter) {
+				static std::pair<String,bool> get_first (RegexCompiler & compiler, CodePoint terminator) {
 				
-					auto name=get(compiler,(delimiter=='<') ? '>' : '\'');
-					if (!name) {
+					typedef std::pair<String,bool> type;
+				
+					String name;
+					for (;;++compiler) {
 					
 						if (!compiler) raise(compiler);
 						
-						compiler.Raise("Unterminated group name");
+						auto cp=*compiler;
+						
+						if (cp==terminator) return type(std::move(name),false);
+						if (cp=='-') return type(std::move(name),true);
+						
+						name << cp;
+					
+					}
+				
+				}
+				
+				
+				static String get_second (RegexCompiler & compiler, CodePoint terminator) {
+				
+					String name;
+					for (;;++compiler) {
+					
+						if (!compiler) raise(compiler);
+						
+						auto cp=*compiler;
+						
+						if (cp==terminator) return name;
+						
+						name << cp;
+					
+					}
+				
+				}
+				
+				
+				template <typename T1, typename T2>
+				static void compile_balancing (RegexCompiler & compiler, RegexBalancing<T1,T2> & element) {
+				
+					compiler.AddCapturingGroup(element.Key(),element);
+					
+					element.Pattern(compile(compiler));
+				
+				}
+				
+				
+				static bool balancing (RegexCompiler & compiler, String first, String second) {
+				
+					std::optional<std::size_t> number_first;
+					if (first.Size()==0) number_first=compiler.GetCaptureNumber();
+					else number_first=first.To<std::size_t>();
+					auto number_second=second.To<std::size_t>();
+					
+					if (number_first) {
+					
+						if (number_second) compile_balancing(
+							compiler,
+							compiler.Add<RegexBalancing<std::size_t,std::size_t>>(*number_first,*number_second)
+						);
+						else compile_balancing(
+							compiler,
+							compiler.Add<RegexBalancing<std::size_t,String>>(*number_first,std::move(second))
+						);
+					
+					} else {
+					
+						if (number_second) compile_balancing(
+							compiler,
+							compiler.Add<RegexBalancing<String,std::size_t>>(std::move(first),*number_second)
+						);
+						else compile_balancing(
+							compiler,
+							compiler.Add<RegexBalancing<String,String>>(std::move(first),std::move(second))
+						);
+					
+					}
+				
+					return true;
+				
+				}
+				
+				
+				static bool parse_capturing_group (RegexCompiler & compiler, CodePoint terminator) {
+				
+					auto pair=get_first(compiler,terminator);
+					++compiler;
+					
+					//	Handle balancing
+					if (pair.second) {
+					
+						auto second=get_second(compiler,terminator);
+						++compiler;
+						
+						return balancing(
+							compiler,
+							std::move(pair.first),
+							std::move(second)
+						);
 					
 					}
 					
-					//	Move past the delimiter
-					++compiler;
+					auto & name=pair.first;
 					
-					//	Check to see if this is a balancing construct
-					if (balancing(compiler,*name)) return true;
+					//	Check if name is numeric
+					auto number=name.To<std::size_t>();
 					
-					//	Check to see if this is a numbered capturing group
-					auto number=name->To<std::size_t>();
-					if (number) return capturing_group(compiler,*number);
+					//	Assemble pattern element
+					if (number) capturing_group(compiler,*number);
+					else capturing_group(compiler,std::move(name));
 					
-					//	Otherwise it's unconditionally a named capturing group
-					return capturing_group(compiler,std::move(*name));
+					return true;
 				
 				}
 		
@@ -714,27 +723,12 @@ namespace Unicode {
 				
 					if (!compiler.IsNext('(')) return false;
 					
-					//	All grouping constructs EXCEPT automatically numbered
-					//	capturing groups begin with (?, so if the ( isn't followed
-					//	by a ?, take that route
 					if (!compiler.IsNext('?')) return automatic_capturing_group(compiler);
 					
-					//	(?< means the beginning of an explicitly named capturing group
-					if (compiler.IsNext('<')) return named_capturing_group(compiler,'<');
-					//	(?' means the beginning of an explicitly named capturing group
-					//	(PCRE syntax)
-					if (compiler.IsNext('\'')) return named_capturing_group(compiler,'\'');
-					//	(?P< means the beginning of an explicitly named capturing group
-					//	(PCRE syntax)
-					if (compiler.IsNext("P<")) return named_capturing_group(compiler,'<');
+					if (compiler.IsNext("P<") || compiler.IsNext('<')) return parse_capturing_group(compiler,'>');
+					if (compiler.IsNext('\'')) return parse_capturing_group(compiler,'\'');
 					
-					//	If we succeed in extracting options flags after the ?, then
-					//	it's either changing the options of this compiler, or changing
-					//	the options for a non-capturing group, so take that route
-					auto options=parse_options(compiler);
-					if (options) return non_capturing_group(compiler,*options);
-					
-					return false;
+					return parse_non_capturing_group(compiler);
 				
 				}
 		
