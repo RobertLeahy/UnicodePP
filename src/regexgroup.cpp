@@ -649,6 +649,8 @@ namespace Unicode {
 				
 				static bool balancing (RegexCompiler & compiler, String first, String second) {
 				
+					if (second.Size()==0) compiler.Raise("Balancing construct missing second group");
+				
 					std::optional<std::size_t> number_first;
 					if (first.Size()==0) number_first=compiler.GetCaptureNumber();
 					else number_first=first.To<std::size_t>();
