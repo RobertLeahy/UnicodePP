@@ -422,26 +422,19 @@ SCENARIO("Capturing groups are automatically numbered, starting from 1, ascendin
 				CHECK(match.Get()==s);
 				CHECK(match.Named().size()==0);
 				CHECK(match.Numbered().size()==3);
-				
-				AND_THEN("Capturing group 1 captures \"a\" once") {
-				
+				{
 					auto & captures=match[1];
 					REQUIRE(captures.size()==1);
 					CHECK(captures[0].begin()==b);
 					CHECK(captures[0].Get()=="a");
-				
 				}
-				
-				AND_THEN("Capturing group 2 captures \"b\" once") {
-				
+				{
 					auto & captures=match[2];
 					REQUIRE(captures.size()==1);
 					CHECK(captures[0].begin()==(b+1));
 					CHECK(captures[0].Get()=="b");
-				
 				}
-				
-				AND_THEN("Capturing group 3 captures \"c\" once") {
+				{
 				
 					auto & captures=match[3];
 					REQUIRE(captures.size()==1);
@@ -661,6 +654,72 @@ SCENARIO("Numbered capturing groups may be accessed with a numeric string","[reg
 				REQUIRE(captures.size()==1);
 				auto & capture=captures[0];
 				CHECK(capture.begin()==s.begin());
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Groups with the same name or number are captured left-to-right","[regex][group][capturing]") {
+
+	GIVEN("(a)+") {
+	
+		Regex r("(a)+");
+		
+		WHEN("It is matched against \"aaa\"") {
+		
+			String s("aaa");
+			auto b=s.begin();
+			auto matches=r.Matches(s);
+			
+			THEN("It matches the entire input and capturing group 1 captures 3 times, from left-to-right") {
+			
+				REQUIRE(matches.size()==1);
+				auto & match=matches[0];
+				CHECK(match.begin()==b);
+				CHECK(match.Get()==s);
+				auto & captures=match[1];
+				REQUIRE(captures.size()==3);
+				CHECK(captures[0].begin()==b);
+				CHECK(captures[1].begin()==(b+1));
+				CHECK(captures[2].begin()==(b+2));
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Groups with the same name or number are captured right-to-left in right-to-left mode","[regex][group][capturing][righttoleft]") {
+
+	GIVEN("\"(a)+\" in right-to-left mode") {
+	
+		Regex r("(a)+",RegexOptions::RightToLeft);
+		
+		WHEN("It is matched against \"aaa\"") {
+		
+			String s("aaa");
+			auto b=s.begin();
+			auto matches=r.Matches(s);
+			
+			THEN("It matches the entire input and capturing group 1 captures 3 times, from right-to-left") {
+			
+				REQUIRE(matches.size()==1);
+				auto & match=matches[0];
+				CHECK(match.begin()==b);
+				CHECK(match.Get()==s);
+				auto & captures=match[1];
+				REQUIRE(captures.size()==3);
+				CHECK(captures[0].begin()==(b+2));
+				CHECK(captures[1].begin()==(b+1));
+				CHECK(captures[2].begin()==b);
 			
 			}
 		
