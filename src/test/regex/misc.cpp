@@ -136,3 +136,50 @@ SCENARIO("RFC 5322 e-mail regex successfully validates e-mails","[misc][regex][e
 	}
 
 }
+
+
+SCENARIO("Example balancing regular expression from MSDN works in the same way as .NET regular expressions","[misc][balancing][group][conditional]") {
+
+	GIVEN("\"^[^<>]*(((?'Open'<)[^<>]*)+((?'Close-Open'>)[^<>]*)+)*(?(Open)(?!))$\" in explicit capture mode") {
+	
+		Regex r("^[^<>]*(((?'Open'<)[^<>]*)+((?'Close-Open'>)[^<>]*)+)*(?(Open)(?!))$",RegexOptions::ExplicitCapture);
+		
+		WHEN("It is matched against \"<abc><mno<xyz>>\"") {
+		
+			String s("<abc><mno<xyz>>");
+			auto b=s.begin();
+			auto matches=r.Matches(s);
+			
+			THEN("It matches the entire input") {
+			
+				REQUIRE(matches.size()==1);
+				auto & match=matches[0];
+				CHECK(match.begin()==b);
+				CHECK(match.Get()==s);
+				
+				AND_THEN("There are no numbered captures") {
+				
+					CHECK(match.Numbered().size()==0);
+				
+				}
+				
+				AND_THEN("The named capturing group \"Close\" captures 3 times") {
+				
+					auto & captures=match["Close"];
+					REQUIRE(captures.size()==3);
+					CHECK(captures[0].begin()==(b+1));
+					CHECK(captures[0].Get()=="abc");
+					CHECK(captures[1].begin()==(b+10));
+					CHECK(captures[1].Get()=="xyz");
+					CHECK(captures[2].begin()==(b+6));
+					CHECK(captures[2].Get()=="mno<xyz>");
+				
+				}
+			
+			}
+		
+		}
+	
+	}
+
+}
