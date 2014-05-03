@@ -1,5 +1,4 @@
 #include <unicode/regex.hpp>
-#include <new>
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
