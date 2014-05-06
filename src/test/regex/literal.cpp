@@ -345,3 +345,425 @@ SCENARIO("White space in a character set is not ignored, even when RegexOptions:
 	}
 
 }
+
+
+SCENARIO("Code points may be given as octal","[literal][regex]") {
+
+	GIVEN("\\141") {
+	
+		Regex r("\\141");
+		
+		WHEN("It is matched against \"a\"") {
+		
+			String s("a");
+			auto matches=r.Matches(s);
+			
+			THEN("It matches the entire string") {
+			
+				REQUIRE(matches.size()==1);
+				CHECK(matches[0].begin()==s.begin());
+				CHECK(matches[0].Get()==s);
+			
+			}
+		
+		}
+		
+		WHEN("It is matched against a code point other than 'a'") {
+		
+			THEN("It does not match") {
+			
+				CHECK(!r.Match("b"));
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("Code points may be given as hexadecimal","[literal][regex]") {
+
+	GIVEN("\\x61") {
+	
+		Regex r("\\x61");
+		
+		WHEN("It is matched against \"a\"") {
+		
+			String s("a");
+			auto matches=r.Matches(s);
+			
+			THEN("It matches the entire string") {
+			
+				REQUIRE(matches.size()==1);
+				CHECK(matches[0].begin()==s.begin());
+				CHECK(matches[0].Get()==s);
+			
+			}
+		
+		}
+		
+		WHEN("It is matched against a code point other than 'a'") {
+		
+			THEN("It does not match") {
+			
+				CHECK(!r.Match("b"));
+			
+			}
+		
+		}
+	
+	}
+	
+	GIVEN("\\u0061") {
+	
+		Regex r("\\u0061");
+		
+		WHEN("It is matched against \"a\"") {
+		
+			String s("a");
+			auto matches=r.Matches(s);
+			
+			THEN("It matches the entire string") {
+			
+				REQUIRE(matches.size()==1);
+				CHECK(matches[0].begin()==s.begin());
+				CHECK(matches[0].Get()==s);
+			
+			}
+		
+		}
+		
+		WHEN("It is matched against a code point other than 'a'") {
+		
+			THEN("It does not match") {
+			
+				CHECK(!r.Match("b"));
+			
+			}
+		
+		}
+	
+	}
+	
+	GIVEN("\\U00000061") {
+	
+		Regex r("\\U00000061");
+		
+		WHEN("It is matched against \"a\"") {
+		
+			String s("a");
+			auto matches=r.Matches(s);
+			
+			THEN("It matches the entire string") {
+			
+				REQUIRE(matches.size()==1);
+				CHECK(matches[0].begin()==s.begin());
+				CHECK(matches[0].Get()==s);
+			
+			}
+		
+		}
+		
+		WHEN("It is matched against a code point other than 'a'") {
+		
+			THEN("It does not match") {
+			
+				CHECK(!r.Match("b"));
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("\"\\b\" indicates BACKSPACE (U+0008), but only within a character set","[literal][regex][characterset]") {
+
+	GIVEN("[\\b]") {
+	
+		Regex r("[\\b]");
+		
+		WHEN("It is matched against BACKSPACE (U+0008)") {
+		
+			String s("\u0008");
+			auto matches=r.Matches(s);
+			
+			THEN("It matches the entire string") {
+			
+				REQUIRE(matches.size()==1);
+				CHECK(matches[0].begin()==s.begin());
+				CHECK(matches[0].Get()==s);
+			
+			}
+		
+		}
+		
+		WHEN("It is matched against a code point other than BACKSPACE (U+0008)") {
+		
+			THEN("It does not match") {
+			
+				CHECK(!r.Match("b"));
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("\"\\r\" indicates CARRIAGE RETURN (CR) (U+000D)","[literal][regex]") {
+
+	GIVEN("\\r") {
+	
+		Regex r("\\r");
+		
+		WHEN("It is matched against CARRIAGE RETURN (CR) (U+000D)") {
+		
+			String s("\u000D");
+			auto matches=r.Matches(s);
+			
+			THEN("It matches the entire string") {
+			
+				REQUIRE(matches.size()==1);
+				CHECK(matches[0].begin()==s.begin());
+				CHECK(matches[0].Get()==s);
+			
+			}
+		
+		}
+		
+		WHEN("It is matched against a code point other than CARRIAGE RETURN (CR) (U+000D)") {
+		
+			THEN("It does not match") {
+			
+				CHECK(!r.Match("b"));
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("\"\\n\" indicates LINE FEED (LF) (U+000A)","[literal][regex]") {
+
+	GIVEN("\\n") {
+	
+		Regex r("\\n");
+		
+		WHEN("It is matched against LINE FEED (LF) (U+000A)") {
+		
+			String s("\u000A");
+			auto matches=r.Matches(s);
+			
+			THEN("It matches the entire string") {
+			
+				REQUIRE(matches.size()==1);
+				CHECK(matches[0].begin()==s.begin());
+				CHECK(matches[0].Get()==s);
+			
+			}
+		
+		}
+		
+		WHEN("It is matched against a code point other than LINE FEED (LF) (U+000A)") {
+		
+			THEN("It does not match") {
+			
+				CHECK(!r.Match("b"));
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("\"\\t\" indicates CHARACTER TABULATION (U+0009)","[literal][regex]") {
+
+	GIVEN("\\t") {
+	
+		Regex r("\\t");
+		
+		WHEN("It is matched against CHARACTER TABULATION (U+0009)") {
+		
+			String s("\u0009");
+			auto matches=r.Matches(s);
+			
+			THEN("It matches the entire string") {
+			
+				REQUIRE(matches.size()==1);
+				CHECK(matches[0].begin()==s.begin());
+				CHECK(matches[0].Get()==s);
+			
+			}
+		
+		}
+		
+		WHEN("It is matched against a code point other than CHARACTER TABULATION (U+0009)") {
+		
+			THEN("It does not match") {
+			
+				CHECK(!r.Match("b"));
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("\"\\f\" indicates FORM FEED (FF) (U+000C)","[literal][regex]") {
+
+	GIVEN("\\f") {
+	
+		Regex r("\\f");
+		
+		WHEN("It is matched against FORM FEED (FF) (U+000C)") {
+		
+			String s("\u000C");
+			auto matches=r.Matches(s);
+			
+			THEN("It matches the entire string") {
+			
+				REQUIRE(matches.size()==1);
+				CHECK(matches[0].begin()==s.begin());
+				CHECK(matches[0].Get()==s);
+			
+			}
+		
+		}
+		
+		WHEN("It is matched against a code point other than FORM FEED (FF) (U+000C)") {
+		
+			THEN("It does not match") {
+			
+				CHECK(!r.Match("b"));
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("\"\\e\" indicates ESCAPE (U+001B)","[literal][regex]") {
+
+	GIVEN("\\e") {
+	
+		Regex r("\\e");
+		
+		WHEN("It is matched against ESCAPE (U+001B)") {
+		
+			String s("\u001B");
+			auto matches=r.Matches(s);
+			
+			THEN("It matches the entire string") {
+			
+				REQUIRE(matches.size()==1);
+				CHECK(matches[0].begin()==s.begin());
+				CHECK(matches[0].Get()==s);
+			
+			}
+		
+		}
+		
+		WHEN("It is matched against a code point other than ESCAPE (U+001B)") {
+		
+			THEN("It does not match") {
+			
+				CHECK(!r.Match("b"));
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("\"\\v\" indicates LINE TABULATION (U+000B)","[literal][regex]") {
+
+	GIVEN("\\v") {
+	
+		Regex r("\\v");
+		
+		WHEN("It is matched against LINE TABULATION (U+000B)") {
+		
+			String s("\u000B");
+			auto matches=r.Matches(s);
+			
+			THEN("It matches the entire string") {
+			
+				REQUIRE(matches.size()==1);
+				CHECK(matches[0].begin()==s.begin());
+				CHECK(matches[0].Get()==s);
+			
+			}
+		
+		}
+		
+		WHEN("It is matched against a code point other than LINE TABULATION (U+001B)") {
+		
+			THEN("It does not match") {
+			
+				CHECK(!r.Match("b"));
+			
+			}
+		
+		}
+	
+	}
+
+}
+
+
+SCENARIO("\"\\a\" indicates BELL (U+0007)","[literal][regex]") {
+
+	GIVEN("\\a") {
+	
+		Regex r("\\a");
+		
+		WHEN("It is matched against BELL (U+0007)") {
+		
+			String s("\u0007");
+			auto matches=r.Matches(s);
+			
+			THEN("It matches the entire string") {
+			
+				REQUIRE(matches.size()==1);
+				CHECK(matches[0].begin()==s.begin());
+				CHECK(matches[0].Get()==s);
+			
+			}
+		
+		}
+		
+		WHEN("It is matched against a code point other than BELL (U+0007)") {
+		
+			THEN("It does not match") {
+			
+				CHECK(!r.Match("b"));
+			
+			}
+		
+		}
+	
+	}
+
+}
