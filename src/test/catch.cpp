@@ -4,6 +4,7 @@
 #include <unicode/string.hpp>
 #include <iomanip>
 #include <sstream>
+#include <string>
 
 
 namespace Catch {
