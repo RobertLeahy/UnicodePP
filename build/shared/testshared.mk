@@ -16,6 +16,7 @@ obj/test/regex/literal.o \
 obj/test/regex/lookaround.o \
 obj/test/regex/misc.o \
 obj/test/regex/multiple.o \
+obj/test/regex/range.o \
 obj/test/regex/recurse.o \
 obj/test/regex/replace.o \
 obj/test/regex/resetmatch.o \
