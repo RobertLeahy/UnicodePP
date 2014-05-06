@@ -8,6 +8,7 @@ REGEX_TESTS_DEPENDENCIES:=\
 obj/test/catch.o \
 obj/test/main.o \
 obj/test/regex/anchor.o \
+obj/test/regex/atomic.o \
 obj/test/regex/backreference.o \
 obj/test/regex/balancing.o \
 obj/test/regex/characterclasses.o \
