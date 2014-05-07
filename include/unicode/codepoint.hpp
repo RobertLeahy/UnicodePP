@@ -176,7 +176,7 @@ namespace Unicode {
 	template <typename T>
 	constexpr typename std::enable_if<std::is_integral<T>::value,bool>::type operator == (CodePoint a, T b) noexcept {
 	
-		return static_cast<CodePoint::Type>(a)==b;
+		return static_cast<CodePoint::Type>(a)==static_cast<CodePoint::Type>(b);
 	
 	}
 	

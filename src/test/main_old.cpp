@@ -32,7 +32,37 @@
 #include <vector>
 
 
-#include "catch.hpp"
+namespace Catch {
+
+
+	//	Formats Unicode strings for output by Catch
+	std::string toString (const Unicode::String & str) {
+
+		std::ostringstream ss;
+		ss << "\"" << str << "\"";
+		
+		return ss.str();
+
+	}
+	
+	
+	//	Formats Unicode code points for output by Catch
+	std::string toString (Unicode::CodePoint cp) {
+	
+		std::ostringstream ss;
+		ss	<<	"U+"
+			<<	std::hex
+			<<	std::setfill('0')
+			<<	std::setw(4)
+			<<	std::uppercase
+			<<	static_cast<Unicode::CodePoint::Type>(cp);
+		
+		return ss.str();
+	
+	}
+	
+	
+}
 
 
 #define CATCH_CONFIG_MAIN
@@ -2520,7 +2550,7 @@ SCENARIO("Information about code points can be retrieved from the global locale"
 			
 			REQUIRE(cpi!=nullptr);
 			REQUIRE(cpi->Name!=nullptr);
-			REQUIRE(cpi->CodePoint=='A');
+			REQUIRE(cpi->CodePoint==static_cast<unsigned char>('A'));
 			REQUIRE(std::strcmp(cpi->Name,"LATIN CAPITAL LETTER A")==0);
 		
 		}
