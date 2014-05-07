@@ -2550,7 +2550,7 @@ SCENARIO("Information about code points can be retrieved from the global locale"
 			
 			REQUIRE(cpi!=nullptr);
 			REQUIRE(cpi->Name!=nullptr);
-			REQUIRE(cpi->CodePoint=='A');
+			REQUIRE(cpi->CodePoint==static_cast<unsigned char>('A'));
 			REQUIRE(std::strcmp(cpi->Name,"LATIN CAPITAL LETTER A")==0);
 		
 		}
