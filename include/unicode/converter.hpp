@@ -77,8 +77,8 @@ namespace Unicode {
 		
 		
 	};
-	
-	
+
+
 	/**
 	 *	\endcond
 	 */
@@ -192,7 +192,6 @@ namespace Unicode {
 					
 				if (
 					(b==0) ||
-					(b>std::numeric_limits<T>::max()) ||
 					(b>locale.Digits.Size)
 				) throw ConversionError("Base out of range");
 				
