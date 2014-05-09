@@ -691,6 +691,28 @@ namespace Unicode {
 			
 			
 			/**
+			 *	Converts this string to a C++-style string.
+			 *
+			 *	\tparam T
+			 *		The type of character that shall be used
+			 *		for the C++ string.  An encoding appropriate
+			 *		to the character size will be chosen.  If one
+			 *		cannot be found, an exception will be thrown.
+			 *		Defaults to char (resulting in a return type
+			 *		of std::string) if not specified.
+			 *	
+			 *	\return
+			 *		A C++-style string.
+			 */
+			template <typename T>
+			operator std::basic_string<T> () const {
+			
+				return ToString<T>();
+			
+			}
+			
+			
+			/**
 			 *	Converts this string to an arbitrary type by using
 			 *	the Converter template.
 			 *
