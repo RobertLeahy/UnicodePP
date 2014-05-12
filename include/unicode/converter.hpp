@@ -406,10 +406,12 @@ namespace Unicode {
 	template <>
 	inline float FloatParser<float> (const char * str) {
 	
+		if ((str==nullptr) || (*str=='\0')) NotFloat();
+	
 		char * last;
 		auto retr=std::strtof(str,&last);
 		
-		if (last==str) NotFloat();
+		if (*last!='\0') NotFloat();
 		
 		return retr;
 	
@@ -419,10 +421,12 @@ namespace Unicode {
 	template <>
 	inline double FloatParser<double> (const char * str) {
 	
+		if ((str==nullptr) || (*str=='\0')) NotFloat();
+	
 		char * last;
 		auto retr=std::strtod(str,&last);
 		
-		if (last==str) NotFloat();
+		if (*last!='\0') NotFloat();
 		
 		return retr;
 	
@@ -432,10 +436,12 @@ namespace Unicode {
 	template <>
 	inline long double FloatParser<long double> (const char * str) {
 	
+		if ((str==nullptr) || (*str=='\0')) NotFloat();
+	
 		char * last;
 		auto retr=std::strtold(str,&last);
 		
-		if (last==str) NotFloat();
+		if (*last!='\0') NotFloat();
 		
 		return retr;
 	
@@ -483,6 +489,9 @@ namespace Unicode {
 		private:
 		
 		
+			const Locale & locale;
+		
+		
 			template <typename CharT, typename Traits>
 			void setup (std::basic_ostringstream<CharT,Traits> & ss) const {
 				
@@ -518,7 +527,8 @@ namespace Unicode {
 			 */
 			ConverterImpl (const Locale & locale=Locale::Get()) noexcept
 				:	Format(FloatingPointFormat::Default),
-					ShowPositive(false)
+					ShowPositive(false),
+					locale(locale)
 			{	}
 			
 			
@@ -564,6 +574,13 @@ namespace Unicode {
 			 *		bounded by \em begin and \em end.
 			 */
 			T operator () (const CodePoint * begin, const CodePoint * end) const {
+			
+				for (;begin!=end;++begin) {
+				
+					auto cpi=begin->GetInfo(locale);
+					if ((cpi==nullptr) || (!cpi->WhiteSpace)) break;
+				
+				}
 			
 				//	TODO: More advanced handling (convert numerics to ASCII,
 				//	for example)
