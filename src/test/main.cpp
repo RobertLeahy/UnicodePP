@@ -236,8 +236,8 @@ typename std::enable_if<
 	auto diff=std::abs(a-b);
 	
 	if (
-		(a==0) ||
-		(b==0) ||
+		(a==0U) ||
+		(b==0U) ||
 		(diff<limits::denorm_min())
 	) return diff<limits::denorm_min();
 	
@@ -291,7 +291,7 @@ SCENARIO("ASCII characters are the correct width","[ascii]") {
 	
 		THEN("It is one byte wide") {
 		
-			REQUIRE(sizeof(ASCII::CodeUnit)==1);
+			REQUIRE(sizeof(ASCII::CodeUnit)==1U);
 		
 		}
 	
@@ -318,7 +318,7 @@ SCENARIO("ASCII characters are unsigned","[ascii]") {
 		
 		THEN("It reports that its characters are one byte wide") {
 		
-			REQUIRE(encoder.Size()==1);
+			REQUIRE(encoder.Size()==1U);
 		
 		}
 	
@@ -337,7 +337,7 @@ SCENARIO("The ASCII BOM is empty") {
 		
 			std::vector<unsigned char> bom;
 			encoder.BOM().Get(bom);
-			REQUIRE(bom.size()==0);
+			REQUIRE(bom.size()==0U);
 		
 		}
 	
@@ -364,7 +364,7 @@ SCENARIO("Information about the representation of code points in ASCII is determ
 			
 			THEN("It requires one ASCII character to represent") {
 			
-				REQUIRE(encoder.Count(cp)==1);
+				REQUIRE(encoder.Count(cp)==1U);
 			
 			}
 		
@@ -377,7 +377,7 @@ SCENARIO("Information about the representation of code points in ASCII is determ
 			THEN("It is identified as being unrepresentable in ASCII") {
 			
 				CHECK(!encoder.CanRepresent(cp));
-				REQUIRE(encoder.Count(cp)==0);
+				REQUIRE(encoder.Count(cp)==0U);
 			
 			}
 		
@@ -396,7 +396,7 @@ SCENARIO("ASCII strings may be decoded","[ascii]") {
 		
 		THEN("Decoding an empty buffer represented as two null iterators results in the empty string") {
 		
-			REQUIRE(encoder.Decode(nullptr,nullptr).size()==0);
+			REQUIRE(encoder.Decode(nullptr,nullptr).size()==0U);
 		
 		}
 		
@@ -406,7 +406,7 @@ SCENARIO("ASCII strings may be decoded","[ascii]") {
 			
 			THEN("Attempting to decode the buffer results in the empty string") {
 			
-				REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+				REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0U);
 			
 			}
 		
@@ -442,7 +442,7 @@ SCENARIO("ASCII strings may be decoded","[ascii]") {
 				THEN("Attempting to decode the buffer recovers the character") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]==0xFF);
 				
 				}
@@ -457,7 +457,7 @@ SCENARIO("ASCII strings may be decoded","[ascii]") {
 				THEN("Attempting to decode the buffer results in the replacement") {
 			
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]==replacement);
 					
 				}
@@ -470,7 +470,7 @@ SCENARIO("ASCII strings may be decoded","[ascii]") {
 				
 				THEN("Attempting to decode the buffer results in the empty string") {
 				
-					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0U);
 				
 				}
 			
@@ -536,7 +536,7 @@ SCENARIO("Strings may be encoded to ASCII","[ascii]") {
 				
 				THEN("Encoding the string results in an empty buffer") {
 				
-					REQUIRE(encoder.Encode(s).size()==0);
+					REQUIRE(encoder.Encode(s).size()==0U);
 				
 				}
 			
@@ -548,7 +548,7 @@ SCENARIO("Strings may be encoded to ASCII","[ascii]") {
 				
 				THEN("Encoding the string results in an empty buffer") {
 				
-					REQUIRE(encoder.Encode(s).size()==0);
+					REQUIRE(encoder.Encode(s).size()==0U);
 				
 				}
 			
@@ -562,7 +562,7 @@ SCENARIO("Strings may be encoded to ASCII","[ascii]") {
 				THEN("Encoding the string results in the replacement") {
 				
 					auto encoded=encoder.Encode(s);
-					REQUIRE(encoded.size()==1);
+					REQUIRE(encoded.size()==1U);
 					REQUIRE(encoded[0]==replacement);
 				
 				}
@@ -614,7 +614,7 @@ SCENARIO("Elements in a sorted collection may be efficiently located","[binaryse
 		
 			auto iter=BinarySearch(begin,end,1);
 			REQUIRE(iter==begin);
-			REQUIRE(*iter==1);
+			REQUIRE(*iter==1U);
 		
 		}
 		
@@ -714,9 +714,9 @@ SCENARIO("Strings may be converted to lowercase","[caseconverter]") {
 			) {
 			
 				auto cps=c.ToLower(s.begin(),s.end());
-				REQUIRE(cps.size()==8);
-				CHECK(cps[3]==0x3C3);
-				REQUIRE(cps[7]==0x3C2);
+				REQUIRE(cps.size()==8U);
+				CHECK(cps[3]==0x3C3U);
+				REQUIRE(cps[7]==0x3C2U);
 			
 			}
 		
@@ -1259,7 +1259,7 @@ SCENARIO("Strings may be compared for canonical equivalence","[comparer]") {
 		GIVEN("A string in NFD which changes under NFC") {
 		
 			String s("naïveté");
-			REQUIRE(s.Size()==9);
+			REQUIRE(s.Size()==9U);
 			
 			GIVEN("A canonically equivalent string in NFC") {
 			
@@ -1827,7 +1827,7 @@ SCENARIO("Unicode strings may be extracted from C++ streams","[iostream]") {
 				String s;
 				ss >> s;
 				
-				CHECK(s.Size()==0);
+				CHECK(s.Size()==0U);
 				REQUIRE(ss.eof());
 		
 			}
@@ -2205,7 +2205,7 @@ SCENARIO("Latin-1 characters are the correct width","[latin1]") {
 	
 		THEN("It is one byte wide") {
 		
-			REQUIRE(sizeof(Latin1::CodeUnit)==1);
+			REQUIRE(sizeof(Latin1::CodeUnit)==1U);
 		
 		}
 	
@@ -2217,7 +2217,7 @@ SCENARIO("Latin-1 characters are the correct width","[latin1]") {
 		
 		THEN("It reports that its characters are one byte wide") {
 		
-			REQUIRE(encoder.Size()==1);
+			REQUIRE(encoder.Size()==1U);
 		
 		}
 	
@@ -2251,7 +2251,7 @@ SCENARIO("The Latin-1 BOM is empty","[latin1]") {
 		
 			std::vector<unsigned char> bom;
 			encoder.BOM().Get(bom);
-			REQUIRE(bom.size()==0);
+			REQUIRE(bom.size()==0U);
 		
 		}
 	
@@ -2278,7 +2278,7 @@ SCENARIO("Information about the representation of code points in Latin-1 is dete
 			
 			THEN("It requires one Latin-1 character to represent") {
 			
-				REQUIRE(encoder.Count(cp)==1);
+				REQUIRE(encoder.Count(cp)==1U);
 			
 			}
 		
@@ -2296,7 +2296,7 @@ SCENARIO("Information about the representation of code points in Latin-1 is dete
 			
 			THEN("It requires one Latin-1 character to represent") {
 			
-				REQUIRE(encoder.Count(cp)==1);
+				REQUIRE(encoder.Count(cp)==1U);
 			
 			}
 		
@@ -2309,7 +2309,7 @@ SCENARIO("Information about the representation of code points in Latin-1 is dete
 			THEN("It is identified as being unrepresentable in Latin-1") {
 			
 				CHECK(!encoder.CanRepresent(cp));
-				REQUIRE(encoder.Count(cp)==0);
+				REQUIRE(encoder.Count(cp)==0U);
 			
 			}
 		
@@ -2328,7 +2328,7 @@ SCENARIO("Latin-1 strings may be decoded","[latin1]") {
 		
 		THEN("Decoding an empty buffer represented as two null iterators results in the empty string") {
 		
-			REQUIRE(encoder.Decode(nullptr,nullptr).size()==0);
+			REQUIRE(encoder.Decode(nullptr,nullptr).size()==0U);
 		
 		}
 		
@@ -2338,7 +2338,7 @@ SCENARIO("Latin-1 strings may be decoded","[latin1]") {
 			
 			THEN("Attempting to decode the buffer results in the empty string") {
 			
-				REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+				REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0U);
 			
 			}
 		
@@ -2439,7 +2439,7 @@ SCENARIO("Strings may be encoded to Latin-1","[latin1]") {
 				
 				THEN("Encoding the string results in an empty buffer") {
 				
-					REQUIRE(encoder.Encode(s).size()==0);
+					REQUIRE(encoder.Encode(s).size()==0U);
 				
 				}
 			
@@ -2451,7 +2451,7 @@ SCENARIO("Strings may be encoded to Latin-1","[latin1]") {
 				
 				THEN("Encoding the string results in an empty buffer") {
 				
-					REQUIRE(encoder.Encode(s).size()==0);
+					REQUIRE(encoder.Encode(s).size()==0U);
 				
 				}
 			
@@ -2465,7 +2465,7 @@ SCENARIO("Strings may be encoded to Latin-1","[latin1]") {
 				THEN("Encoding the string results in the replacement") {
 				
 					auto encoded=encoder.Encode(s);
-					REQUIRE(encoded.size()==1);
+					REQUIRE(encoded.size()==1U);
 					REQUIRE(encoded[0]==replacement);
 				
 				}
@@ -2528,7 +2528,7 @@ SCENARIO("The global locale can be changed","[locale]") {
 			
 			THEN("The new locale is the global locale") {
 			
-				REQUIRE(std::strcmp(language,Locale::Get().Language)==0);
+				REQUIRE(std::strcmp(language,Locale::Get().Language)==0U);
 			
 			}
 		
@@ -2551,7 +2551,7 @@ SCENARIO("Information about code points can be retrieved from the global locale"
 			REQUIRE(cpi!=nullptr);
 			REQUIRE(cpi->Name!=nullptr);
 			REQUIRE(cpi->CodePoint==static_cast<unsigned char>('A'));
-			REQUIRE(std::strcmp(cpi->Name,"LATIN CAPITAL LETTER A")==0);
+			REQUIRE(std::strcmp(cpi->Name,"LATIN CAPITAL LETTER A")==0U);
 		
 		}
 		
@@ -2926,7 +2926,7 @@ SCENARIO("Strings may be constructed","[string]") {
 		
 		THEN("It is the empty string") {
 		
-			REQUIRE(s.Size()==0);
+			REQUIRE(s.Size()==0U);
 		
 		}
 		
@@ -2948,7 +2948,7 @@ SCENARIO("Strings may be constructed","[string]") {
 			
 			THEN("It is the empty string") {
 			
-				REQUIRE(s.Size()==0);
+				REQUIRE(s.Size()==0U);
 			
 			}
 			
@@ -2972,7 +2972,7 @@ SCENARIO("Strings may be constructed","[string]") {
 			
 			THEN("It is the empty string") {
 			
-				REQUIRE(s.Size()==0);
+				REQUIRE(s.Size()==0U);
 			
 			}
 			
@@ -2994,7 +2994,7 @@ SCENARIO("Strings may be constructed","[string]") {
 				
 				THEN("It is the empty string") {
 				
-					REQUIRE(s.Size()==0);
+					REQUIRE(s.Size()==0U);
 				
 				}
 				
@@ -3308,7 +3308,7 @@ SCENARIO("Strings may be moved","[string]") {
 				
 				THEN("The copy is empty") {
 				
-					REQUIRE(s2.Size()==0);
+					REQUIRE(s2.Size()==0U);
 				
 				}
 				
@@ -3331,7 +3331,7 @@ SCENARIO("Strings may be moved","[string]") {
 					
 					THEN("The copy is empty") {
 					
-						REQUIRE(s2.Size()==0);
+						REQUIRE(s2.Size()==0U);
 					
 					}
 					
@@ -3363,7 +3363,7 @@ SCENARIO("Strings may be moved","[string]") {
 					
 					THEN("The copy is empty") {
 					
-						REQUIRE(s2.Size()==0);
+						REQUIRE(s2.Size()==0U);
 					
 					}
 					
@@ -3386,7 +3386,7 @@ SCENARIO("Strings may be moved","[string]") {
 						
 						THEN("The copy is empty") {
 						
-							REQUIRE(s2.Size()==0);
+							REQUIRE(s2.Size()==0U);
 						
 						}
 						
@@ -3649,7 +3649,7 @@ SCENARIO("Strings may be trimmed","[string]") {
 		
 			std::move(s).Trim();
 			
-			REQUIRE(s.Size()==0);
+			REQUIRE(s.Size()==0U);
 		
 		}
 	
@@ -3903,7 +3903,7 @@ SCENARIO("UCS-2 code units are the correct width","[ucs2]") {
 	
 		THEN("It is two bytes wide") {
 		
-			REQUIRE(sizeof(UCS2::CodeUnit)==2);
+			REQUIRE(sizeof(UCS2::CodeUnit)==2U);
 		
 		}
 	
@@ -3915,7 +3915,7 @@ SCENARIO("UCS-2 code units are the correct width","[ucs2]") {
 		
 		THEN("It reports that its code unit is two bytes wide") {
 		
-			REQUIRE(encoder.Size()==2);
+			REQUIRE(encoder.Size()==2U);
 		
 		}
 	
@@ -3949,9 +3949,9 @@ SCENARIO("The UCS-2 BOM may be obtained from a UCS-2 encoder/decoder","[ucs2]") 
 		
 			std::vector<unsigned char> bom;
 			encoder.BOM().Get(bom,Endianness::Big);
-			REQUIRE(bom.size()==2);
-			CHECK(bom[0]==0xFE);
-			REQUIRE(bom[1]==0xFF);
+			REQUIRE(bom.size()==2U);
+			CHECK(bom[0]==0xFEU);
+			REQUIRE(bom[1]==0xFFU);
 		
 		}
 		
@@ -3959,9 +3959,9 @@ SCENARIO("The UCS-2 BOM may be obtained from a UCS-2 encoder/decoder","[ucs2]") 
 		
 			std::vector<unsigned char> bom;
 			encoder.BOM().Get(bom,Endianness::Little);
-			REQUIRE(bom.size()==2);
-			CHECK(bom[0]==0xFF);
-			REQUIRE(bom[1]==0xFE);
+			REQUIRE(bom.size()==2U);
+			CHECK(bom[0]==0xFFU);
+			REQUIRE(bom[1]==0xFEU);
 		
 		}
 	
@@ -3988,7 +3988,7 @@ SCENARIO("Information about the representation of code point in UCS-2 is determi
 			
 			THEN("It requires one code unit to represent") {
 			
-				REQUIRE(encoder.Count(cp)==1);
+				REQUIRE(encoder.Count(cp)==1U);
 			
 			}
 		
@@ -4006,7 +4006,7 @@ SCENARIO("Information about the representation of code point in UCS-2 is determi
 			
 			THEN("It requires one code unit to represent") {
 			
-				REQUIRE(encoder.Count(cp)==1);
+				REQUIRE(encoder.Count(cp)==1U);
 			
 			}
 		
@@ -4024,7 +4024,7 @@ SCENARIO("Information about the representation of code point in UCS-2 is determi
 			
 			THEN("It requires one code unit to represent") {
 			
-				REQUIRE(encoder.Count(cp)==1);
+				REQUIRE(encoder.Count(cp)==1U);
 			
 			}
 		
@@ -4037,7 +4037,7 @@ SCENARIO("Information about the representation of code point in UCS-2 is determi
 			THEN("It cannot be represented") {
 			
 				CHECK(!encoder.CanRepresent(cp));
-				REQUIRE(encoder.Count(cp)==0);
+				REQUIRE(encoder.Count(cp)==0U);
 			
 			}
 		
@@ -4061,7 +4061,7 @@ SCENARIO("UCS-2 strings may be decoded","[ucs2]") {
 			THEN("It may be decoded") {
 			
 				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded.size()==1U);
 				REQUIRE(decoded[0]=='a');
 			
 			}
@@ -4099,7 +4099,7 @@ SCENARIO("UCS-2 strings may be decoded","[ucs2]") {
 			THEN("It may be decoded, but the endianness is incorrect") {
 			
 				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded.size()==1U);
 				REQUIRE(decoded[0]!='a');
 			
 			}
@@ -4111,7 +4111,7 @@ SCENARIO("UCS-2 strings may be decoded","[ucs2]") {
 				THEN("The buffer may be decoded") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]=='a');
 				
 				}
@@ -4127,7 +4127,7 @@ SCENARIO("UCS-2 strings may be decoded","[ucs2]") {
 			THEN("It may be decoded") {
 			
 				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded.size()==1U);
 				REQUIRE(decoded[0]=='a');
 			
 			}
@@ -4141,7 +4141,7 @@ SCENARIO("UCS-2 strings may be decoded","[ucs2]") {
 			THEN("It may be decoded") {
 			
 				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded.size()==1U);
 				REQUIRE(decoded[0]=='a');
 			
 			}
@@ -4153,7 +4153,7 @@ SCENARIO("UCS-2 strings may be decoded","[ucs2]") {
 				THEN("It may be decoded") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]=='a');
 				
 				}
@@ -4167,8 +4167,8 @@ SCENARIO("UCS-2 strings may be decoded","[ucs2]") {
 				THEN("It may be decoded, recoving the BOM") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==2);
-					CHECK(decoded[0]==0xFEFF);
+					REQUIRE(decoded.size()==2U);
+					CHECK(decoded[0]==0xFEFFU);
 					REQUIRE(decoded[1]=='a');
 				
 				}
@@ -4195,8 +4195,8 @@ SCENARIO("UCS-2 strings may be decoded","[ucs2]") {
 				THEN("Attempting to decode the buffer recovers the code point") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
-					REQUIRE(decoded[0]==0xFFFF);
+					REQUIRE(decoded.size()==1U);
+					REQUIRE(decoded[0]==0xFFFFU);
 				
 				}
 			
@@ -4208,7 +4208,7 @@ SCENARIO("UCS-2 strings may be decoded","[ucs2]") {
 				
 				THEN("Attempting to decode the buffer results in the empty string") {
 				
-					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0U);
 				
 				}
 			
@@ -4222,7 +4222,7 @@ SCENARIO("UCS-2 strings may be decoded","[ucs2]") {
 				THEN("Attempting to decode the buffer results in the replacement") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]==replacement);
 				
 				}
@@ -4248,8 +4248,8 @@ SCENARIO("UCS-2 strings may be decoded","[ucs2]") {
 				THEN("Attempting to decode it recovers the surrogate") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
-					REQUIRE(decoded[0]==0xD834);
+					REQUIRE(decoded.size()==1U);
+					REQUIRE(decoded[0]==0xD834U);
 				
 				}
 			
@@ -4261,7 +4261,7 @@ SCENARIO("UCS-2 strings may be decoded","[ucs2]") {
 				
 				THEN("Attempting to decode it results in the empty string") {
 				
-					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0U);
 				
 				}
 			
@@ -4275,7 +4275,7 @@ SCENARIO("UCS-2 strings may be decoded","[ucs2]") {
 				THEN("Attempting to decode the buffer results in the replacement") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]==replacement);
 				
 				}
@@ -4300,7 +4300,7 @@ SCENARIO("UCS-2 strings may be decoded","[ucs2]") {
 				
 				THEN("Attempting to decode it results in the empty string") {
 				
-					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0U);
 				
 				}
 			
@@ -4312,7 +4312,7 @@ SCENARIO("UCS-2 strings may be decoded","[ucs2]") {
 				
 				THEN("Attempting to decode it results in the empty string") {
 				
-					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0U);
 				
 				}
 			
@@ -4326,7 +4326,7 @@ SCENARIO("UCS-2 strings may be decoded","[ucs2]") {
 				THEN("Attempting to decode the buffer results in the replacement") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]==replacement);
 				
 				}
@@ -4456,9 +4456,9 @@ SCENARIO("Strings may be encoded to UCS-2","[ucs2]") {
 				THEN("Attempting to encode the string retrieves the associated code unit(s)") {
 				
 					auto encoded=encoder.Encode(s);
-					REQUIRE(encoded.size()==2);
-					CHECK(encoded[0]==0xFF);
-					CHECK(encoded[1]==0xFF);
+					REQUIRE(encoded.size()==2U);
+					CHECK(encoded[0]==0xFFU);
+					CHECK(encoded[1]==0xFFU);
 				
 				}
 			
@@ -4470,7 +4470,7 @@ SCENARIO("Strings may be encoded to UCS-2","[ucs2]") {
 				
 				THEN("Attempting to encode the string results in an empty buffer") {
 				
-					REQUIRE(encoder.Encode(s).size()==0);
+					REQUIRE(encoder.Encode(s).size()==0U);
 				
 				}
 			
@@ -4486,8 +4486,8 @@ SCENARIO("Strings may be encoded to UCS-2","[ucs2]") {
 					THEN("Attempting to encode the string results in the code unit(s) for the replacement") {
 					
 						auto encoded=encoder.Encode(s);
-						REQUIRE(encoded.size()==2);
-						CHECK(encoded[0]==0);
+						REQUIRE(encoded.size()==2U);
+						CHECK(encoded[0]==0U);
 						REQUIRE(encoded[1]=='?');
 					
 					}
@@ -4531,7 +4531,7 @@ SCENARIO("Strings may be encoded to UCS-2","[ucs2]") {
 				
 				THEN("Attempting to encode the string results in an empty buffer") {
 				
-					REQUIRE(encoder.Encode(s).size()==0);
+					REQUIRE(encoder.Encode(s).size()==0U);
 				
 				}
 			
@@ -4543,7 +4543,7 @@ SCENARIO("Strings may be encoded to UCS-2","[ucs2]") {
 				
 				THEN("Attempting to encode the string results in an empty buffer") {
 				
-					REQUIRE(encoder.Encode(s).size()==0);
+					REQUIRE(encoder.Encode(s).size()==0U);
 				
 				}
 			
@@ -4559,8 +4559,8 @@ SCENARIO("Strings may be encoded to UCS-2","[ucs2]") {
 					THEN("Attempting to encode the string results in the code unit(s) for the replacement") {
 					
 						auto encoded=encoder.Encode(s);
-						REQUIRE(encoded.size()==2);
-						CHECK(encoded[0]==0);
+						REQUIRE(encoded.size()==2U);
+						CHECK(encoded[0]==0U);
 						REQUIRE(encoded[1]=='?');
 					
 					}
@@ -4624,7 +4624,7 @@ SCENARIO("UTF-8 code units are the correct width","[utf8]") {
 	
 		THEN("It is one byte wide") {
 		
-			REQUIRE(sizeof(UTF8::CodeUnit)==1);
+			REQUIRE(sizeof(UTF8::CodeUnit)==1U);
 		
 		}
 	
@@ -4636,7 +4636,7 @@ SCENARIO("UTF-8 code units are the correct width","[utf8]") {
 		
 		THEN("It reports that its code unit is one byte wide") {
 		
-			REQUIRE(encoder.Size()==1);
+			REQUIRE(encoder.Size()==1U);
 		
 		}
 	
@@ -4670,10 +4670,10 @@ SCENARIO("The UTF-8 BOM may be obtained from a UTF-8 encoder/decoder","[utf8]") 
 		
 			std::vector<unsigned char> bom;
 			encoder.BOM().Get(bom);
-			REQUIRE(bom.size()==3);
-			CHECK(bom[0]==0xEF);
-			CHECK(bom[1]==0xBB);
-			REQUIRE(bom[2]==0xBF);
+			REQUIRE(bom.size()==3U);
+			CHECK(bom[0]==0xEFU);
+			CHECK(bom[1]==0xBBU);
+			REQUIRE(bom[2]==0xBFU);
 		
 		}
 	
@@ -4700,7 +4700,7 @@ SCENARIO("Information about the representation of code points in UTF-8 is determ
 			
 			THEN("It requires one byte to represent") {
 			
-				REQUIRE(encoder.Count(cp)==1);
+				REQUIRE(encoder.Count(cp)==1U);
 			
 			}
 		
@@ -4718,7 +4718,7 @@ SCENARIO("Information about the representation of code points in UTF-8 is determ
 			
 			THEN("It requires one byte to represent") {
 			
-				REQUIRE(encoder.Count(cp)==1);
+				REQUIRE(encoder.Count(cp)==1U);
 			
 			}
 		
@@ -4736,7 +4736,7 @@ SCENARIO("Information about the representation of code points in UTF-8 is determ
 			
 			THEN("It requires two bytes to represent") {
 			
-				REQUIRE(encoder.Count(cp)==2);
+				REQUIRE(encoder.Count(cp)==2U);
 			
 			}
 		
@@ -4754,7 +4754,7 @@ SCENARIO("Information about the representation of code points in UTF-8 is determ
 			
 			THEN("It requires two bytes to represent") {
 			
-				REQUIRE(encoder.Count(cp)==2);
+				REQUIRE(encoder.Count(cp)==2U);
 			
 			}
 		
@@ -4772,7 +4772,7 @@ SCENARIO("Information about the representation of code points in UTF-8 is determ
 			
 			THEN("It requires three bytes to represent") {
 			
-				REQUIRE(encoder.Count(cp)==3);
+				REQUIRE(encoder.Count(cp)==3U);
 			
 			}
 		
@@ -4790,7 +4790,7 @@ SCENARIO("Information about the representation of code points in UTF-8 is determ
 			
 			THEN("It requires three bytes to represent") {
 			
-				REQUIRE(encoder.Count(cp)==3);
+				REQUIRE(encoder.Count(cp)==3U);
 			
 			}
 		
@@ -4808,7 +4808,7 @@ SCENARIO("Information about the representation of code points in UTF-8 is determ
 			
 			THEN("It requires four bytes to represent") {
 			
-				REQUIRE(encoder.Count(cp)==4);
+				REQUIRE(encoder.Count(cp)==4U);
 			
 			}
 		
@@ -4826,7 +4826,7 @@ SCENARIO("Information about the representation of code points in UTF-8 is determ
 			
 			THEN("It requires four bytes to represent") {
 			
-				REQUIRE(encoder.Count(cp)==4);
+				REQUIRE(encoder.Count(cp)==4U);
 			
 			}
 		
@@ -4844,7 +4844,7 @@ SCENARIO("Information about the representation of code points in UTF-8 is determ
 			
 			THEN("It requires five bytes to represent") {
 			
-				REQUIRE(encoder.Count(cp)==5);
+				REQUIRE(encoder.Count(cp)==5U);
 			
 			}
 		
@@ -4862,7 +4862,7 @@ SCENARIO("Information about the representation of code points in UTF-8 is determ
 			
 			THEN("It requires five bytes to represent") {
 			
-				REQUIRE(encoder.Count(cp)==5);
+				REQUIRE(encoder.Count(cp)==5U);
 			
 			}
 		
@@ -4880,7 +4880,7 @@ SCENARIO("Information about the representation of code points in UTF-8 is determ
 			
 			THEN("It requires six bytes to represent") {
 			
-				REQUIRE(encoder.Count(cp)==6);
+				REQUIRE(encoder.Count(cp)==6U);
 			
 			}
 		
@@ -4898,7 +4898,7 @@ SCENARIO("Information about the representation of code points in UTF-8 is determ
 			
 			THEN("It requires six bytes to represent") {
 			
-				REQUIRE(encoder.Count(cp)==6);
+				REQUIRE(encoder.Count(cp)==6U);
 			
 			}
 		
@@ -4911,7 +4911,7 @@ SCENARIO("Information about the representation of code points in UTF-8 is determ
 			THEN("It cannot be represented") {
 			
 				CHECK(!encoder.CanRepresent(cp));
-				REQUIRE(encoder.Count(cp)==0);
+				REQUIRE(encoder.Count(cp)==0U);
 			
 			}
 		
@@ -4930,7 +4930,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 		
 		THEN("Decoding an empty buffer represented as two null iterators results in the empty string") {
 		
-			REQUIRE(encoder.Decode(nullptr,nullptr).size()==0);
+			REQUIRE(encoder.Decode(nullptr,nullptr).size()==0U);
 		
 		}
 		
@@ -4940,7 +4940,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 			
 			THEN("Attempting to decode the buffer results in the empty string") {
 			
-				REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+				REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0U);
 			
 			}
 		
@@ -4966,7 +4966,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 			THEN("Decoding the buffer recovers the code point") {
 			
 				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded.size()==1U);
 				REQUIRE(decoded[0]==0xE5);
 			
 			}
@@ -4980,7 +4980,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 			THEN("Decoding the buffer recovers the code point") {
 			
 				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded.size()==1U);
 				REQUIRE(decoded[0]==0x200B);
 			
 			}
@@ -4994,7 +4994,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 			THEN("Decoding the buffer recovers the code point") {
 			
 				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded.size()==1U);
 				REQUIRE(decoded[0]==0x1D11E);
 			
 			}
@@ -5018,7 +5018,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				THEN("Attempting to decode the buffer recovers the code point") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]==0x110000);
 				
 				}
@@ -5033,7 +5033,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				THEN("Attempting to decode the buffer results in the replacement") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]==replacement);
 				
 				}
@@ -5046,7 +5046,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				
 				THEN("Attempting to decode the buffer results in the empty string") {
 				
-					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0U);
 				
 				}
 			
@@ -5071,7 +5071,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				THEN("Attempting to decode the buffer recovers the code point") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]==0xFFFFFF);
 				
 				}
@@ -5086,7 +5086,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				THEN("Attempting to decode the buffer results in the replacement") {
 			
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]==replacement);
 					
 				}
@@ -5099,7 +5099,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				
 				THEN("Attempting to decode the buffer results in the empty string") {
 				
-					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0U);
 				
 				}
 			
@@ -5124,7 +5124,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				THEN("Attempting to decode the buffer recovers the code point") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]==0x3FFFFFFF);
 				
 				}
@@ -5139,7 +5139,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				THEN("Attempting to decode the buffer results in the replacement") {
 			
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]==replacement);
 					
 				}
@@ -5152,7 +5152,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				
 				THEN("Attempting to decode the buffer results in the empty string") {
 				
-					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0U);
 				
 				}
 			
@@ -5176,7 +5176,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				
 				THEN("Attempting to decode the buffer results in the empty string") {
 				
-					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0U);
 				
 				}
 			
@@ -5190,7 +5190,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				THEN("Attempting to decode the buffer results in the replacement") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==7);
+					REQUIRE(decoded.size()==7U);
 					CHECK(decoded[0]==replacement);
 					CHECK(decoded[1]==replacement);
 					CHECK(decoded[2]==replacement);
@@ -5221,7 +5221,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				
 				THEN("Attempting to decode the buffer results in the empty string") {
 				
-					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0U);
 				
 				}
 			
@@ -5235,7 +5235,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				THEN("Attempting to decode the buffer results in the replacement") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==8);
+					REQUIRE(decoded.size()==8U);
 					CHECK(decoded[0]==replacement);
 					CHECK(decoded[1]==replacement);
 					CHECK(decoded[2]==replacement);
@@ -5271,7 +5271,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				THEN("Attempting to decode the buffer results in the UTF-16 surrogate") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]==0xDC00);
 				
 				}
@@ -5286,7 +5286,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				THEN("Attempting to decode the buffer results in the replacement") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]==replacement);
 				
 				}
@@ -5299,7 +5299,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				
 				THEN("Attempting to decode the buffer results in the empty string") {
 				
-					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0U);
 				
 				}
 			
@@ -5327,7 +5327,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				THEN("Attempting to decode the buffer results in the UTF-16 surrogate") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]==0xFFFE);
 				
 				}
@@ -5342,7 +5342,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				THEN("Attempting to decode the buffer results in the replacement") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]==replacement);
 				
 				}
@@ -5355,7 +5355,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				
 				THEN("Attempting to decode the buffer results in the empty string") {
 				
-					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0U);
 				
 				}
 			
@@ -5383,7 +5383,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				THEN("Attempting to decode the buffer results in the UTF-16 surrogate") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]==0xFFFF);
 				
 				}
@@ -5398,7 +5398,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				THEN("Attempting to decode the buffer results in the replacement") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]==replacement);
 				
 				}
@@ -5411,7 +5411,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				
 				THEN("Attempting to decode the buffer results in the empty string") {
 				
-					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0U);
 				
 				}
 			
@@ -5436,7 +5436,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				THEN("Attempting to decode the buffer results in everything except the problematic area being decoded") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]=='a');
 				
 				}
@@ -5451,7 +5451,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				THEN("Attempting to decode the buffer results in the invalid sequence being replaced by the replacement") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==2);
+					REQUIRE(decoded.size()==2U);
 					CHECK(decoded[0]==replacement);
 					REQUIRE(decoded[1]=='a');
 				
@@ -5466,7 +5466,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				THEN("Attempting to decode the buffer results in everything except the problematic area being decoded") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]=='a');
 				
 				}
@@ -5492,7 +5492,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				THEN("Attempting to decode the buffer results in the code point being recovered") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]==0x20AC);
 				
 				}
@@ -5507,7 +5507,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				THEN("Attempting to decode the buffer results in the replacement") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]==replacement);
 				
 				}
@@ -5520,7 +5520,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				
 				THEN("Attempting to decode the buffer results in the empty string") {
 				
-					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0U);
 				
 				}
 			
@@ -5547,7 +5547,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				THEN("Attempting to decode the buffer recovers the code point corresponding to the single byte sequence") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]=='a');
 				
 				}
@@ -5565,7 +5565,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				) {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==2);
+					REQUIRE(decoded.size()==2U);
 					CHECK(decoded[0]==replacement);
 					REQUIRE(decoded[1]=='a');
 				
@@ -5580,7 +5580,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				THEN("Attempting to decode the buffer recovers the code point corresponding to the single byte sequence") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]=='a');
 				
 				}
@@ -5607,7 +5607,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				THEN("Attempting to decode the buffer results in the empty string") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==0);
+					REQUIRE(decoded.size()==0U);
 				
 				}
 			
@@ -5621,7 +5621,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				THEN("Attempting to decode the buffer results in the replacement") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					CHECK(decoded[0]==replacement);
 				
 				}
@@ -5635,7 +5635,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				THEN("Attempting to decode the buffer results in the empty string") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==0);
+					REQUIRE(decoded.size()==0U);
 				
 				}
 			
@@ -5650,8 +5650,8 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 			THEN("Decoding the buffer recovers the BOM as one of the code points") {
 			
 				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-				REQUIRE(decoded.size()==2);
-				CHECK(decoded[0]==0xFEFF);
+				REQUIRE(decoded.size()==2U);
+				CHECK(decoded[0]==0xFEFFU);
 				REQUIRE(decoded[1]=='a');
 			
 			}
@@ -5663,7 +5663,7 @@ SCENARIO("UTF-8 strings may be decoded","[utf8]") {
 				THEN("Decoding the buffer does not recover the BOM") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]=='a');
 				
 				}
@@ -5702,9 +5702,9 @@ SCENARIO("Strings may be encoded to UTF-8","[utf8]") {
 			THEN("It may be encoded") {
 			
 				auto encoded=encoder.Encode(s);
-				REQUIRE(encoded.size()==2);
-				CHECK(encoded[0]==0xD0);
-				REQUIRE(encoded[1]==0xBC);
+				REQUIRE(encoded.size()==2U);
+				CHECK(encoded[0]==0xD0U);
+				REQUIRE(encoded[1]==0xBCU);
 			
 			}
 		
@@ -5739,7 +5739,7 @@ SCENARIO("Strings may be encoded to UTF-8","[utf8]") {
 				
 				THEN("Attempting to encode it results in the empty string") {
 				
-					REQUIRE(encoder.Encode(s).size()==0);
+					REQUIRE(encoder.Encode(s).size()==0U);
 				
 				}
 			
@@ -5755,7 +5755,7 @@ SCENARIO("Strings may be encoded to UTF-8","[utf8]") {
 					THEN("Attempting to encode the string results in the replacement") {
 					
 						auto encoded=encoder.Encode(s);
-						REQUIRE(encoded.size()==1);
+						REQUIRE(encoded.size()==1U);
 						REQUIRE(encoded[0]==replacement);
 					
 					}
@@ -5800,7 +5800,7 @@ SCENARIO("Strings may be encoded to UTF-8","[utf8]") {
 					
 					THEN("Attempting to encode the string results in an empty buffer") {
 					
-						REQUIRE(encoder.Encode(s).size()==0);
+						REQUIRE(encoder.Encode(s).size()==0U);
 					
 					}
 				
@@ -5816,7 +5816,7 @@ SCENARIO("Strings may be encoded to UTF-8","[utf8]") {
 						THEN("Attempting to encode the string results in the replacement") {
 						
 							auto encoded=encoder.Encode(s);
-							REQUIRE(encoded.size()==1);
+							REQUIRE(encoded.size()==1U);
 							REQUIRE(encoded[0]==replacement);
 						
 						}
@@ -5844,7 +5844,7 @@ SCENARIO("Strings may be encoded to UTF-8","[utf8]") {
 					
 					THEN("Attempting to encode the string results in an empty buffer") {
 					
-						REQUIRE(encoder.Encode(s).size()==0);
+						REQUIRE(encoder.Encode(s).size()==0U);
 					
 					}
 				
@@ -5864,9 +5864,9 @@ SCENARIO("Strings may be encoded to UTF-8","[utf8]") {
 					
 						auto encoded=encoder.Encode(s);
 						REQUIRE(encoded.size()==(s.Size()+3));
-						CHECK(encoded[0]==0xEF);
-						CHECK(encoded[1]==0xBB);
-						REQUIRE(encoded[2]==0xBF);
+						CHECK(encoded[0]==0xEFU);
+						CHECK(encoded[1]==0xBBU);
+						REQUIRE(encoded[2]==0xBFU);
 					
 					}
 				
@@ -5892,7 +5892,7 @@ SCENARIO("UTF-16 code units are the correct width","[utf16]") {
 	
 		THEN("It is two bytes wide") {
 		
-			REQUIRE(sizeof(UTF16::CodeUnit)==2);
+			REQUIRE(sizeof(UTF16::CodeUnit)==2U);
 		
 		}
 	
@@ -5919,7 +5919,7 @@ SCENARIO("UTF-16 code units are unsigned","[utf16]") {
 		
 		THEN("It reports that its code unit is two bytes wide") {
 		
-			REQUIRE(encoder.Size()==2);
+			REQUIRE(encoder.Size()==2U);
 		
 		}
 	
@@ -5938,9 +5938,9 @@ SCENARIO("The UTF-16 BOM may be obtained from a UTF-16 encoder/decoder","[utf16]
 		
 			std::vector<unsigned char> bom;
 			encoder.BOM().Get(bom,Endianness::Big);
-			REQUIRE(bom.size()==2);
-			CHECK(bom[0]==0xFE);
-			REQUIRE(bom[1]==0xFF);
+			REQUIRE(bom.size()==2U);
+			CHECK(bom[0]==0xFEU);
+			REQUIRE(bom[1]==0xFFU);
 		
 		}
 		
@@ -5948,9 +5948,9 @@ SCENARIO("The UTF-16 BOM may be obtained from a UTF-16 encoder/decoder","[utf16]
 		
 			std::vector<unsigned char> bom;
 			encoder.BOM().Get(bom,Endianness::Little);
-			REQUIRE(bom.size()==2);
-			CHECK(bom[0]==0xFF);
-			REQUIRE(bom[1]==0xFE);
+			REQUIRE(bom.size()==2U);
+			CHECK(bom[0]==0xFFU);
+			REQUIRE(bom[1]==0xFEU);
 		
 		}
 	
@@ -5977,7 +5977,7 @@ SCENARIO("Information about the representation of code points in UTF-16 is deter
 			
 			THEN("It requires one code unit to represent") {
 			
-				REQUIRE(encoder.Count(cp)==1);
+				REQUIRE(encoder.Count(cp)==1U);
 			
 			}
 		
@@ -5995,7 +5995,7 @@ SCENARIO("Information about the representation of code points in UTF-16 is deter
 			
 			THEN("It requires one code unit to represent") {
 			
-				REQUIRE(encoder.Count(cp)==1);
+				REQUIRE(encoder.Count(cp)==1U);
 			
 			}
 		
@@ -6013,7 +6013,7 @@ SCENARIO("Information about the representation of code points in UTF-16 is deter
 			
 			THEN("It requires two code units to represent") {
 			
-				REQUIRE(encoder.Count(cp)==2);
+				REQUIRE(encoder.Count(cp)==2U);
 			
 			}
 		
@@ -6031,7 +6031,7 @@ SCENARIO("Information about the representation of code points in UTF-16 is deter
 			
 			THEN("It requires two code units to represent") {
 			
-				REQUIRE(encoder.Count(cp)==2);
+				REQUIRE(encoder.Count(cp)==2U);
 			
 			}
 		
@@ -6044,7 +6044,7 @@ SCENARIO("Information about the representation of code points in UTF-16 is deter
 			THEN("It cannot be represented") {
 			
 				CHECK(!encoder.CanRepresent(cp));
-				REQUIRE(encoder.Count(cp)==0);
+				REQUIRE(encoder.Count(cp)==0U);
 			
 			}
 		
@@ -6057,7 +6057,7 @@ SCENARIO("Information about the representation of code points in UTF-16 is deter
 			THEN("It cannot be represented") {
 			
 				CHECK(!encoder.CanRepresent(cp));
-				REQUIRE(encoder.Count(cp)==0);
+				REQUIRE(encoder.Count(cp)==0U);
 			
 			}
 		
@@ -6081,7 +6081,7 @@ SCENARIO("UTF-16 strings may be decoded","[utf16]") {
 			THEN("It may be decoded") {
 			
 				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded.size()==1U);
 				REQUIRE(decoded[0]=='a');
 			
 			}
@@ -6119,7 +6119,7 @@ SCENARIO("UTF-16 strings may be decoded","[utf16]") {
 			THEN("It may be decoded, but the endianness is incorrect") {
 			
 				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded.size()==1U);
 				REQUIRE(decoded[0]!='a');
 			
 			}
@@ -6131,7 +6131,7 @@ SCENARIO("UTF-16 strings may be decoded","[utf16]") {
 				THEN("The buffer may be decoded") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]=='a');
 				
 				}
@@ -6147,7 +6147,7 @@ SCENARIO("UTF-16 strings may be decoded","[utf16]") {
 			THEN("It may be decoded") {
 			
 				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded.size()==1U);
 				REQUIRE(decoded[0]=='a');
 			
 			}
@@ -6161,7 +6161,7 @@ SCENARIO("UTF-16 strings may be decoded","[utf16]") {
 			THEN("It may be decoded") {
 			
 				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded.size()==1U);
 				REQUIRE(decoded[0]=='a');
 			
 			}
@@ -6173,7 +6173,7 @@ SCENARIO("UTF-16 strings may be decoded","[utf16]") {
 				THEN("It may be decoded") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]=='a');
 				
 				}
@@ -6187,8 +6187,8 @@ SCENARIO("UTF-16 strings may be decoded","[utf16]") {
 				THEN("It may be decoded, recoving the BOM") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==2);
-					CHECK(decoded[0]==0xFEFF);
+					REQUIRE(decoded.size()==2U);
+					CHECK(decoded[0]==0xFEFFU);
 					REQUIRE(decoded[1]=='a');
 				
 				}
@@ -6215,8 +6215,8 @@ SCENARIO("UTF-16 strings may be decoded","[utf16]") {
 				THEN("Attempting to decode the buffer recovers the code point") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
-					REQUIRE(decoded[0]==0xFFFF);
+					REQUIRE(decoded.size()==1U);
+					REQUIRE(decoded[0]==0xFFFFU);
 				
 				}
 			
@@ -6228,7 +6228,7 @@ SCENARIO("UTF-16 strings may be decoded","[utf16]") {
 				
 				THEN("Attempting to decode the buffer results in the empty string") {
 				
-					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0U);
 				
 				}
 			
@@ -6242,7 +6242,7 @@ SCENARIO("UTF-16 strings may be decoded","[utf16]") {
 				THEN("Attempting to decode the buffer results in the replacement") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]==replacement);
 				
 				}
@@ -6259,8 +6259,8 @@ SCENARIO("UTF-16 strings may be decoded","[utf16]") {
 			THEN("Decoding it recovers the code point") {
 			
 				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-				REQUIRE(decoded.size()==1);
-				REQUIRE(decoded[0]==0x1D11E);
+				REQUIRE(decoded.size()==1U);
+				REQUIRE(decoded[0]==0x1D11EU);
 			
 			}
 		
@@ -6278,8 +6278,8 @@ SCENARIO("UTF-16 strings may be decoded","[utf16]") {
 				THEN("Decoding it recovers the code point") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
-					REQUIRE(decoded[0]==0x1D11E);
+					REQUIRE(decoded.size()==1U);
+					REQUIRE(decoded[0]==0x1D11EU);
 				
 				}
 			
@@ -6303,7 +6303,7 @@ SCENARIO("UTF-16 strings may be decoded","[utf16]") {
 				
 				THEN("Attempting to decode the buffer results in the empty string") {
 				
-					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0U);
 				
 				}
 			
@@ -6315,7 +6315,7 @@ SCENARIO("UTF-16 strings may be decoded","[utf16]") {
 				
 				THEN("Attempting to decode the buffer results in the empty string") {
 				
-					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0U);
 				
 				}
 			
@@ -6329,7 +6329,7 @@ SCENARIO("UTF-16 strings may be decoded","[utf16]") {
 				THEN("Attempting to decode the buffer results in the replacement") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]==replacement);
 				
 				}
@@ -6355,7 +6355,7 @@ SCENARIO("UTF-16 strings may be decoded","[utf16]") {
 				THEN("Attempting to decode the buffer recovers the code point") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]=='a');
 				
 				}
@@ -6369,7 +6369,7 @@ SCENARIO("UTF-16 strings may be decoded","[utf16]") {
 				THEN("Attempting to decode the buffer recovers the code point") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]=='a');
 				
 				}
@@ -6384,7 +6384,7 @@ SCENARIO("UTF-16 strings may be decoded","[utf16]") {
 				THEN("Attempting to decode the buffer results in the replacement") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==2);
+					REQUIRE(decoded.size()==2U);
 					CHECK(decoded[0]==replacement);
 					REQUIRE(decoded[1]=='a');
 				
@@ -6410,7 +6410,7 @@ SCENARIO("UTF-16 strings may be decoded","[utf16]") {
 				
 				THEN("Attempting to decode the buffer results in the empty string") {
 				
-					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0U);
 				
 				}
 			
@@ -6422,7 +6422,7 @@ SCENARIO("UTF-16 strings may be decoded","[utf16]") {
 				
 				THEN("Attempting to decode the buffer results in the empty string") {
 				
-					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0U);
 				
 				}
 			
@@ -6436,7 +6436,7 @@ SCENARIO("UTF-16 strings may be decoded","[utf16]") {
 				THEN("Attempting to decode the buffer results in the replacement") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]==replacement);
 				
 				}
@@ -6642,11 +6642,11 @@ SCENARIO("Strings may be encoded to UTF-16","[utf16]") {
 				THEN("Attempting to encode the string retrieves the associated code unit(s)") {
 				
 					auto encoded=encoder.Encode(s);
-					REQUIRE(encoded.size()==4);
-					CHECK(encoded[0]==0xDB);
-					CHECK(encoded[1]==0xFF);
-					CHECK(encoded[2]==0xDF);
-					REQUIRE(encoded[3]==0xFF);
+					REQUIRE(encoded.size()==4U);
+					CHECK(encoded[0]==0xDBU);
+					CHECK(encoded[1]==0xFFU);
+					CHECK(encoded[2]==0xDFU);
+					REQUIRE(encoded[3]==0xFFU);
 				
 				}
 			
@@ -6658,7 +6658,7 @@ SCENARIO("Strings may be encoded to UTF-16","[utf16]") {
 				
 				THEN("Attempting to encode the string results in an empty buffer") {
 				
-					REQUIRE(encoder.Encode(s).size()==0);
+					REQUIRE(encoder.Encode(s).size()==0U);
 				
 				}
 			
@@ -6674,8 +6674,8 @@ SCENARIO("Strings may be encoded to UTF-16","[utf16]") {
 					THEN("Attempting to encode the string results in the code unit(s) for the replacement") {
 					
 						auto encoded=encoder.Encode(s);
-						REQUIRE(encoded.size()==2);
-						CHECK(encoded[0]==0);
+						REQUIRE(encoded.size()==2U);
+						CHECK(encoded[0]==0U);
 						REQUIRE(encoded[1]=='?');
 					
 					}
@@ -6724,7 +6724,7 @@ SCENARIO("Strings may be encoded to UTF-16","[utf16]") {
 				
 				THEN("Attempting to encode the string results in an empty buffer") {
 				
-					REQUIRE(encoder.Encode(s).size()==0);
+					REQUIRE(encoder.Encode(s).size()==0U);
 				
 				}
 			
@@ -6736,7 +6736,7 @@ SCENARIO("Strings may be encoded to UTF-16","[utf16]") {
 				
 				THEN("Attempting to encode the string results in an empty buffer") {
 				
-					REQUIRE(encoder.Encode(s).size()==0);
+					REQUIRE(encoder.Encode(s).size()==0U);
 				
 				}
 			
@@ -6752,8 +6752,8 @@ SCENARIO("Strings may be encoded to UTF-16","[utf16]") {
 					THEN("Attempting to encode the string results in the code unit(s) for the replacement") {
 					
 						auto encoded=encoder.Encode(s);
-						REQUIRE(encoded.size()==2);
-						CHECK(encoded[0]==0);
+						REQUIRE(encoded.size()==2U);
+						CHECK(encoded[0]==0U);
 						REQUIRE(encoded[1]=='?');
 					
 					}
@@ -6794,7 +6794,7 @@ SCENARIO("UTF-32 code units are the correct width","[utf32]") {
 	
 		THEN("It is four bytes") {
 		
-			REQUIRE(sizeof(UTF32::CodeUnit)==4);
+			REQUIRE(sizeof(UTF32::CodeUnit)==4U);
 		
 		}
 	
@@ -6806,7 +6806,7 @@ SCENARIO("UTF-32 code units are the correct width","[utf32]") {
 		
 		THEN("It reports that its code unit is four bytes wide") {
 		
-			REQUIRE(encoder.Size()==4);
+			REQUIRE(encoder.Size()==4U);
 		
 		}
 	
@@ -6840,11 +6840,11 @@ SCENARIO("The UTF-32 BOM may be obtained from a UTF-32 encoder/decoder","[utf32]
 		
 			std::vector<unsigned char> bom;
 			encoder.BOM().Get(bom,Endianness::Big);
-			REQUIRE(bom.size()==4);
-			CHECK(bom[0]==0);
-			CHECK(bom[1]==0);
-			CHECK(bom[2]==0xFE);
-			CHECK(bom[3]==0xFF);
+			REQUIRE(bom.size()==4U);
+			CHECK(bom[0]==0U);
+			CHECK(bom[1]==0U);
+			CHECK(bom[2]==0xFEU);
+			CHECK(bom[3]==0xFFU);
 		
 		}
 		
@@ -6852,11 +6852,11 @@ SCENARIO("The UTF-32 BOM may be obtained from a UTF-32 encoder/decoder","[utf32]
 		
 			std::vector<unsigned char> bom;
 			encoder.BOM().Get(bom,Endianness::Little);
-			REQUIRE(bom.size()==4);
-			CHECK(bom[0]==0xFF);
-			CHECK(bom[1]==0xFE);
-			CHECK(bom[2]==0);
-			REQUIRE(bom[3]==0);
+			REQUIRE(bom.size()==4U);
+			CHECK(bom[0]==0xFFU);
+			CHECK(bom[1]==0xFEU);
+			CHECK(bom[2]==0U);
+			REQUIRE(bom[3]==0U);
 		
 		}
 	
@@ -6883,7 +6883,7 @@ SCENARIO("Information about the representation of code points in UTF-32 is deter
 			
 			THEN("It requires one code unit to represent") {
 			
-				REQUIRE(encoder.Count(cp)==1);
+				REQUIRE(encoder.Count(cp)==1U);
 			
 			}
 		
@@ -6901,7 +6901,7 @@ SCENARIO("Information about the representation of code points in UTF-32 is deter
 			
 			THEN("It requires one code unit to represent") {
 			
-				REQUIRE(encoder.Count(cp)==1);
+				REQUIRE(encoder.Count(cp)==1U);
 			
 			}
 		
@@ -6919,7 +6919,7 @@ SCENARIO("Information about the representation of code points in UTF-32 is deter
 			
 			THEN("It requires one code unit to represent") {
 			
-				REQUIRE(encoder.Count(cp)==1);
+				REQUIRE(encoder.Count(cp)==1U);
 			
 			}
 		
@@ -6937,7 +6937,7 @@ SCENARIO("Information about the representation of code points in UTF-32 is deter
 			
 			THEN("It requires one code unit to represent") {
 			
-				REQUIRE(encoder.Count(cp)==1);
+				REQUIRE(encoder.Count(cp)==1U);
 			
 			}
 		
@@ -6961,7 +6961,7 @@ SCENARIO("UTF-32 strings may be decoded","[utf32]") {
 			THEN("It may be decoded") {
 			
 				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded.size()==1U);
 				REQUIRE(decoded[0]=='a');
 			
 			}
@@ -7004,7 +7004,7 @@ SCENARIO("UTF-32 strings may be decoded","[utf32]") {
 				encoder.UnicodeStrict.Ignore();
 				
 				auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-				REQUIRE(decoded.size()==1);
+				REQUIRE(decoded.size()==1U);
 				REQUIRE(decoded[0]!='a');
 			
 			}
@@ -7016,7 +7016,7 @@ SCENARIO("UTF-32 strings may be decoded","[utf32]") {
 				THEN("The buffer may be decoded") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]=='a');
 				
 				}
@@ -7043,7 +7043,7 @@ SCENARIO("UTF-32 strings may be decoded","[utf32]") {
 				THEN("Attempting to decode the buffer recovers the code point") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]==0xFFFF);
 				
 				}
@@ -7056,7 +7056,7 @@ SCENARIO("UTF-32 strings may be decoded","[utf32]") {
 				
 				THEN("Attempting to decode the buffer results in the empty string") {
 				
-					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0U);
 				
 				}
 			
@@ -7070,7 +7070,7 @@ SCENARIO("UTF-32 strings may be decoded","[utf32]") {
 				THEN("Attempting to decode the buffer results in the replacement") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]==replacement);
 				
 				}
@@ -7096,7 +7096,7 @@ SCENARIO("UTF-32 strings may be decoded","[utf32]") {
 				
 				THEN("Attempting to decode the buffer results in the empty string") {
 				
-					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0U);
 				
 				}
 			
@@ -7108,7 +7108,7 @@ SCENARIO("UTF-32 strings may be decoded","[utf32]") {
 				
 				THEN("Attempting to decode the buffer results in the empty string") {
 				
-					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0);
+					REQUIRE(encoder.Decode(Begin(buffer),End(buffer)).size()==0U);
 				
 				}
 			
@@ -7122,7 +7122,7 @@ SCENARIO("UTF-32 strings may be decoded","[utf32]") {
 				THEN("Attempting to decode the buffer results in the replacement") {
 				
 					auto decoded=encoder.Decode(Begin(buffer),End(buffer));
-					REQUIRE(decoded.size()==1);
+					REQUIRE(decoded.size()==1U);
 					REQUIRE(decoded[0]==replacement);
 				
 				}
@@ -7252,11 +7252,11 @@ SCENARIO("Strings may be encoded to UTF-32","[utf32]") {
 				THEN("Attempting to encode the string retrieves the associated code unit") {
 				
 					auto encoded=encoder.Encode(s);
-					REQUIRE(encoded.size()==4);
-					CHECK(encoded[0]==0);
-					CHECK(encoded[1]==0x10);
-					CHECK(encoded[2]==0xFF);
-					REQUIRE(encoded[3]==0xFF);
+					REQUIRE(encoded.size()==4U);
+					CHECK(encoded[0]==0U);
+					CHECK(encoded[1]==0x10U);
+					CHECK(encoded[2]==0xFFU);
+					REQUIRE(encoded[3]==0xFFU);
 				
 				}
 			
@@ -7268,7 +7268,7 @@ SCENARIO("Strings may be encoded to UTF-32","[utf32]") {
 				
 				THEN("Attempting to encode the string results in an empty buffer") {
 				
-					REQUIRE(encoder.Encode(s).size()==0);
+					REQUIRE(encoder.Encode(s).size()==0U);
 				
 				}
 			
@@ -7282,10 +7282,10 @@ SCENARIO("Strings may be encoded to UTF-32","[utf32]") {
 				THEN("Attempting to encode the string results in the code unit for the replacement") {
 				
 					auto encoded=encoder.Encode(s);
-					REQUIRE(encoded.size()==4);
-					CHECK(encoded[0]==0);
-					CHECK(encoded[1]==0);
-					CHECK(encoded[2]==0);
+					REQUIRE(encoded.size()==4U);
+					CHECK(encoded[0]==0U);
+					CHECK(encoded[1]==0U);
+					CHECK(encoded[2]==0U);
 					REQUIRE(encoded[3]=='?');
 				
 				}
