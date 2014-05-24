@@ -1735,7 +1735,9 @@ SCENARIO("Unicode strings may be extracted from C++ streams","[iostream]") {
 				CHECK(IsEqual(in1,out1));
 				CHECK(IsEqual(in2,out2));
 				CHECK(IsEqual(in3,out3));
-				REQUIRE(ss.eof());
+				CHECK(ss.eof());
+				CHECK(ss);
+				CHECK(!(ss >> out1));
 			
 			}
 		
@@ -1765,7 +1767,9 @@ SCENARIO("Unicode strings may be extracted from C++ streams","[iostream]") {
 				CHECK(IsEqual(in1,out1));
 				CHECK(IsEqual(in2,out2));
 				CHECK(IsEqual(in3,out3));
-				REQUIRE(ss.eof());
+				CHECK(ss.eof());
+				CHECK(ss);
+				CHECK(!(ss >> out1));
 			
 			}
 		
@@ -1795,7 +1799,9 @@ SCENARIO("Unicode strings may be extracted from C++ streams","[iostream]") {
 				CHECK(IsEqual(in1,out1));
 				CHECK(IsEqual(in2,out2));
 				CHECK(IsEqual(in3,out3));
-				REQUIRE(ss.eof());
+				CHECK(ss.eof());
+				CHECK(ss);
+				CHECK(!(ss >> out1));
 			
 			}
 		
@@ -1828,7 +1834,9 @@ SCENARIO("Unicode strings may be extracted from C++ streams","[iostream]") {
 				ss >> s;
 				
 				CHECK(s.Size()==0U);
-				REQUIRE(ss.eof());
+				CHECK(ss.eof());
+				CHECK(ss);
+				CHECK(!(ss >> s));
 		
 			}
 			

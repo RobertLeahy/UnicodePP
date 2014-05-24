@@ -94,14 +94,21 @@ namespace Unicode {
 			
 			bool fetch (std::basic_istream<CharT,Traits> & is) {
 			
-				typename std::basic_istream<CharT,Traits>::char_type c;
+				CharT c;
 				is.get(c);
 				
-				if (is.eof()) return false;
+				if (!is) {
 				
-				if (!is) raise(is);
+					if (is.bad()) raise(is);
+					
+					is.clear();
+					is.setstate(std::ios_base::eofbit);
 				
-				buffer.push_back(static_cast<CharT>(c));
+					return false;
+				
+				}
+				
+				buffer.push_back(c);
 				
 				return true;
 			
@@ -118,6 +125,36 @@ namespace Unicode {
 				
 				return c=='\n';
 			
+			}
+			
+			
+			std::optional<CodePoint> get_code_point (std::basic_istream<CharT,Traits> & is) {
+			
+				buffer.clear();
+				
+				//	Loop until end of stream or a code point
+				//	is extracted
+				while (fetch(is)) {
+				
+					const void * begin=Begin(buffer);
+					auto cp=encoder->Stream(
+						begin,
+						End(buffer),
+						EndianEncoding::Detect()
+					);
+					
+					if (cp) return cp;
+				
+				}
+				
+				//	If we get down here, end of stream was
+				//	encountered, which means if the underlying
+				//	stream was well-formed, there should be
+				//	nothing in our buffer
+				if (buffer.size()!=0) encoder->UnexpectedEnd.Throw(nullptr);
+				
+				return std::nullopt;
+				
 			}
 			
 			
@@ -148,42 +185,35 @@ namespace Unicode {
 			
 			std::optional<CodePoint> GetCodePoint (std::basic_istream<CharT,Traits> & is) {
 			
-				buffer.clear();
+				if (is.eof()) {
 				
-				//	Loop until end of stream or a code point
-				//	is extracted
-				while (fetch(is)) {
-				
-					const void * begin=Begin(buffer);
-					auto cp=encoder->Stream(
-						begin,
-						End(buffer),
-						EndianEncoding::Detect()
-					);
+					is.setstate(std::ios_base::failbit);
 					
-					if (cp) return cp;
+					return std::nullopt;
 				
 				}
-				
-				//	If we get down here, end of stream was
-				//	encountered, which means if the underlying
-				//	stream was well-formed, there should be
-				//	nothing in our buffer
-				if (buffer.size()!=0) encoder->UnexpectedEnd.Throw(nullptr);
-				
-				return std::nullopt;
+			
+				return get_code_point(is);
 			
 			}
 		
 		
 			String GetLine (std::basic_istream<CharT,Traits> & is) {
+			
+				if (is.eof()) {
+				
+					is.setstate(std::ios_base::failbit);
+					
+					return String{};
+				
+				}
 				
 				//	The string that we'll be returning
 				std::vector<CodePoint> cps;
 				
 				for (;;) {
 				
-					auto cp=GetCodePoint(is);
+					auto cp=get_code_point(is);
 					
 					//	If the end of stream is reached, that's
 					//	the end of this line
